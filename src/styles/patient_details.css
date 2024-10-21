@@ -1,0 +1,16 @@
+.patientDetails{
+    flex-direction: column;
+    gap: 2%;
+}
+
+.patientDetails p{
+    font-weight: 400;
+    font-size: 13px;
+    color: #00743C;
+}
+
+.patientDetails h2{
+    font-weight: 600;
+    font-size: 20px;
+    color: #04394F;
+}

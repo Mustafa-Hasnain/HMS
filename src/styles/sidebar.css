@@ -1,0 +1,46 @@
+/* Sidebar button default styles */
+.sidebar-button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    margin: 8px 0;
+    text-align: left;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Icon default style */
+  .sidebar-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    color: black;
+    transition: color 0.3s ease;
+    margin-bottom: -5px;
+  }
+  
+  /* Active button styles */
+  .sidebar-button.active {
+    background-color: #00743C;
+    color: white;
+  }
+  
+  /* Active icon styles */
+  .sidebar-button.active .sidebar-icon {
+    color: white;
+  }
+  
+  /* Hover effect for button and icon */
+  .sidebar-button:hover {
+    background-color: #00743C;
+    color: white;
+  }
+  
+  .sidebar-button:hover .sidebar-icon {
+    color: white;
+  }
+  

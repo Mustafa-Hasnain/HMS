@@ -1,0 +1,83 @@
+// src/NavbarHeader.js
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Form, FormControl, InputGroup } from 'react-bootstrap';
+import { FaBars, FaBell, FaSearch } from 'react-icons/fa';
+
+function NavbarHeader() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const today = new Date();
+    setCurrentDate(today.toLocaleString()); // Format the date and time as needed
+
+    if (location.pathname.startsWith('/doctor/')) {
+      const doctorData = JSON.parse(localStorage.getItem('doctor'));
+      if (doctorData) {
+        setWelcomeMessage(`Welcome Dr. ${doctorData.firstName} ${doctorData.lastName}!`);
+      } else {
+        navigate('/'); // Navigate to home if no doctor data is found
+      }
+    } else if (location.pathname.startsWith('/receptionist/')) {
+      setWelcomeMessage('Welcome Admin!');
+    } else {
+      setWelcomeMessage(''); // Clear message for other paths
+    }
+  }, [location.pathname, navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('doctor'); // Clear doctor data from localStorage
+    navigate('/'); // Navigate to home
+  };
+
+  return (
+    <div className="bg-white text-white p-4 flex items-center justify-between fixed top-0 left-64 right-0 z-40 border-b border-[rgba(4, 57, 79, 0.3)]">
+      <div className='flex flex-row w-[100%] justify-between '>
+
+        <Form className="d-none d-md-flex mx-4 w-[40%]">
+          <InputGroup className='relative'>
+            <FormControl
+              type="search"
+              placeholder="Search"
+              className="border-0 focus:!border-0 shadow-inner !bg-black !bg-opacity-20 !rounded-md"
+            />
+            <InputGroup.Text className=" !bg-transparent border-0 absolute right-0 top-2 z-50">
+              <FaSearch />
+            </InputGroup.Text>
+          </InputGroup>
+        </Form>
+
+        {/* Right section: Notification and Profile */}
+        <div className="d-flex align-items-center gap-3">
+          <div className='flex gap-2 -mb-2'>
+            <div className="text-sm font-bold text-black">{welcomeMessage}</div>
+            <div className='text-black'>|</div>
+            {currentDate && <div className="text-sm text-gray-600 font-semibold">{currentDate}</div>}
+          </div>
+          {/* Notification Icon */}
+          {/* <Button variant="link" className="text-white me-3 p-0">
+            <FaBell size={20} />
+          </Button> */}
+
+          <button className="bg-red-600 px-4 py-2 rounded hover:bg-red-700" onClick={handleLogout}>
+            Logout
+          </button>
+
+          {/* Hamburger button for mobile */}
+          <Button
+            variant="outline-light"
+            className="d-md-none ms-3"
+          // onClick={toggleSidebar}
+          >
+            <FaBars />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default NavbarHeader;
