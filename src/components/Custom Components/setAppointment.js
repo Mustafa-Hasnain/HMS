@@ -129,15 +129,32 @@ const SetAppointment = () => {
         setShowNewPatient(false);
     };
 
+    const convertTo24HourFormat = (time) => {
+        const [timePart, period] = time.split(' ');
+        let [hours, minutes] = timePart.split(':').map(Number);
+
+        if (period === 'PM' && hours < 12) {
+            hours += 12; // Convert PM hours to 24-hour format
+        } else if (period === 'AM' && hours === 12) {
+            hours = 0; // Convert 12 AM to 0 hours
+        }
+
+        return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}`; // Return in HH:mm format
+    };
+
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
+        const appointmentTimeIn24hr = convertTo24HourFormat(appointmentData.appointmentTime);
+
+
         const payload = {
             doctorID: appointmentData.doctorID,
             patientID: selectedPatient.patientID,
-            appointmentDate: new Date(`${appointmentData.appointmentDate}T${appointmentData.appointmentTime}`).toISOString(),
-            appointmentTime: appointmentData.appointmentTime
+            appointmentDate: appointmentData.appointmentDate,
+            appointmentTime: appointmentTimeIn24hr
         };
 
         if (!isValidAppointment(payload)) {
@@ -178,15 +195,15 @@ const SetAppointment = () => {
 
         if (!selectedDoctor) return false;
 
-        const isValidDate = selectedDoctor.schedules.some(schedule => {
-            const day = date.toLocaleDateString('en-US', { weekday: 'long' });
-            return schedule.dayOfWeek === day && isWithinTimeSlot(time, schedule.startTime, schedule.endTime, schedule.slotDuration);
-        });
+        // const isValidDate = selectedDoctor.schedules.some(schedule => {
+        //     const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+        //     return schedule.dayOfWeek === day && isWithinTimeSlot(time, schedule.startTime, schedule.endTime, schedule.slotDuration);
+        // });
 
-        if (!isValidDate) {
-            setErrorMessage("The selected date and time are not within the doctor's available schedule.");
-            return false;
-        }
+        // if (!isValidDate) {
+        //     setErrorMessage("The selected date and time are not within the doctor's available schedule.");
+        //     return false;
+        // }
 
         return true;
     };
@@ -207,7 +224,7 @@ const SetAppointment = () => {
     };
 
     const handleDoctorChange = (doctor) => {
-        console.log("Doctor Change: ",doctor);
+        console.log("Doctor Change: ", doctor);
         const selectedDoctorID = parseInt(doctor.doctorID, 10); // Convert doctorID to an integer
         setAppointmentData(prev => ({
             ...prev,
@@ -293,6 +310,53 @@ const SetAppointment = () => {
 
     const handleCloseScheduleModal = () => {
         setShowScheduleModal(false);
+    };
+
+    const getAvailableTimeSlots = () => {
+        if (!selectedDoctor || !appointmentData.appointmentDate) return [];
+
+        const appointmentDate = new Date(appointmentData.appointmentDate);
+        const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+        const selectedDaySchedule = selectedDoctor.schedules.find(schedule => schedule.dayOfWeek === dayOfWeek);
+        if (!selectedDaySchedule) return [];
+
+        const { startTime, endTime, slotDuration } = selectedDaySchedule;
+        const start = new Date(appointmentDate);
+        const end = new Date(appointmentDate);
+
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+        start.setHours(startHours, startMinutes, 0);
+        end.setHours(endHours, endMinutes, 0);
+
+        const availableSlots = [];
+        const bookedTimes = appointments
+            .filter(appointment => new Date(appointment.appointmentDate).toDateString() === appointmentDate.toDateString())
+            .map(appointment => appointment.appointmentTime);
+
+        for (let time = start; time < end; time.setMinutes(time.getMinutes() + slotDuration)) {
+            const formattedStart = time.toTimeString().slice(0, 5); // "HH:mm"
+            const nextTime = new Date(time);
+            nextTime.setMinutes(nextTime.getMinutes() + slotDuration);
+            const formattedEnd = nextTime.toTimeString().slice(0, 5); // "HH:mm"
+
+            // Check if the time slot is already booked
+            if (!bookedTimes.includes(formattedStart)) {
+                // Push the formatted slot with AM/PM
+                availableSlots.push(`${formatTime_2(formattedStart)} - ${formatTime_2(formattedEnd)}`);
+            }
+        }
+
+        return availableSlots;
+    };
+
+    const formatTime_2 = (time) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12; // Convert 0 to 12
+        return `${formattedHours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
     };
 
     return (
@@ -474,7 +538,7 @@ const SetAppointment = () => {
                                             )}
                                         </div>
 
-                                        <Form.Group controlId="appointmentTime">
+                                        {/* <Form.Group controlId="appointmentTime">
                                             <Form.Label>Select Appointment Time</Form.Label>
                                             <Form.Control
                                                 type="time"
@@ -489,6 +553,26 @@ const SetAppointment = () => {
                                                     Available Time: {startTime} to {endTime}
                                                 </Form.Text>
                                             )}
+                                        </Form.Group> */}
+
+                                        <Form.Group controlId="formAppointmentTime">
+                                            <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
+                                            <Form.Control
+                                                as="select"
+                                                value={appointmentData.appointmentTime}
+                                                onChange={(e) => setAppointmentData(prev => ({
+                                                    ...prev,
+                                                    appointmentTime: e.target.value // Directly update appointmentTime
+                                                }))}
+                                                disabled={!selectedDoctor || !appointmentData.appointmentDate}
+                                                className='!border-[#04394F]'
+                                            >
+                                                <option value="">Select Appointment Time</option>
+                                                {getAvailableTimeSlots().map((slot, index) => (
+                                                    <option key={index} value={slot.split(' - ')[0]}>{slot}</option>
+                                                ))}
+                                            </Form.Control>
+
                                         </Form.Group>
 
                                         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
@@ -507,68 +591,68 @@ const SetAppointment = () => {
                         <Card>
                             <Card.Header>Upcoming Doctor's Appointments</Card.Header>
                             <Card.Body>
-                                    <ListGroup>
-                                        {appointments.length > 0 ? (
-                                            appointments.map((appt, index) => {
-                                                // Construct a valid appointment date and time
-                                                const appointmentDateTime = new Date(appt.appointmentDate);
+                                <ListGroup>
+                                    {appointments.length > 0 ? (
+                                        appointments.map((appt, index) => {
+                                            // Construct a valid appointment date and time
+                                            const appointmentDateTime = new Date(appt.appointmentDate);
 
-                                                // Check if the date is valid before formatting
-                                                if (isNaN(appointmentDateTime.getTime())) {
-                                                    return <ListGroup.Item key={index}>Invalid date</ListGroup.Item>;
-                                                }
+                                            // Check if the date is valid before formatting
+                                            if (isNaN(appointmentDateTime.getTime())) {
+                                                return <ListGroup.Item key={index}>Invalid date</ListGroup.Item>;
+                                            }
 
-                                                // Find the doctor's schedule that matches the day of the appointment
-                                                const doctorSchedule = selectedDoctor.schedules.find(
-                                                    schedule => schedule.dayOfWeek === appointmentDateTime.toLocaleDateString('en-US', { weekday: 'long' })
-                                                );
+                                            // Find the doctor's schedule that matches the day of the appointment
+                                            const doctorSchedule = selectedDoctor.schedules.find(
+                                                schedule => schedule.dayOfWeek === appointmentDateTime.toLocaleDateString('en-US', { weekday: 'long' })
+                                            );
 
-                                                if (!doctorSchedule) {
-                                                    return <ListGroup.Item key={index}>No matching schedule found for this appointment.</ListGroup.Item>;
-                                                }
+                                            if (!doctorSchedule) {
+                                                return <ListGroup.Item key={index}>No matching schedule found for this appointment.</ListGroup.Item>;
+                                            }
 
-                                                // Formatting the appointment start time
-                                                const formattedStartTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`)
-                                                    .toLocaleTimeString('en-US', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                        hour12: true
-                                                    });
-
-                                                // Calculating the end time based on the slot duration
-                                                const startTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`);
-                                                const endTime = new Date(startTime.getTime() + doctorSchedule.slotDuration * 60000); // Add slot duration in minutes
-
-                                                const formattedEndTime = endTime.toLocaleTimeString('en-US', {
+                                            // Formatting the appointment start time
+                                            const formattedStartTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`)
+                                                .toLocaleTimeString('en-US', {
                                                     hour: '2-digit',
                                                     minute: '2-digit',
                                                     hour12: true
                                                 });
 
-                                                // Formatting the date
-                                                const formattedDate = appointmentDateTime.toLocaleDateString('en-US', {
-                                                    day: '2-digit',
-                                                    month: 'long',
-                                                    weekday: 'long',
-                                                });
+                                            // Calculating the end time based on the slot duration
+                                            const startTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`);
+                                            const endTime = new Date(startTime.getTime() + doctorSchedule.slotDuration * 60000); // Add slot duration in minutes
 
-                                                return (
-                                                    <ListGroup.Item key={index}>
-                                                        <strong>{formattedDate}</strong>: {formattedStartTime} - {formattedEndTime}
-                                                        <div>
-                                                            <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
-                                                        </div>
-                                                        <div>
-                                                            <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
-                                                        </div>
-                                                    </ListGroup.Item>
-                                                );
-                                            })
-                                        ) : (
-                                            <ListGroup.Item>No upcoming appointments found.</ListGroup.Item>
-                                        )}
-                                    </ListGroup>
-                                </Card.Body>
+                                            const formattedEndTime = endTime.toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            });
+
+                                            // Formatting the date
+                                            const formattedDate = appointmentDateTime.toLocaleDateString('en-US', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                weekday: 'long',
+                                            });
+
+                                            return (
+                                                <ListGroup.Item key={index}>
+                                                    <strong>{formattedDate}</strong>: {formattedStartTime} - {formattedEndTime}
+                                                    <div>
+                                                        <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
+                                                    </div>
+                                                    <div>
+                                                        <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
+                                                    </div>
+                                                </ListGroup.Item>
+                                            );
+                                        })
+                                    ) : (
+                                        <ListGroup.Item>No upcoming appointments found.</ListGroup.Item>
+                                    )}
+                                </ListGroup>
+                            </Card.Body>
                         </Card>
                     </Col>
                 )}

@@ -8,16 +8,25 @@ import 'tailwindcss/tailwind.css';
 function AddDoctor() {
     const [schedules, setSchedules] = useState([{ dayOfWeek: '', startTime: '', endTime: '', slotDuration: '' }]);
     const [loading, setLoading] = useState(false);
+    const [specialty, setSpecialty] = useState(""); // State to track specialty selection
+
 
     // Refs for form inputs
     const firstNameRef = useRef(null);
     const lastNameRef = useRef(null);
     const specialtyRef = useRef(null);
+    const otherSpecialtyRef = useRef(null);
     const emailRef = useRef(null);
     const mobileNumberRef = useRef(null);
     const availabilityRef = useRef(null);
     const consultationFeeRef = useRef(null);
     const joinedDateRef = useRef(null);
+
+    // Handle specialty selection change
+    const handleSpecialtyChange = (e) => {
+        const selectedValue = e.target.value;
+        setSpecialty(selectedValue);
+    };
 
     const navigate = useNavigate();
 
@@ -213,17 +222,33 @@ function AddDoctor() {
                             <Col md={6}>
                                 <Form.Group controlId="formSpecialty">
                                     <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Specialty</Form.Label>
-                                    <Form.Control
-                                        as="select"
-                                        ref={specialtyRef}
-                                        className="!border-[#04394F]  rounded-md"
-                                    >
-                                        <option value="">Select Specialty</option>
-                                        <option value="Orthopedist">Orthopedist</option>
-                                        <option value="Cardiologist">Cardiologist</option>
-                                        <option value="Dermatologist">Dermatologist</option>
-                                        <option value="Neurologist">Neurologist</option>
-                                    </Form.Control>
+                                    {/* Conditionally render either the select box or the input based on the specialty state */}
+                                    {specialty !== "Others" ? (
+                                        <Form.Control
+                                            as="select"
+                                            ref={specialtyRef}
+                                            value={specialty}
+                                            onChange={handleSpecialtyChange}
+                                            className="!border-[#04394F] rounded-md"
+                                        >
+                                            <option value="">Select Specialty</option>
+                                            <option value="Podiatrist">Podiatrist</option>
+                                            <option value="Aesthetics">Aesthetics</option>
+                                            <option value="Dermatologist">Dermatologist</option>
+                                            <option value="General practitioner">General practitioner</option>
+                                            <option value="Orthopedist">Orthopedist</option>
+                                            <option value="Cardiologist">Cardiologist</option>
+                                            <option value="Neurologist">Neurologist</option>
+                                            <option value="Others">Others</option>
+                                        </Form.Control>
+                                    ) : (
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter specialty"
+                                            ref={specialtyRef}
+                                            className="!border-[#04394F] rounded-md"
+                                        />
+                                    )}
                                 </Form.Group>
                             </Col>
                             <Col md={6}>

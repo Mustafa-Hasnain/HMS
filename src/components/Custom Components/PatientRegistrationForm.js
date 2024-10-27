@@ -33,7 +33,7 @@ const RegisterPatient = () => {
             const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
             setDoctors(response.data);
 
-            console.log("Doctors: ",response.data);
+            console.log("Doctors: ", response.data);
 
             // Check if doctor exists in localStorage
             const doctorData = JSON.parse(localStorage.getItem('doctor'));
@@ -99,6 +99,7 @@ const RegisterPatient = () => {
             FirstName: '',
             MobileNumber: '',
             Gender: '',
+            DateOfBirth: null,
             MedicalHistory: ''
         },
         appointment: {
@@ -119,6 +120,7 @@ const RegisterPatient = () => {
         try {
             const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
+            console.log("Appointments: ", data)
             setAppointments(data);
         } catch (error) {
             console.error('Error fetching appointments:', error);
@@ -141,12 +143,13 @@ const RegisterPatient = () => {
         if (!appointmentData.patient.MobileNumber) errors.MobileNumber = 'Mobile Number is required';
         if (!appointmentData.patient.Gender) errors.Gender = 'Please select the Gender';
         if (!selectedDoctor) errors.DoctorID = 'Please select a doctor';
+        if (!appointmentData.patient.DateOfBirth) errors.DateOfBirth = 'Date of Birth is required';
         if (!appointmentData.appointment.AppointmentDate) errors.AppointmentDate = 'Appointment Date is required';
         if (!appointmentData.appointment.AppointmentTime) errors.AppointmentTime = 'Appointment Time is required';
 
-        if (!isTimeSlotAvailable()) {
-            errors.AppointmentTime = 'Selected time slot is unavailable. Please choose a different time.';
-        }
+        // if (!isTimeSlotAvailable()) {
+        //     errors.AppointmentTime = 'Selected time slot is unavailable. Please choose a different time.';
+        // }
 
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
@@ -209,6 +212,19 @@ const RegisterPatient = () => {
         // fetchDoctors();
     };
 
+    const convertTo24HourFormat = (time) => {
+        const [timePart, period] = time.split(' ');
+        let [hours, minutes] = timePart.split(':').map(Number);
+    
+        if (period === 'PM' && hours < 12) {
+            hours += 12; // Convert PM hours to 24-hour format
+        } else if (period === 'AM' && hours === 12) {
+            hours = 0; // Convert 12 AM to 0 hours
+        }
+    
+        return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}`; // Return in HH:mm format
+    };
+
 
 
     const handleFormSubmit = async (e) => {
@@ -219,12 +235,22 @@ const RegisterPatient = () => {
         setToastMessage('');
 
         try {
+            const appointmentTimeIn24hr = convertTo24HourFormat(appointmentData.appointment.AppointmentTime);
+
+            const dataToSubmit = {
+                ...appointmentData,
+                appointment: {
+                    ...appointmentData.appointment,
+                    AppointmentTime: appointmentTimeIn24hr, // Use 24-hour format here
+                }
+            };
+
             const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient-and-schedule', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(appointmentData),
+                body: JSON.stringify(dataToSubmit),
             });
 
             if (!response.ok) {
@@ -247,6 +273,7 @@ const RegisterPatient = () => {
                         FirstName: '',
                         MobileNumber: '',
                         Gender: '',
+                        DateOfBirth: null,
                         MedicalHistory: ''
                     },
                     appointment: {
@@ -335,6 +362,60 @@ const RegisterPatient = () => {
         }));
     };
 
+    const handleDateOfBirthChange = (date) => {
+        setAppointmentData(prev => ({
+            ...prev,
+            patient: { ...prev.patient, DateOfBirth: date }
+        }));
+    };
+
+    const getAvailableTimeSlots = () => {
+        if (!selectedDoctor || !appointmentData.appointment.AppointmentDate) return [];
+
+        const appointmentDate = new Date(appointmentData.appointment.AppointmentDate);
+        const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+        const selectedDaySchedule = selectedDoctor.schedules.find(schedule => schedule.dayOfWeek === dayOfWeek);
+        if (!selectedDaySchedule) return [];
+
+        const { startTime, endTime, slotDuration } = selectedDaySchedule;
+        const start = new Date(appointmentDate);
+        const end = new Date(appointmentDate);
+
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+        start.setHours(startHours, startMinutes, 0);
+        end.setHours(endHours, endMinutes, 0);
+
+        const availableSlots = [];
+        const bookedTimes = appointments
+            .filter(appointment => new Date(appointment.appointmentDate).toDateString() === appointmentDate.toDateString())
+            .map(appointment => appointment.appointmentTime);
+
+        for (let time = start; time < end; time.setMinutes(time.getMinutes() + slotDuration)) {
+            const formattedStart = time.toTimeString().slice(0, 5); // "HH:mm"
+            const nextTime = new Date(time);
+            nextTime.setMinutes(nextTime.getMinutes() + slotDuration);
+            const formattedEnd = nextTime.toTimeString().slice(0, 5); // "HH:mm"
+
+            // Check if the time slot is already booked
+            if (!bookedTimes.includes(formattedStart)) {
+                // Push the formatted slot with AM/PM
+                availableSlots.push(`${formatTime_2(formattedStart)} - ${formatTime_2(formattedEnd)}`);
+            }
+        }
+
+        return availableSlots;
+    };
+
+    const formatTime_2 = (time) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12; // Convert 0 to 12
+        return `${formattedHours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
+    };
+
 
     return (
         <div>
@@ -353,7 +434,7 @@ const RegisterPatient = () => {
                 <Form onSubmit={(e) => e.preventDefault()} className="space-y-4 w-[450px]">
                     {/* First Name */}
                     <Form.Group controlId="formFirstName">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">First Name</Form.Label>
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Name</Form.Label>
                         <Form.Control
                             type="text"
                             value={appointmentData.patient.FirstName}
@@ -438,9 +519,29 @@ const RegisterPatient = () => {
                         </Form.Control.Feedback>
                     </Form.Group>
 
+                    <Form.Group controlId="formDateOfBirth" className="flex flex-col">
+                        <Form.Label>Date of Birth</Form.Label>
+                        <DatePicker
+                            selected={appointmentData.patient.DateOfBirth}
+                            onChange={handleDateOfBirthChange}
+                            dateFormat="dd-MM-yyyy"
+                            placeholderText="Select Date of Birth"
+                            showYearDropdown
+                            showMonthDropdown
+                            dropdownMode="select"  // Enables dropdowns for month and year
+                            autoComplete="on"      // Enables autocomplete on typing
+                            className="form-control !border-[#04394F] rounded-md"
+                        />
+                        {validationErrors.DateOfBirth && (
+                            <div className="text-red-500 text-sm mt-1">
+                                {validationErrors.DateOfBirth}
+                            </div>
+                        )}
+                    </Form.Group>
+
                     {/* Medical History */}
                     <Form.Group controlId="formMedicalHistory">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Medical History</Form.Label>
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Medical History/Allergies</Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={3}
@@ -473,7 +574,7 @@ const RegisterPatient = () => {
                                 <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Select Doctor</Form.Label>
                                 <Form.Control
                                     as="select"
-                                    value={selectedDoctor? selectedDoctor.doctorID : ''}
+                                    value={selectedDoctor ? selectedDoctor.doctorID : ''}
                                     // onChange={(e) => handleDoctorSelect(doctors.find(d => d.doctorID === parseInt(e.target.value)))}
                                     onChange={(e) => handleDoctorChange(doctors.find(d => d.doctorID === parseInt(e.target.value)))}
                                     isInvalid={!!validationErrors.DoctorID}
@@ -546,7 +647,7 @@ const RegisterPatient = () => {
                                 )}
                             </div>
 
-                            <Form.Group controlId="formAppointmentTime">
+                            {/* <Form.Group controlId="formAppointmentTime">
                                 <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
                                 <Form.Control
                                     type="time"
@@ -567,6 +668,29 @@ const RegisterPatient = () => {
                                         Available Time: {startTime} - {endTime}
                                     </div>
                                 )}
+                            </Form.Group> */}
+
+                            <Form.Group controlId="formAppointmentTime">
+                                <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    value={appointmentData.appointment.AppointmentTime}
+                                    onChange={(e) => setAppointmentData(prev => ({
+                                        ...prev,
+                                        appointment: { ...prev.appointment, AppointmentTime: e.target.value }
+                                    }))}
+                                    isInvalid={!!validationErrors.AppointmentTime}
+                                    disabled={!selectedDoctor || !appointmentData.appointment.AppointmentDate}
+                                    className='!border-[#04394F]'
+                                >
+                                    <option value="">Select Appointment Time</option>
+                                    {getAvailableTimeSlots().map((slot, index) => (
+                                        <option key={index} value={slot.split(' - ')[0]}>{slot}</option>
+                                    ))}
+                                </Form.Control>
+                                <Form.Control.Feedback type="invalid">
+                                    {validationErrors.AppointmentTime}
+                                </Form.Control.Feedback>
                             </Form.Group>
 
                             <Button

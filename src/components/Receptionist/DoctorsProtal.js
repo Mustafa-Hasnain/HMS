@@ -114,7 +114,18 @@ const DoctorPortal = () => {
                                 href="#"
                                 className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
                               >
-                                View Details
+                                Remove Doctor
+                              </a>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <a
+                                onClick={()=>(navigate(`/receptionist/edit-doctor/${doctor.doctorID}/`))}
+                                href="#"
+                                className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
+                              >
+                                Edit Doctor
                               </a>
                             )}
                           </Menu.Item>

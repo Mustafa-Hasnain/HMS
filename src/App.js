@@ -26,6 +26,7 @@ import PatientDetails from './components/Receptionist/patient_details';
 import DoctorDashboard from './components/Doctor/Dashboard';
 import DoctorSchedule from './components/Doctor/DoctorSchedules';
 import DoctorRevenue from './components/Doctor/Revenue';
+import EditDoctorForm from './components/Custom Components/EditDoctor';
 
 
 
@@ -61,6 +62,7 @@ function App() {
             <Route path="dashboard" element={<ReceptionistDashboardLayout />} />
             <Route path='overview' element={<Dashboard />} />
             <Route path="add-doctor" element={<AddDoctor />} />
+            <Route path="edit-doctor/:doctor_id" element={<EditDoctorForm />} />
             <Route path="set-appointment" element={<SetAppointment />} />
             <Route path="patients-portal" element={<PatientPortal />} />
             <Route path="patients-details/:patient_id" element={<PatientDetails />} />
