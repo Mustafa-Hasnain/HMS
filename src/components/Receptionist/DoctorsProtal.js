@@ -24,7 +24,7 @@ const DoctorPortal = () => {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+      const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
       setDoctors(response.data);
       setLoading(false); // Stop loading once data is fetched
     } catch (error) {
@@ -53,7 +53,7 @@ const DoctorPortal = () => {
   const setDoctorUnavailable = async (doctorId) => {
     setShowModal(false)
     try {
-      const response = await fetch(`http://localhost:5037/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
+      const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

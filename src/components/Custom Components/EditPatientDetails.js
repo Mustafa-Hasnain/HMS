@@ -28,7 +28,7 @@ const EditPatientDetails = () => {
         const fetchPatientData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:5037/api/Receptionist/get-patient-details/${patient_id}`);
+                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/get-patient-details/${patient_id}`);
                 const patientData = response.data;
 
                 if (patientData) {
@@ -94,7 +94,7 @@ const EditPatientDetails = () => {
 
         try {
             setLoading(true);
-            await axios.put(`http://localhost:5037/api/Receptionist/patient/${patient_id}`, updatedPatient);
+            await axios.put(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patient/${patient_id}`, updatedPatient);
             toast.success("Patient details updated successfully");
             navigate(`/receptionist/patients-details/${patient_id}/`);
         } catch (error) {

@@ -35,7 +35,7 @@ const UpcomingDoctorAppointments = () => {
     const fetchDoctors = async () => {
         try {
             setLoadingDoctors(true);
-            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
             setDoctors(response.data);
             setFilteredDoctors(response.data); // Initially, display all doctors
         } catch (error) {
@@ -48,7 +48,7 @@ const UpcomingDoctorAppointments = () => {
     const fetchUpcomingAppointments = async () => {
         try {
             setLoadingAppointments(true);
-            const response = await axios.get('http://localhost:5037/api/Receptionist/upcoming-appointments');
+            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments');
             console.log(response.data);
             setAppointments(response.data);
         } catch (error) {
@@ -93,7 +93,7 @@ const UpcomingDoctorAppointments = () => {
     const markAsPaid = async (invoiceID) => {
         setUpdatingInvoiceID(invoiceID);
         try {
-            await axios.post('http://localhost:5037/api/Prescription/invoice-pay', { invoiceID });
+            await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
             fetchUpcomingAppointments();
         } catch (error) {
             console.error('Error marking invoice as paid:', error);
@@ -106,7 +106,7 @@ const UpcomingDoctorAppointments = () => {
         // if (fromDate && toDate) {
         //     try {
         //         setLoadingAppointments(true);
-        //         const response = await axios.get(`http://localhost:5037/api/Receptionist/appointments?fromDate=${fromDate}&toDate=${toDate}`);
+        //         const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/appointments?fromDate=${fromDate}&toDate=${toDate}`);
         //         setFilteredRecords(response.data);
         //     } catch (error) {
         //         console.error('Error fetching filtered appointments:', error);

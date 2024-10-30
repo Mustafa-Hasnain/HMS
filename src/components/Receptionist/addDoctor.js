@@ -150,7 +150,7 @@ function AddDoctor() {
         };
 
         try {
-            const response = await fetch('http://localhost:5037/api/Receptionist/register-doctor', {
+            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-doctor', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

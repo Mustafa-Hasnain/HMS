@@ -38,7 +38,7 @@ const PatientDetails = () => {
         const fetchPatientDetails = async () => {
             try {
                 const response = await axios.get(
-                    `http://localhost:5037/api/Receptionist/patient-details/${patient_id}`
+                    `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patient-details/${patient_id}`
                 );
                 setPatient(response.data);
                 setLoading(false);

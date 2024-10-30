@@ -29,7 +29,7 @@ const RegisterPatient = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
             setDoctors(response.data);
 
             console.log("Doctors: ", response.data);
@@ -120,7 +120,7 @@ const RegisterPatient = () => {
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`http://localhost:5037/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             console.log("Appointments: ", data)
             setAppointments(data);
@@ -270,7 +270,7 @@ const RegisterPatient = () => {
             const patientData = appointmentData.patient;
             console.log("Patient Data Payload: ", patientData);
 
-            const response = await fetch('http://localhost:5037/api/Receptionist/register-patient', {
+            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -355,7 +355,7 @@ const RegisterPatient = () => {
                 }
             };
 
-            const response = await fetch('http://localhost:5037/api/Receptionist/register-patient-and-schedule', {
+            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient-and-schedule', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

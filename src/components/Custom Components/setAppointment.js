@@ -46,7 +46,7 @@ const SetAppointment = () => {
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`http://localhost:5037/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             setAppointments(data);
         } catch (error) {
@@ -60,7 +60,7 @@ const SetAppointment = () => {
 
     // const fetchDoctors = async () => {
     //     try {
-    //         const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+    //         const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
     //         console.log("Doctors: ",response.data)
     //         setDoctors(response.data);
     //     } catch (error) {
@@ -70,7 +70,7 @@ const SetAppointment = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
             setDoctors(response.data);
 
             // Check if doctor exists in localStorage
@@ -97,7 +97,7 @@ const SetAppointment = () => {
         debounce((query) => {
             if (query.length >= 3) {
                 setLoading(true);
-                axios.post(`http://localhost:5037/api/Receptionist/search-patients/${query}`)
+                axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/search-patients/${query}`)
                     .then(response => {
                         setPatients(response.data);
                         setNoData(response.data.length === 0);
@@ -164,7 +164,7 @@ const SetAppointment = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:5037/api/Receptionist/schedule-appointment', payload);
+            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment', payload);
             setToastMessage('Appointment set successfully.');
             setToastVariant('success');
             // setAppointmentData({

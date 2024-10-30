@@ -18,7 +18,7 @@ const AddScheduleModal = ({ show, onHide, fetchSchedules, doctorID }) => {
         }
         setLoading(true);
         try {
-            await axios.post('http://localhost:5037/api/Doctor/schedules', {
+            await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules', {
                 doctorScheduleId: 0,
                 doctorID: doctorID,
                 dayOfWeek,

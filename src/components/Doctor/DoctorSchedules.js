@@ -34,7 +34,7 @@ const DoctorSchedule = () => {
     const fetchSchedules = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:5037/api/Doctor/schedules/${doctorID}`);
+            const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${doctorID}`);
             setSchedules(response.data);
         } catch (error) {
             console.error("Error fetching schedules:", error);
@@ -48,7 +48,7 @@ const DoctorSchedule = () => {
 
     const handleDeleteSchedule = async (scheduleId) => {
         try {
-            await axios.delete(`http://localhost:5037/api/Doctor/schedules/${scheduleId}`);
+            await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${scheduleId}`);
             setSchedules(schedules.filter(schedule => schedule.doctorScheduleId !== scheduleId));
             setToastMessage("Schedule deleted successfully.");
             setToastVariant("success");

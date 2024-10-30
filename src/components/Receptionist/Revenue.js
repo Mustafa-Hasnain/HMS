@@ -14,7 +14,7 @@ const RevenueComponent = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('http://localhost:5037/api/Revenue/clinic-and-doctors-30days');
+                const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Revenue/clinic-and-doctors-30days');
                 const data = await response.json();
 
                 setClinicData(data.clinicRevenues || []);

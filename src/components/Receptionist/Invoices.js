@@ -18,7 +18,7 @@ const InvoiceManagement = () => {
     const fetchInvoices = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5037/api/Prescription/GetInvoices');
+        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/GetInvoices');
         console.log("Fetch Invoices Data: ", response.data)
         setInvoices(response.data);
       } catch (error) {
@@ -35,7 +35,7 @@ const InvoiceManagement = () => {
   const markAsPaid = async (invoiceID) => {
     setUpdatingInvoiceID(invoiceID);
     try {
-      await axios.post('http://localhost:5037/api/Prescription/invoice-pay', { invoiceID });
+      await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.invoiceID === invoiceID ? { ...invoice, status: 'Paid' } : invoice

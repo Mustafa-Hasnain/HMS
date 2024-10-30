@@ -36,7 +36,7 @@ const EditDoctorForm = () => {
     useEffect(() => {
         const fetchDoctorData = async () => {
             try {
-                const response = await fetch(`http://localhost:5037/api/Doctor/${doctor_id}`);
+                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`);
                 if (!response.ok) throw new Error("Unable to fetch doctor data");
 
                 const data = await response.json();
@@ -69,7 +69,7 @@ const EditDoctorForm = () => {
         };
 
         try {
-            const response = await fetch(`http://localhost:5037/api/Doctor/${doctor_id}`, {
+            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedDoctor),

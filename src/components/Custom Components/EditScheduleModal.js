@@ -27,7 +27,7 @@ const EditScheduleModal = ({ show, onHide, schedule, fetchSchedules }) => {
         }
         setLoading(true);
         try {
-            await axios.put(`http://localhost:5037/api/Doctor/schedules/${schedule.doctorScheduleId}`, {
+            await axios.put(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${schedule.doctorScheduleId}`, {
                 doctorScheduleId: schedule.doctorScheduleId,
                 doctorID: schedule.doctorID,
                 dayOfWeek,

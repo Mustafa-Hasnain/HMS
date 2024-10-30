@@ -55,7 +55,7 @@ const InvoiceDetails = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(
-                    `http://localhost:5037/api/Receptionist/invoice-appointment-details/${appointment_id}`
+                    `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/invoice-appointment-details/${appointment_id}`
                 );
                 console.log("Invoice-Appointment Data: ", response.data);
                 setAppointment(response.data);
@@ -72,7 +72,7 @@ const InvoiceDetails = () => {
     const addProcedureItem = async (invoiceId) => {
         try {
             const response = await axios.post(
-                `http://localhost:5037/add-procedure-item/${invoiceId}`,
+                `https://mustafahasnain36-001-site1.gtempurl.com/add-procedure-item/${invoiceId}`,
                 newProcedure
             );
 
@@ -111,7 +111,7 @@ const InvoiceDetails = () => {
     const deleteProcedureItem = async (invoiceId, procedureItemId) => {
         setDeletingId(procedureItemId); // Set the ID of the item being deleted
         try {
-            await axios.post(`http://localhost:5037/remove-procedure-item/${invoiceId}/${procedureItemId}`);
+            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/remove-procedure-item/${invoiceId}/${procedureItemId}`);
             toast.success("Procedure item deleted successfully.");
 
             // Update the appointment state to remove the deleted procedure item
@@ -149,7 +149,7 @@ const InvoiceDetails = () => {
     const markAsPaid = async (invoiceID) => {
         setUpdatingInvoiceID(invoiceID);
         try {
-            await axios.post('http://localhost:5037/api/Prescription/invoice-pay', { invoiceID });
+            await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
             updateRefresh(Math.random() * 10);
         } catch (error) {
             console.error('Error marking invoice as paid:', error);

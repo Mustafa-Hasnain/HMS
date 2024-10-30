@@ -26,7 +26,7 @@ const Dashboard = () => {
         // Fetch data from the backend
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5037/api/Receptionist/dashboard-overview');
+                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/dashboard-overview');
                 setData(response.data);
                 setAppointments(response.data.upcomingAppointments);
             } catch (error) {
@@ -39,7 +39,7 @@ const Dashboard = () => {
 
         fetchData();
 
-        
+
         setRefreshFunction(() => fetchData);
     }, [setRefreshFunction]);
 
