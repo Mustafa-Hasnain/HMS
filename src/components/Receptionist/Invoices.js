@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Tab, Table, Button, Spinner } from 'react-bootstrap';
 import axios from 'axios';
+import PaymentModal from '../Custom Components/PaymentModal';
+import { useNavigate } from 'react-router-dom';
 
 const InvoiceManagement = () => {
   const [key, setKey] = useState('unpaid');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const navigate = useNavigate();
+
 
   // Fetch invoices from API
   useEffect(() => {
     const fetchInvoices = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/GetInvoices');
+        const response = await axios.get('http://localhost:5037/api/Prescription/GetInvoices');
+        console.log("Fetch Invoices Data: ", response.data)
         setInvoices(response.data);
       } catch (error) {
         console.error('Error fetching invoices:', error);
@@ -29,7 +35,7 @@ const InvoiceManagement = () => {
   const markAsPaid = async (invoiceID) => {
     setUpdatingInvoiceID(invoiceID);
     try {
-      await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
+      await axios.post('http://localhost:5037/api/Prescription/invoice-pay', { invoiceID });
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.invoiceID === invoiceID ? { ...invoice, status: 'Paid' } : invoice
@@ -48,7 +54,7 @@ const InvoiceManagement = () => {
 
   return (
     <div className="container my-4">
-      <h2 className="text-center mb-4">Invoice Management</h2>
+      <h2 className="mb-4 font-semibold text-2xl">Invoice Management</h2>
 
       {/* Tabs for switching between unpaid and paid invoices */}
       <Tabs
@@ -69,6 +75,8 @@ const InvoiceManagement = () => {
               markAsPaid={markAsPaid}
               updatingInvoiceID={updatingInvoiceID}
               noInvoicesMessage="No unpaid invoices left."
+              setUpdatingInvoiceID={setUpdatingInvoiceID}
+              setShowPaymentModal={setShowPaymentModal}
             />
           )}
         </Tab>
@@ -83,16 +91,25 @@ const InvoiceManagement = () => {
               invoices={paidInvoices}
               showPayButton={false}
               noInvoicesMessage="No paid invoices available."
+              setUpdatingInvoiceID={setUpdatingInvoiceID}
+              setShowPaymentModal={setShowPaymentModal}
             />
           )}
         </Tab>
       </Tabs>
+      <PaymentModal
+        show={showPaymentModal}
+        onHide={() => { setShowPaymentModal(false); setUpdatingInvoiceID(null) }}
+        invoiceID={updatingInvoiceID}
+        markAsPaid={() => markAsPaid(updatingInvoiceID)}
+      />
     </div>
   );
 };
 
 // Table component to display invoices
-const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, noInvoicesMessage }) => {
+const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, noInvoicesMessage, setShowPaymentModal, setUpdatingInvoiceID }) => {
+  const navigate = useNavigate();
   return invoices.length === 0 ? (
     <div className="text-center my-4">{noInvoicesMessage}</div>
   ) : (
@@ -105,7 +122,7 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
           <th>Doctor Name</th>
           <th>Total Amount</th>
           <th>Status</th>
-          {showPayButton && <th>Action</th>}
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -117,21 +134,33 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
             <td>{invoice.appointment.doctor.firstName}</td>
             <td>{invoice.amount}</td>
             <td>{invoice.status}</td>
-            {showPayButton && (
-              <td>
-                <Button
-                  variant="success"
-                  onClick={() => markAsPaid(invoice.invoiceID)}
-                  disabled={updatingInvoiceID === invoice.invoiceID}
+
+            <td>
+              <div className='flex gap-3'>
+                {showPayButton && (
+                  <Button
+                    variant="outline-success"
+                    onClick={() => {
+                      setUpdatingInvoiceID(invoice.invoiceID)
+                      setShowPaymentModal(true);
+                    }}
+                    className='!text-sm'
+                    disabled={updatingInvoiceID === invoice.invoiceID}
+                  >
+                    {updatingInvoiceID === invoice.invoiceID ? (
+                      <Spinner as="span" animation="border" size="sm" />
+                    ) : (
+                      'Mark as Paid'
+                    )}
+                  </Button>
+                )}
+                <Button variant='outline-success' className='!text-sm'
+                  onClick={() => (navigate(`/receptionist/invoice-details/${invoice.appointment.appointmentID}/`))}
                 >
-                  {updatingInvoiceID === invoice.invoiceID ? (
-                    <Spinner as="span" animation="border" size="sm" />
-                  ) : (
-                    'Mark as Paid'
-                  )}
+                  View Details
                 </Button>
-              </td>
-            )}
+              </div>
+            </td>
           </tr>
         ))}
       </tbody>

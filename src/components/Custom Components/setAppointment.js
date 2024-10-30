@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';  // Useful for formatting dates
 import DoctorScheduleModal from './DoctorScheduleModal';
+import { FaArrowLeft } from 'react-icons/fa';
 
 
 
@@ -45,7 +46,7 @@ const SetAppointment = () => {
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`http://localhost:5037/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             setAppointments(data);
         } catch (error) {
@@ -59,7 +60,7 @@ const SetAppointment = () => {
 
     // const fetchDoctors = async () => {
     //     try {
-    //         const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+    //         const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
     //         console.log("Doctors: ",response.data)
     //         setDoctors(response.data);
     //     } catch (error) {
@@ -69,7 +70,7 @@ const SetAppointment = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
             setDoctors(response.data);
 
             // Check if doctor exists in localStorage
@@ -96,7 +97,7 @@ const SetAppointment = () => {
         debounce((query) => {
             if (query.length >= 3) {
                 setLoading(true);
-                axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/search-patients/${query}`)
+                axios.post(`http://localhost:5037/api/Receptionist/search-patients/${query}`)
                     .then(response => {
                         setPatients(response.data);
                         setNoData(response.data.length === 0);
@@ -163,7 +164,7 @@ const SetAppointment = () => {
         }
 
         try {
-            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment', payload);
+            const response = await axios.post('http://localhost:5037/api/Receptionist/schedule-appointment', payload);
             setToastMessage('Appointment set successfully.');
             setToastVariant('success');
             // setAppointmentData({
@@ -363,9 +364,14 @@ const SetAppointment = () => {
         <div className="container mx-auto p-4">
             {!selectedPatient && !showNewPatient && (
                 <>
-                    <h2 className="font-semibold text-2xl mt-2">
-                        Set Appointment
-                    </h2>
+                    <div className="flex gap-3 mb-2 mt-2 items-center align-middle">
+                        <button onClick={() => navigate('/receptionist/upcoming-doctor-appointments')} className="text-primary">
+                            <FaArrowLeft size={20} />
+                        </button>
+                        <h2 className="font-semibold text-2xl">
+                            Set Appointment
+                        </h2>
+                    </div>
 
                     <Form className='mt-4'>
                         <Form.Group controlId="searchPatient">

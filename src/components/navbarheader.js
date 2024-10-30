@@ -2,13 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Form, FormControl, InputGroup } from 'react-bootstrap';
-import { FaBars, FaBell, FaSearch } from 'react-icons/fa';
+import { FaBars, FaBell, FaSearch, FaSync } from 'react-icons/fa';
+import { useRefreshContext } from '../contexts/RefreshContext';
 
 function NavbarHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [currentDate, setCurrentDate] = useState('');
+  const { handleRefresh } = useRefreshContext(); // Access handleRefresh from the context
+
 
   useEffect(() => {
     const today = new Date();
@@ -52,6 +55,12 @@ function NavbarHeader() {
 
         {/* Right section: Notification and Profile */}
         <div className="d-flex align-items-center gap-3">
+          <button
+            className="text-black border border-black rounded p-2 hover:bg-gray-200"
+            onClick={handleRefresh}
+          >
+            <FaSync />
+          </button>
           <div className='flex gap-2 -mb-2'>
             <div className="text-sm font-bold text-black">{welcomeMessage}</div>
             <div className='text-black'>|</div>

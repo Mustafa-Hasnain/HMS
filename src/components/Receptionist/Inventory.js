@@ -25,7 +25,7 @@ const InventoryManager = () => {
     const fetchInventoryItems = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
+            const response = await axios.get('http://localhost:5037/api/Inventory');
             setInventoryItems(response.data);
         } catch (error) {
             console.error("Error fetching inventory items:", error);
@@ -38,7 +38,7 @@ const InventoryManager = () => {
         e.preventDefault();
         try {
             setSaveLoading(true);
-            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory', newItem);
+            const response = await axios.post('http://localhost:5037/api/Inventory', newItem);
             setInventoryItems([...inventoryItems, response.data]);
             setNewItem({
                 name: '',
@@ -56,7 +56,7 @@ const InventoryManager = () => {
 
     const handleDeleteItem = async () => {
         try {
-            await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory/${itemToDelete}`);
+            await axios.delete(`http://localhost:5037/api/Inventory/${itemToDelete}`);
             setInventoryItems(inventoryItems.filter(item => item.inventoryItemID !== itemToDelete));
             setShowDeleteModal(false);
         } catch (error) {
@@ -71,7 +71,7 @@ const InventoryManager = () => {
     const handleSaveEdit = async () => {
         try {
             setSaveLoading(true);
-            await axios.put(`https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory/${editingItem.inventoryItemID}`, editingItem);
+            await axios.put(`http://localhost:5037/api/Inventory/${editingItem.inventoryItemID}`, editingItem);
             setInventoryItems(inventoryItems.map(item => item.inventoryItemID === editingItem.inventoryItemID ? editingItem : item));
             setEditingItem(null); // Disable edit mode
         } catch (error) {

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const EditDoctorForm = () => {
     const { doctor_id } = useParams();
@@ -10,6 +11,7 @@ const EditDoctorForm = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [isCustomSpecialty, setIsCustomSpecialty] = useState(false);
+    const navigate = useNavigate();
 
 
     const firstNameRef = useRef();
@@ -34,11 +36,11 @@ const EditDoctorForm = () => {
     useEffect(() => {
         const fetchDoctorData = async () => {
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`);
+                const response = await fetch(`http://localhost:5037/api/Doctor/${doctor_id}`);
                 if (!response.ok) throw new Error("Unable to fetch doctor data");
 
                 const data = await response.json();
-                console.log("data: ",data)
+                console.log("data: ", data)
                 setDoctor(data);
                 setIsCustomSpecialty(!specialtyOptions.includes(data.specialty));
                 setLoading(false);
@@ -67,7 +69,7 @@ const EditDoctorForm = () => {
         };
 
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`, {
+            const response = await fetch(`http://localhost:5037/api/Doctor/${doctor_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedDoctor),
@@ -90,7 +92,12 @@ const EditDoctorForm = () => {
 
     return (
         <Container fluid className="p-4">
-            <h2 className="text-left text-2xl mb-4 font-bold">Edit Doctor</h2>
+            <div className="flex gap-3 mb-4 items-center align-middle">
+                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="text-left text-2xl font-bold">Edit Doctor</h2>
+            </div>
             <ToastContainer />
             {loading ? (
                 <div className="text-center">

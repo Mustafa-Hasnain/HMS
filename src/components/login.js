@@ -44,7 +44,7 @@ function Login() {
       navigate('/receptionist/upcoming-doctor-appointments');
     } else if (phone_no && password === 'doctor') {
       try {
-        const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/Doctor-Login", {
+        const response = await fetch("http://localhost:5037/api/Doctor/Doctor-Login", {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

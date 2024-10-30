@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Container, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
+import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -149,7 +150,7 @@ function AddDoctor() {
         };
 
         try {
-            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-doctor', {
+            const response = await fetch('http://localhost:5037/api/Receptionist/register-doctor', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,7 +189,12 @@ function AddDoctor() {
 
     return (
         <Container fluid className="p-4">
-            <h2 className="text-left text-2xl mb-4 font-bold">Register New Doctor</h2>
+            <div className="flex gap-3 mb-4">
+                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="text-left text-2xl font-bold">Register New Doctor</h2>
+            </div>
             <ToastContainer />
             <Row className="justify-content-left">
                 <Col md={10}>

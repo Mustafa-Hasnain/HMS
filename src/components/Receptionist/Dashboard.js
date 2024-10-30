@@ -10,12 +10,15 @@ import LineGraph from '../Custom Components/RevenueGraph';
 import { FaEllipsisV } from 'react-icons/fa';
 import { Menu } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { useRefreshContext } from '../../contexts/RefreshContext';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true); // Loading state for all cards
     const [data, setData] = useState(null); // State to hold API data
     const [appointmentsLoading, setAppointmentsLoading] = useState(true); // Loading for appointments
     const [appointments, setAppointments] = useState([]); // State for upcoming appointments
+    const { setRefreshFunction } = useRefreshContext();
+
 
     const navigate = useNavigate();
 
@@ -23,7 +26,7 @@ const Dashboard = () => {
         // Fetch data from the backend
         const fetchData = async () => {
             try {
-                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/dashboard-overview');
+                const response = await axios.get('http://localhost:5037/api/Receptionist/dashboard-overview');
                 setData(response.data);
                 setAppointments(response.data.upcomingAppointments);
             } catch (error) {
@@ -35,7 +38,10 @@ const Dashboard = () => {
         };
 
         fetchData();
-    }, []);
+
+        
+        setRefreshFunction(() => fetchData);
+    }, [setRefreshFunction]);
 
     const formatTime = (time24, duration) => {
         const [hours, minutes] = time24.split(':').map(Number);
@@ -163,7 +169,7 @@ const Dashboard = () => {
                                                                         {({ active }) => (
                                                                             <a
                                                                                 href="#"
-                                                                                onClick={()=>(navigate(''))}
+                                                                                onClick={() => (navigate(''))}
                                                                                 className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
                                                                             >
                                                                                 View Details
@@ -189,8 +195,8 @@ const Dashboard = () => {
                 <Col md={4} className="mb-4">
                     <Card>
                         <Card.Header className='!bg-white'>
-                        <h5 className='font-semibold text-lg'>Earnings From Appointments</h5>
-                            </Card.Header>
+                            <h5 className='font-semibold text-lg'>Earnings From Appointments</h5>
+                        </Card.Header>
                         <Card.Body>
                             {/* Placeholder for chart */}
                             <div className="text-center">

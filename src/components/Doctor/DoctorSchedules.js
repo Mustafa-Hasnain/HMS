@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Button, Card, Spinner, Modal, Form, Toast } from 'react-bootstrap';
 import AddScheduleModal from '../Custom Components/AddScheduleModal';
 import EditScheduleModal from '../Custom Components/EditScheduleModal';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 
 const DoctorSchedule = () => {
@@ -14,8 +16,16 @@ const DoctorSchedule = () => {
     const [toastMessage, setToastMessage] = useState('');
     const [toastVariant, setToastVariant] = useState('success');
     const [showToast, setShowToast] = useState(false);
+    const navigate = useNavigate();
 
-    const doctorData = JSON.parse(localStorage.getItem('doctor'));
+    const doctorData = localStorage.getItem('doctor')
+        ? JSON.parse(localStorage.getItem('doctor'))
+        : null;
+
+    const { doctor_id } = useParams();
+
+    const doctorID = doctorData?.doctorID || doctor_id;
+
 
     useEffect(() => {
         fetchSchedules();
@@ -24,7 +34,7 @@ const DoctorSchedule = () => {
     const fetchSchedules = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${doctorData.doctorID}`);
+            const response = await axios.get(`http://localhost:5037/api/Doctor/schedules/${doctorID}`);
             setSchedules(response.data);
         } catch (error) {
             console.error("Error fetching schedules:", error);
@@ -38,7 +48,7 @@ const DoctorSchedule = () => {
 
     const handleDeleteSchedule = async (scheduleId) => {
         try {
-            await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${scheduleId}`);
+            await axios.delete(`http://localhost:5037/api/Doctor/schedules/${scheduleId}`);
             setSchedules(schedules.filter(schedule => schedule.doctorScheduleId !== scheduleId));
             setToastMessage("Schedule deleted successfully.");
             setToastVariant("success");
@@ -65,7 +75,12 @@ const DoctorSchedule = () => {
 
     return (
         <div className="p-4">
-            <h2 className="mb-4">Doctor's Schedule</h2>
+            <div className="flex gap-3 mb-4">
+                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="text-2xl font-semibold">Doctor's Schedule</h2>
+            </div>
             {loading ? (
                 <Spinner animation="border" />
             ) : (
@@ -98,7 +113,7 @@ const DoctorSchedule = () => {
                 show={showAddModal}
                 onHide={() => setShowAddModal(false)}
                 fetchSchedules={fetchSchedules}
-                doctorID={doctorData.doctorID}
+                doctorID={doctorID}
             />
 
             {selectedSchedule && (

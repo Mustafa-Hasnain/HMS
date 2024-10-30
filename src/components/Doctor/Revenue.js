@@ -24,7 +24,7 @@ const DoctorRevenue = () => {
             }
 
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Revenue/doctor/${doctorID}/revenue`);
+                const response = await fetch(`http://localhost:5037/api/Revenue/doctor/${doctorID}/revenue`);
 
                 // Check if the response is OK (status code 200)
                 if (!response.ok) {

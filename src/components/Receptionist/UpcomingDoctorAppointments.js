@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Form, InputGroup, Spinner, ListGroup, Card, Table, Badge, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Menu } from '@headlessui/react';
+import { FaEllipsisV } from 'react-icons/fa';
+import PaymentModal from '../Custom Components/PaymentModal';
 
 const UpcomingDoctorAppointments = () => {
     const [searchInput, setSearchInput] = useState('');
@@ -14,6 +17,13 @@ const UpcomingDoctorAppointments = () => {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [filteredRecords, setFilteredRecords] = useState([]);
+    const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
+    const [invoices, setInvoices] = useState([]);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    
+
+
+
 
     const navigate = useNavigate();
 
@@ -25,7 +35,7 @@ const UpcomingDoctorAppointments = () => {
     const fetchDoctors = async () => {
         try {
             setLoadingDoctors(true);
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
             setDoctors(response.data);
             setFilteredDoctors(response.data); // Initially, display all doctors
         } catch (error) {
@@ -38,7 +48,8 @@ const UpcomingDoctorAppointments = () => {
     const fetchUpcomingAppointments = async () => {
         try {
             setLoadingAppointments(true);
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments');
+            const response = await axios.get('http://localhost:5037/api/Receptionist/upcoming-appointments');
+            console.log(response.data);
             setAppointments(response.data);
         } catch (error) {
             console.error('Error fetching upcoming appointments:', error);
@@ -78,11 +89,24 @@ const UpcomingDoctorAppointments = () => {
         return `${startTime} - ${endTime}`;
     };
 
+    // Mark an invoice as paid
+    const markAsPaid = async (invoiceID) => {
+        setUpdatingInvoiceID(invoiceID);
+        try {
+            await axios.post('http://localhost:5037/api/Prescription/invoice-pay', { invoiceID });
+            fetchUpcomingAppointments();
+        } catch (error) {
+            console.error('Error marking invoice as paid:', error);
+        } finally {
+            setUpdatingInvoiceID(null);
+        }
+    };
+
     const handleFilter = async () => {
         // if (fromDate && toDate) {
         //     try {
         //         setLoadingAppointments(true);
-        //         const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/appointments?fromDate=${fromDate}&toDate=${toDate}`);
+        //         const response = await axios.get(`http://localhost:5037/api/Receptionist/appointments?fromDate=${fromDate}&toDate=${toDate}`);
         //         setFilteredRecords(response.data);
         //     } catch (error) {
         //         console.error('Error fetching filtered appointments:', error);
@@ -97,11 +121,11 @@ const UpcomingDoctorAppointments = () => {
             <div className='flex justify-between items-center'>
                 <h2 className="font-semibold text-2xl mt-3">Appointments</h2>
                 {/* {loadingDoctors && <Spinner animation="border" variant="primary" />} */}
-                <Button onClick={()=>(navigate('/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
+                <Button onClick={() => (navigate('/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
             </div>
             <InputGroup className="mb-3 relative">
                 <Form.Control
-                    placeholder="Search doctor by name or specialty"
+                    placeholder="Search Appointments"
                     value={searchInput}
                     onChange={handleSearchChange}
                     onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
@@ -126,7 +150,7 @@ const UpcomingDoctorAppointments = () => {
                 <Button onClick={handleFilter} variant="primary">Filter</Button>
             </div>
 
-            {showDropdown && (
+            {/* {showDropdown && (
                 <ListGroup style={{ position: 'absolute', width: '75%', zIndex: '1000', maxHeight: '200px', overflowY: 'auto' }}>
                     {filteredDoctors.length > 0 ? (
                         filteredDoctors.map((doctor) => (
@@ -141,7 +165,7 @@ const UpcomingDoctorAppointments = () => {
                         <ListGroup.Item>No doctors found.</ListGroup.Item>
                     )}
                 </ListGroup>
-            )}
+            )} */}
 
             <div className="mt-4">
                 <h5>
@@ -157,23 +181,29 @@ const UpcomingDoctorAppointments = () => {
                         <Card.Header>Appointments</Card.Header>
                         <Card.Body>
                             {filteredRecords.length > 0 || appointments.length > 0 ? (
-                                <Table striped hover>
+                                <Table hover>
                                     <thead>
                                         <tr>
                                             <th>Day</th>
-                                            <th>Appointment Time</th>
+                                            {/* <th>Appointment Time</th> */}
                                             <th>Patient Name</th>
                                             <th>Doctor Name</th>
-                                            <th>Meeting Time</th>
+                                            <th>Appointment Time</th>
                                             <th>Invoice Status</th>
                                             <th>Appointment Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {(fromDate && toDate ? filteredRecords : appointments).map((appt, index) => (
                                             <tr key={index}>
-                                                <td>{new Date(appt.appointmentDate).toLocaleDateString('en-US', { weekday: 'long' })}</td>
-                                                <td>{formatTime(appt.appointmentTime)}</td>
+                                                <td>{new Date(appt.appointmentDate).toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })}</td>
+                                                {/* <td>{formatTime(appt.appointmentTime)}</td> */}
                                                 <td>{appt.patient.firstName}</td>
                                                 <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
                                                 <td>{getMeetingTime(appt)}</td>
@@ -183,6 +213,29 @@ const UpcomingDoctorAppointments = () => {
                                                     </Badge>
                                                 </td>
                                                 <td>{appt.status}</td>
+
+                                                <td>
+                                                    <div className='flex gap-2'>
+                                                        {appt.invoices[0]?.status !== 'Paid' &&
+                                                            <Button
+                                                                variant="outline-success"
+                                                                className=' !text-xs'
+                                                                onClick={() => {
+                                                                    setUpdatingInvoiceID(appt.invoices[0]?.invoiceID)
+                                                                    setShowPaymentModal(true);
+                                                                }}
+                                                            >
+                                                                Mark as Paid
+                                                            </Button>}
+                                                        <Button
+                                                            variant="outline-success"
+                                                            className=' !text-xs'
+                                                            onClick={()=>(navigate(`/receptionist/invoice-details/${appt.appointmentID}`))}
+                                                        >
+                                                            Details
+                                                        </Button>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -194,6 +247,12 @@ const UpcomingDoctorAppointments = () => {
                     </Card>
                 )}
             </div>
+            <PaymentModal
+                show={showPaymentModal}
+                onHide={() => setShowPaymentModal(false)}
+                invoiceID={updatingInvoiceID}
+                markAsPaid={() => markAsPaid(updatingInvoiceID)}
+            />
         </div>
     );
 };

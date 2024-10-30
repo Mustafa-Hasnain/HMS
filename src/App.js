@@ -27,6 +27,9 @@ import DoctorDashboard from './components/Doctor/Dashboard';
 import DoctorSchedule from './components/Doctor/DoctorSchedules';
 import DoctorRevenue from './components/Doctor/Revenue';
 import EditDoctorForm from './components/Custom Components/EditDoctor';
+import EditPatientDetails from './components/Custom Components/EditPatientDetails';
+import InvoiceDetails from './components/Receptionist/InvoiceDetails';
+import { RefreshProvider } from './contexts/RefreshContext';
 
 
 
@@ -43,64 +46,69 @@ function ProtectedRoute({ children, role }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="*" element={<Login />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+    <RefreshProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="*" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Routes for Receptionist */}
-          <Route
-            path="/receptionist/*"
-            element={
-              <ProtectedRoute role="receptionist">
-                <ReceptionistDashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Add nested routes for the receptionist */}
-            <Route path="dashboard" element={<ReceptionistDashboardLayout />} />
-            <Route path='overview' element={<Dashboard />} />
-            <Route path="add-doctor" element={<AddDoctor />} />
-            <Route path="edit-doctor/:doctor_id" element={<EditDoctorForm />} />
-            <Route path="set-appointment" element={<SetAppointment />} />
-            <Route path="patients-portal" element={<PatientPortal />} />
-            <Route path="patients-details/:patient_id" element={<PatientDetails />} />
-            <Route path="doctors-portal" element={<DoctorPortal />} />
-            <Route path="upcoming-doctor-appointments" element={<UpcomingDoctorAppointments />} />
-            <Route path="inventory" element={<InventoryManager />} />
-            <Route path="invoices" element={<InvoiceManagement />} />
-            <Route path="revenue" element={<RevenueComponent />} />
+            {/* Routes for Receptionist */}
+            <Route
+              path="/receptionist/*"
+              element={
+                <ProtectedRoute role="receptionist">
+                  <ReceptionistDashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              {/* Add nested routes for the receptionist */}
+              <Route path="dashboard" element={<ReceptionistDashboardLayout />} />
+              <Route path='overview' element={<Dashboard />} />
+              <Route path="add-doctor" element={<AddDoctor />} />
+              <Route path="edit-doctor/:doctor_id" element={<EditDoctorForm />} />
+              <Route path="edit-patient/:patient_id" element={<EditPatientDetails />} />
+              <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
+              <Route path="set-appointment" element={<SetAppointment />} />
+              <Route path="patients-portal" element={<PatientPortal />} />
+              <Route path="patients-details/:patient_id" element={<PatientDetails />} />
+              <Route path="doctors-portal" element={<DoctorPortal />} />
+              <Route path="update-schedule/:doctor_id" element={<DoctorSchedule />} />
+              <Route path="upcoming-doctor-appointments" element={<UpcomingDoctorAppointments />} />
+              <Route path="inventory" element={<InventoryManager />} />
+              <Route path="invoices" element={<InvoiceManagement />} />
+              <Route path="revenue" element={<RevenueComponent />} />
 
-          </Route>
+            </Route>
 
-          {/* Routes for Doctor */}
-          <Route
-            path="/doctor/*"
-            element={
-              <ProtectedRoute role="doctor">
-                <DoctorDashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Add nested routes for the doctor */}
-            <Route path="dashboard" element={<DoctorDashboardLayout />} />
-            <Route path="overview" element={<DoctorDashboard />} />
-            <Route path="appointments" element={<DoctorAppointments />} />
-            <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
-            <Route path='prescriptions' element={<Prescriptions />}></Route>
-            <Route path='set-appointment' element={<SetAppointment />}></Route>
-            <Route path='schedules' element={<DoctorSchedule />}></Route>
-            <Route path='revenue' element={<DoctorRevenue />}></Route>
+            {/* Routes for Doctor */}
+            <Route
+              path="/doctor/*"
+              element={
+                <ProtectedRoute role="doctor">
+                  <DoctorDashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              {/* Add nested routes for the doctor */}
+              <Route path="dashboard" element={<DoctorDashboardLayout />} />
+              <Route path="overview" element={<DoctorDashboard />} />
+              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
+              <Route path='prescriptions' element={<Prescriptions />}></Route>
+              <Route path='set-appointment' element={<SetAppointment />}></Route>
+              <Route path='schedules' element={<DoctorSchedule />}></Route>
+              <Route path='revenue' element={<DoctorRevenue />}></Route>
 
-          </Route>
+            </Route>
 
-          {/* Default redirect to login */}
-          
-          {/* <Route path="*" element={<Navigate to="/login" />} /> */}
-        </Routes>
-      </Router>
-    </AuthProvider>
+            {/* Default redirect to login */}
+
+            {/* <Route path="*" element={<Navigate to="/login" />} /> */}
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </RefreshProvider>
   );
 }
 

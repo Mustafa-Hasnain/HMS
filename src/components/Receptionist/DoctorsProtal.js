@@ -4,30 +4,44 @@ import axios from 'axios';
 import { FaEllipsisV } from 'react-icons/fa';
 import { Menu } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import ConfirmationModal from '../Custom Components/confirmationModal';
+
 
 const DoctorPortal = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state
   const [currentPage, setCurrentPage] = useState(1);
   const [doctorsPerPage] = useState(10);
+  const [showModal, setShowModal] = useState(false);
+  const [refresh, updateRefresh] = useState(0);
+  const [DeleteDoctorId, setDeleteDoctorId] = useState(null);
+
 
   const navigate = useNavigate();
 
+  // Fetch doctors data from the API
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
+      setDoctors(response.data);
+      setLoading(false); // Stop loading once data is fetched
+    } catch (error) {
+      console.error('Error fetching doctor data:', error);
+      setLoading(false); // Stop loading even if there's an error
+    }
+  };
+
   useEffect(() => {
-    // Fetch doctors data from the API
-    const fetchDoctors = async () => {
-      try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
-        setDoctors(response.data);
-        setLoading(false); // Stop loading once data is fetched
-      } catch (error) {
-        console.error('Error fetching doctor data:', error);
-        setLoading(false); // Stop loading even if there's an error
-      }
-    };
+    updateRefresh(Math.random * 100);
+  }, [])
+
+  useEffect(() => {
+
 
     fetchDoctors();
-  }, []);
+  }, [refresh]);
 
   // Pagination Logic
   const indexOfLastDoctor = currentPage * doctorsPerPage;
@@ -35,6 +49,28 @@ const DoctorPortal = () => {
   const currentDoctors = doctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const setDoctorUnavailable = async (doctorId) => {
+    setShowModal(false)
+    try {
+      const response = await fetch(`http://localhost:5037/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to set doctor as unavailable');
+      }
+
+      const result = await response.json();
+      toast.success(result.Message || 'Doctor set to unavailable successfully');
+      fetchDoctors();
+    } catch (error) {
+      toast.error(error.message || 'An error occurred');
+    }
+  };
 
   // Show spinner while loading data
   if (loading) {
@@ -52,141 +88,181 @@ const DoctorPortal = () => {
     return (
       <div className="flex justify-center items-center pt-20 ">
         <div className="text-center">
-            <Alert variant="warning">
-                No doctors available.
-            </Alert>
-            <Button 
-                onClick={() => navigate('/receptionist/add-doctor')} 
-                variant="success"
-            >
-                Add New Doctor
-            </Button>
+          <Alert variant="warning">
+            No doctors available.
+          </Alert>
+          <Button
+            onClick={() => navigate('/receptionist/add-doctor')}
+            variant="success"
+          >
+            Add New Doctor
+          </Button>
         </div>
-    </div>
+      </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-5">
-      <div className='flex items-center justify-between align-middle mb-4'>
-        <div className='flex gap-[4%]'>
-          <h1 className="text-2xl font-bold">Doctors</h1>
-          <h1 className="text-2xl font-bold">({currentDoctors.length})</h1>
+    <>
+      <ToastContainer></ToastContainer>
+      <div className="container mx-auto py-5">
+        <div className='flex items-center justify-between align-middle mb-4'>
+          <div className='flex gap-[4%]'>
+            <h1 className="text-2xl font-bold">Doctors</h1>
+            <h1 className="text-2xl font-bold">({currentDoctors.length})</h1>
+          </div>
+          <Button onClick={() => (navigate('/receptionist/add-doctor'))} variant="success">Add New Doctor</Button>
         </div>
-        <Button onClick={()=>(navigate('/receptionist/add-doctor'))} variant="success">Add New Doctor</Button>
-      </div>
-      {currentDoctors.map((doctor) => (
-        <Card className="mb-5" key={doctor.doctorID}>
-          <Card.Body>
-            <Table className='table' hover responsive>
-              <thead>
-                <tr>
-                  <th>Doctor ID</th>
-                  <th>Name</th>
-                  <th>Specialty</th>
-                  <th>Email</th>
-                  <th>Mobile Number</th>
-                  <th>Consultation Fee</th>
-                  <th>Joined Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{doctor.doctorID}</td>
-                  <td>{`${doctor.firstName} ${doctor.lastName}`}</td>
-                  <td>{doctor.specialty}</td>
-                  <td>{doctor.emailID}</td>
-                  <td>{doctor.mobileNumber}</td>
-                  <td>Rs.{doctor.consultationFee}</td>
-                  <td>{new Date(doctor.joinedDate).toLocaleDateString()}</td>
-                  <td>
-                    <Menu as="div" className="relative inline-block text-left">
-                      <Menu.Button>
-                        <FaEllipsisV />
-                      </Menu.Button>
+        {currentDoctors.map((doctor) => (
+          <Card className="mb-5" key={doctor.doctorID}>
+            <Card.Body>
+              <Table className='table' hover responsive>
+                <thead>
+                  <tr>
+                    <th>Doctor ID</th>
+                    <th>Name</th>
+                    <th>Specialty</th>
+                    <th>Email</th>
+                    <th>Mobile Number</th>
+                    <th>Consultation Fee</th>
+                    <th>Joined Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{doctor.doctorID}</td>
+                    <td>{`${doctor.firstName} ${doctor.lastName}`}</td>
+                    <td>{doctor.specialty}</td>
+                    <td>{doctor.emailID}</td>
+                    <td>{doctor.mobileNumber}</td>
+                    <td>Rs.{doctor.consultationFee}</td>
+                    <td>{new Date(doctor.joinedDate).toLocaleDateString()}</td>
+                    <td>
+                      <Menu as="div" className="relative inline-block text-left">
+                        <Menu.Button>
+                          <FaEllipsisV />
+                        </Menu.Button>
 
-                      <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                        <div className="py-1 Barlow">
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                href="#"
-                                className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                              >
-                                Remove Doctor
-                              </a>
-                            )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                onClick={()=>(navigate(`/receptionist/edit-doctor/${doctor.doctorID}/`))}
-                                href="#"
-                                className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                              >
-                                Edit Doctor
-                              </a>
-                            )}
-                          </Menu.Item>
-                        </div>
-                      </Menu.Items>
-                    </Menu>
-                  </td>
-                </tr>
-              </tbody>
-            </Table>
+                        <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                          <div className="py-1 Barlow">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <a
+                                  onClick={() => {
+                                    setDeleteDoctorId(doctor.doctorID);
+                                    setShowModal(true);
+                                  }}
+                                  href="#"
+                                  className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
+                                >
+                                  Remove Doctor
+                                </a>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <a
+                                  onClick={() => (navigate(`/receptionist/edit-doctor/${doctor.doctorID}/`))}
+                                  href="#"
+                                  className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
+                                >
+                                  Edit Doctor
+                                </a>
+                              )}
+                            </Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Menu>
+                    </td>
+                  </tr>
+                </tbody>
+              </Table>
 
-            <Accordion>
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>Schedules</Accordion.Header>
-                <Accordion.Body>
-                  <Table striped bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th>Schedule ID</th>
-                        <th>Day of Week</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Meeting Duration (mins)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {doctor.schedules && doctor.schedules.length > 0 ? (
-                        doctor.schedules.map((schedule) => (
-                          <tr key={schedule.doctorScheduleId}>
-                            <td>{schedule.doctorScheduleId}</td>
-                            <td>{schedule.dayOfWeek}</td>
-                            <td>{schedule.startTime}</td>
-                            <td>{schedule.endTime}</td>
-                            <td>{schedule.slotDuration} minutes</td>
-                          </tr>
-                        ))
-                      ) : (
+              <Accordion>
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>Schedules</Accordion.Header>
+                  <Accordion.Body>
+                    <Table striped bordered hover responsive>
+                      <thead>
                         <tr>
-                          <td colSpan="5" className="text-center">
-                            No schedules available
-                          </td>
+                          <th>Schedule ID</th>
+                          <th>Day of Week</th>
+                          <th>Start Time</th>
+                          <th>End Time</th>
+                          <th>Meeting Duration (mins)</th>
+                          <th>Action</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </Table>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          </Card.Body>
-        </Card>
-      ))}
+                      </thead>
+                      <tbody>
+                        {doctor.schedules && doctor.schedules.length > 0 ? (
+                          doctor.schedules.map((schedule) => (
+                            <tr key={schedule.doctorScheduleId}>
+                              <td>{schedule.doctorScheduleId}</td>
+                              <td>{schedule.dayOfWeek}</td>
+                              <td>{schedule.startTime}</td>
+                              <td>{schedule.endTime}</td>
+                              <td>{schedule.slotDuration} minutes</td>
+                              <td>
+                                <Menu as="div" className="relative inline-block text-left">
+                                  <Menu.Button>
+                                    <FaEllipsisV />
+                                  </Menu.Button>
 
-      {/* Pagination */}
-      <Pagination>
-        {Array.from({ length: Math.ceil(doctors.length / doctorsPerPage) }, (_, index) => (
-          <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
-            {index + 1}
-          </Pagination.Item>
+                                  <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div className="py-1 Barlow">
+                                      <Menu.Item>
+                                        {({ active }) => (
+                                          <a
+                                            onClick={() => (navigate(`/receptionist/update-schedule/${doctor.doctorID}/`))}
+                                            href="#"
+                                            className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
+                                          >
+                                            Edit Schedule
+                                          </a>
+                                        )}
+                                      </Menu.Item>
+                                    </div>
+                                  </Menu.Items>
+                                </Menu>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="5" className="text-center">
+                              No schedules available
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </Table>
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </Card.Body>
+          </Card>
         ))}
-      </Pagination>
-    </div>
+
+        {/* Pagination */}
+        <Pagination>
+          {Array.from({ length: Math.ceil(doctors.length / doctorsPerPage) }, (_, index) => (
+            <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
+              {index + 1}
+            </Pagination.Item>
+          ))}
+        </Pagination>
+      </div>
+      <ConfirmationModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        onConfirm={setDoctorUnavailable}
+        confirmText="Are you sure you want to delete this doctor?"
+        confirmButtonText="Confirm Delete"
+        cancelButtonText="Cancel"
+        id={DeleteDoctorId}
+      />
+    </>
   );
 };
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Breadcrumb, Toast, ListGroup, Card } from 'react-bootstrap';
+import { Button, Form, Breadcrumb, Toast, ListGroup, Card, Spinner } from 'react-bootstrap';
 import DoctorScheduleModal from './DoctorScheduleModal';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';  // Useful for formatting dates
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 
 const RegisterPatient = () => {
@@ -26,11 +27,9 @@ const RegisterPatient = () => {
     const location = useLocation();
 
 
-
-
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get('http://localhost:5037/api/Receptionist/doctors');
             setDoctors(response.data);
 
             console.log("Doctors: ", response.data);
@@ -100,6 +99,9 @@ const RegisterPatient = () => {
             MobileNumber: '',
             Gender: '',
             DateOfBirth: null,
+            Email: '',
+            Cnic: '',
+            BloodGroup: '',
             MedicalHistory: ''
         },
         appointment: {
@@ -118,7 +120,7 @@ const RegisterPatient = () => {
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`http://localhost:5037/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             console.log("Appointments: ", data)
             setAppointments(data);
@@ -140,12 +142,22 @@ const RegisterPatient = () => {
         const errors = {};
 
         if (!appointmentData.patient.FirstName) errors.FirstName = 'First Name is required';
-        if (!appointmentData.patient.MobileNumber) errors.MobileNumber = 'Mobile Number is required';
         if (!appointmentData.patient.Gender) errors.Gender = 'Please select the Gender';
         if (!selectedDoctor) errors.DoctorID = 'Please select a doctor';
         if (!appointmentData.patient.DateOfBirth) errors.DateOfBirth = 'Date of Birth is required';
         if (!appointmentData.appointment.AppointmentDate) errors.AppointmentDate = 'Appointment Date is required';
         if (!appointmentData.appointment.AppointmentTime) errors.AppointmentTime = 'Appointment Time is required';
+        if (!appointmentData.patient.MobileNumber) {
+            errors.MobileNumber = 'Mobile Number is required';
+        } else if (!/^\d{11}$/.test(appointmentData.patient.MobileNumber)) {
+            errors.MobileNumber = 'Mobile Number must be exactly 11 digits';
+        }
+
+        if (!appointmentData.patient.Cnic) {
+            errors.Cnic = 'CNIC is required';
+        } else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
+            errors.Cnic = 'CNIC must be exactly 13 digits';
+        }
 
         // if (!isTimeSlotAvailable()) {
         //     errors.AppointmentTime = 'Selected time slot is unavailable. Please choose a different time.';
@@ -207,21 +219,116 @@ const RegisterPatient = () => {
         setShowScheduleModal(false);
     };
 
+    const validateForm_1 = () => {
+        const errors = {};
+
+        if (!appointmentData.patient.FirstName) errors.FirstName = 'First Name is required';
+        if (!appointmentData.patient.MobileNumber) {
+            errors.MobileNumber = 'Mobile Number is required';
+        }
+        else if (!/^\d{11}$/.test(appointmentData.patient.MobileNumber)) {
+            errors.MobileNumber = 'Mobile Number must be exactly 11 digits';
+        }
+
+        if (!appointmentData.patient.Cnic) {
+            errors.Cnic = 'CNIC is required';
+        } else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
+            errors.Cnic = 'CNIC must be exactly 13 digits';
+        }
+
+        if (!appointmentData.patient.Gender) errors.Gender = 'Please select the Gender';
+        if (!appointmentData.patient.DateOfBirth) errors.DateOfBirth = 'Date of Birth is required';
+
+        // if (!isTimeSlotAvailable()) {
+        //     errors.AppointmentTime = 'Selected time slot is unavailable. Please choose a different time.';
+        // }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleNext = () => {
+        if (!validateForm_1()) {
+            toast.error("Please Resolve all the Issues");
+            return;
+        }
         setStep(2);
         // fetchDoctors();
+    };
+
+    const handleRegisterPatient = async (e) => {
+        e.preventDefault();
+        if (!validateForm_1()) {
+            toast.error("Please Resolve all the Issues");
+            return;
+        };
+
+        setLoading(true);
+        setToastMessage('');
+
+        try {
+            const patientData = appointmentData.patient;
+            console.log("Patient Data Payload: ", patientData);
+
+            const response = await fetch('http://localhost:5037/api/Receptionist/register-patient', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(patientData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to register the patient.');
+            }
+
+            // setToastMessage('Appointment scheduled successfully.');
+            toast.success('Patient Registered Successfully')
+            setToastVariant('success');
+
+            if (location.pathname.includes("/receptionist/")) {
+                navigate("/receptionist/patients-portal");
+            } else {
+                navigate("/doctor/appointments");
+            }
+
+            setTimeout(() => {
+                setAppointmentData({
+                    patient: {
+                        FirstName: '',
+                        MobileNumber: '',
+                        Gender: '',
+                        DateOfBirth: null,
+                        MedicalHistory: ''
+                    },
+                    appointment: {
+                        DoctorID: '',
+                        AppointmentDate: '',
+                        AppointmentTime: '',
+                    }
+                });
+                setSelectedDoctor(null);
+                setStep(1);
+            }, 1000);
+        } catch (error) {
+            // setToastMessage(error.message);
+            toast.error(error.message);
+            setToastVariant('danger');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const convertTo24HourFormat = (time) => {
         const [timePart, period] = time.split(' ');
         let [hours, minutes] = timePart.split(':').map(Number);
-    
+
         if (period === 'PM' && hours < 12) {
             hours += 12; // Convert PM hours to 24-hour format
         } else if (period === 'AM' && hours === 12) {
             hours = 0; // Convert 12 AM to 0 hours
         }
-    
+
         return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}`; // Return in HH:mm format
     };
 
@@ -229,7 +336,10 @@ const RegisterPatient = () => {
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            toast.error("Please Resolve all the Issues");
+            return;
+        };
 
         setLoading(true);
         setToastMessage('');
@@ -245,7 +355,7 @@ const RegisterPatient = () => {
                 }
             };
 
-            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient-and-schedule', {
+            const response = await fetch('http://localhost:5037/api/Receptionist/register-patient-and-schedule', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -419,9 +529,12 @@ const RegisterPatient = () => {
 
     return (
         <div>
-
-            <h2 className="font-semibold text-2xl" >{step === 1 ? `Patient Registration` : `Set Appointment`}</h2>
-
+            <div className="flex gap-3 items-center align-middle">
+                <button onClick={() => navigate('/receptionist/patients-portal')} className="text-primary">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="font-semibold text-2xl" >{step === 1 ? `Patient Registration` : `Set Appointment`}</h2>
+            </div>
 
             {/* {toastMessage && (
                 <Toast className={`mt-3 ${toastVariant === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
@@ -458,13 +571,30 @@ const RegisterPatient = () => {
                             value={appointmentData.patient.MobileNumber}
                             onChange={(e) => setAppointmentData(prev => ({
                                 ...prev,
-                                patient: { ...prev.patient, MobileNumber: e.target.value }
+                                patient: { ...prev.patient, MobileNumber: e.target.value.replace(/\D/g, '') }
                             }))}
                             className="!border-[#04394F]"
                             isInvalid={!!validationErrors.MobileNumber}
                         />
                         <Form.Control.Feedback type="invalid">
                             {validationErrors.MobileNumber}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group controlId="formCNIC">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">CNIC</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={appointmentData.patient.Cnic}
+                            onChange={(e) => setAppointmentData(prev => ({
+                                ...prev,
+                                patient: { ...prev.patient, Cnic: e.target.value.replace(/\D/g, '') }
+                            }))}
+                            className="!border-[#04394F]"
+                            isInvalid={!!validationErrors.Cnic}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validationErrors.Cnic}
                         </Form.Control.Feedback>
                     </Form.Group>
 
@@ -519,6 +649,50 @@ const RegisterPatient = () => {
                         </Form.Control.Feedback>
                     </Form.Group>
 
+                    <Form.Group controlId="formBloodGroup">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Blood Group</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={appointmentData.patient.BloodGroup || ""}
+                            onChange={(e) => setAppointmentData(prev => ({
+                                ...prev,
+                                patient: { ...prev.patient, BloodGroup: e.target.value }
+                            }))}
+                            className="!border-[#04394F]"
+                            isInvalid={!!validationErrors.BloodGroup}
+                        >
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                            {validationErrors.BloodGroup}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group controlId="formEmail">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            value={appointmentData.patient.Email}
+                            onChange={(e) => setAppointmentData(prev => ({
+                                ...prev,
+                                patient: { ...prev.patient, Email: e.target.value }
+                            }))}
+                            className="!border-[#04394F]"
+                            isInvalid={!!validationErrors.Email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validationErrors.Email}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
                     <Form.Group controlId="formDateOfBirth" className="flex flex-col">
                         <Form.Label>Date of Birth</Form.Label>
                         <DatePicker
@@ -555,13 +729,24 @@ const RegisterPatient = () => {
                     </Form.Group>
 
                     {/* Next Button */}
-                    <Button
-                        variant="outline-success"
-                        className="border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white"
-                        onClick={handleNext}
-                    >
-                        Set Appointment
-                    </Button>
+                    <div className='flex gap-4'>
+                        <Button
+                            variant="outline-success"
+                            className="border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white"
+                            onClick={handleRegisterPatient}
+                            disabled={loading}
+                        >
+                            {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : "Register Patient"}
+                        </Button>
+
+                        <Button
+                            variant="outline-primary"
+                            onClick={handleNext}
+                            disabled={loading}
+                        >
+                            {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : "Set Appointment"}
+                        </Button>
+                    </div>
                 </Form>
 
             )}

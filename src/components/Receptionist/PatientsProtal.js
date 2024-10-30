@@ -18,7 +18,7 @@ const PatientPortal = () => {
     // Fetch patients data from the API
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patients'); // Adjust API endpoint as needed
+        const response = await axios.get('http://localhost:5037/api/Receptionist/patients'); // Adjust API endpoint as needed
         console.log("Patients: ", response.data)
         setPatients(response.data);
         setLoading(false); // Stop loading once data is fetched

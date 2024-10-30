@@ -19,7 +19,7 @@ const Prescriptions = () => {
     useEffect(() => {
         const fetchPrescriptions = async () => {
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/doctor/${doctorId}`);
+                const response = await fetch(`http://localhost:5037/api/Prescription/doctor/${doctorId}`);
                 const data = await response.json();
                 console.log("Prescription: ",data)
                 setPrescriptions(data);
@@ -33,7 +33,7 @@ const Prescriptions = () => {
 
         const fetchInventoryItems = async () => {
             try {
-                const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
+                const response = await fetch('http://localhost:5037/api/Inventory');
                 const data = await response.json();
                 setInventoryItems(data.$values || []);
             } catch (error) {

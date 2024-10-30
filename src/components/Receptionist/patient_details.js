@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button, Container, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
@@ -10,6 +10,23 @@ const PatientDetails = () => {
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    const calculateAge = (dateString) => {
+        const birthDate = new Date(dateString);
+        const today = new Date();
+    
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+    
+        // Adjust if the current month and day are before the birth month and day
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            age--;
+        }
+    
+        return age;
+    };
 
     useEffect(() => {
         if (!patient_id) {
@@ -21,7 +38,7 @@ const PatientDetails = () => {
         const fetchPatientDetails = async () => {
             try {
                 const response = await axios.get(
-                    `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patient-details/${patient_id}`
+                    `http://localhost:5037/api/Receptionist/patient-details/${patient_id}`
                 );
                 setPatient(response.data);
                 setLoading(false);
@@ -54,7 +71,7 @@ const PatientDetails = () => {
         <Container className="pt-4">
             <div className="flex justify-between">
                 <h2 className="font-semibold text-2xl">Patient Details</h2>
-                <Button variant="success">Add New Patient</Button>
+                <Button onClick={(()=>{navigate(`/receptionist/edit-patient/${patient_id}`)})} variant="success">Edit Patient</Button>
             </div>
             <div className="bg-[#F8F8F8] grid grid-cols-1 md:grid-cols-3 gap-4 p-6 mt-4 rounded-md">
                 <div className="patientDetails">
@@ -70,8 +87,20 @@ const PatientDetails = () => {
                     <h2>{patient.gender}</h2>
                 </div>
                 <div className="patientDetails">
-                    <p>Registration Date</p>
-                    <h2>{new Date(patient.registrationDate).toLocaleDateString()}</h2>
+                    <p>Date of Birth</p>
+                    <h2>{patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : 'N/A'}</h2>
+                </div>
+                <div className="patientDetails">
+                    <p>Age</p>
+                    <h2>{patient?.dateOfBirth ? calculateAge(patient.dateOfBirth): 'N/A'} Years</h2>
+                </div>
+                <div className="patientDetails">
+                    <p>CNIC</p>
+                    <h2>{patient?.cnic || 'N/A'}</h2>
+                </div>
+                <div className="patientDetails">
+                    <p>Blood Group</p>
+                    <h2>{patient?.bloodGroup ? patient?.bloodGroup : 'N/A'}</h2>
                 </div>
             </div>
 
