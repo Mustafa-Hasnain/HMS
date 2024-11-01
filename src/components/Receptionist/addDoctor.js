@@ -190,7 +190,7 @@ function AddDoctor() {
     return (
         <Container fluid className="p-4">
             <div className="flex gap-3 mb-4">
-                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />
                 </button>
                 <h2 className="text-left text-2xl font-bold">Register New Doctor</h2>

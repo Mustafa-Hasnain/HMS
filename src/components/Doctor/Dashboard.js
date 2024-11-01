@@ -62,7 +62,7 @@ const DoctorDashboard = () => {
     return (
         <div className="p-2">
             <div className='flex-grow flex-row flex justify-between items-center mt-2 mb-4'>
-                <p className='font-semibold text-2xl -mb-1'>Overview</p>
+                <p className='font-bold text-2xl -mb-1'>Overview</p>
             </div>
 
             {/* Top Info Cards */}

@@ -8,6 +8,7 @@ import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';  // Useful for formatting dates
 import DoctorScheduleModal from './DoctorScheduleModal';
 import { FaArrowLeft } from 'react-icons/fa';
+import AddProcedureModal from './AddProcedureModal';
 
 
 
@@ -18,12 +19,27 @@ const SetAppointment = () => {
     const [patients, setPatients] = useState([]);
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [showNewPatient, setShowNewPatient] = useState(null);
+    const [showModal, setShowModal] = useState(false);
     const [appointmentData, setAppointmentData] = useState({
         doctorID: 0,
         patientID: 0,
         appointmentDate: '',
         appointmentTime: '',
+        Amount: 0,
+        ProcedureItems: []
     });
+
+    const [newProcedure, setNewProcedure] = useState({
+        ProcedureName: '',
+        ProcedureDetail: '',
+        Amount: 0
+    });
+
+    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
+    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
+
+    const [deletingId, setDeletingId] = useState(null);
+
     const [doctors, setDoctors] = useState([]);
     const [toastMessage, setToastMessage] = useState('');
     const [toastVariant, setToastVariant] = useState('success');
@@ -33,9 +49,75 @@ const SetAppointment = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [fetchFromLocal, setFetchFromLocal] = useState('');
 
+
     const [appointments, setAppointments] = useState([]); // To store the fetched appointments
     const navigate = useNavigate();
     const location = useLocation();
+
+    const handleCheckboxChange = (e) => {
+        const { value, checked } = e.target;
+        if (value === 'Consultation') {
+            setIsConsultationSelected(checked);
+        } else if (value === 'Procedure') {
+            setIsProcedureSelected(checked);
+        }
+
+        // Update the Amount based on the checked boxes
+        setAppointmentData(prev => ({
+            ...prev,
+            Amount: calculateTotalAmount(checked, value)
+        }));
+    };
+
+    const calculateTotalAmount = (isChecked, type) => {
+        const procedureAmount = appointmentData.ProcedureItems.reduce((sum, item) => sum + item.Amount, 0);
+        const consultationFee = isConsultationSelected || type === 'Consultation' && isChecked ? selectedDoctor.consultationFee : 0;
+        const procedureFee = isProcedureSelected || type === 'Procedure' && isChecked ? procedureAmount : 0;
+
+        return consultationFee + procedureFee;
+    };
+
+    const addProcedureItem = () => {
+        const newItem = { ...newProcedure, procedureItemID: Date.now() };
+
+        setAppointmentData(prev => ({
+            ...prev,
+            ProcedureItems: [...prev.ProcedureItems, newItem],
+            Amount: prev.Amount + Number(newProcedure.Amount) // Ensure Amount is treated as a number
+        }));
+
+        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0 });
+        setShowModal(false);
+    };
+
+    const deleteProcedureItem = (procedureItemID) => {
+        setDeletingId(procedureItemID);
+        const itemToDelete = appointmentData.ProcedureItems.find(item => item.procedureItemID === procedureItemID);
+
+        setAppointmentData(prev => ({
+            ...prev,
+            ProcedureItems: prev.ProcedureItems.filter(item => item.procedureItemID !== procedureItemID),
+            Amount: prev.Amount - itemToDelete.Amount
+        }));
+        setDeletingId(null);
+    };
+
+    useEffect(() => {
+        // Check for patient data in localStorage
+        const storedPatient = localStorage.getItem('patient');
+        
+        if (storedPatient) {
+            // Parse the patient data and set it to the selectedPatient state
+            const patientData = JSON.parse(storedPatient);
+            setSelectedPatient(patientData);
+            setPatients([patientData]); // Set it in the patients array if you need it there as well
+
+            // Remove the patient data from localStorage
+            localStorage.removeItem('patient');
+        }
+    }, []);
+
+
 
 
     useEffect(() => {
@@ -155,7 +237,9 @@ const SetAppointment = () => {
             doctorID: appointmentData.doctorID,
             patientID: selectedPatient.patientID,
             appointmentDate: appointmentData.appointmentDate,
-            appointmentTime: appointmentTimeIn24hr
+            appointmentTime: appointmentTimeIn24hr,
+            Amount: appointmentData.Amount,
+            ProcedureItems: appointmentData.ProcedureItems
         };
 
         if (!isValidAppointment(payload)) {
@@ -365,7 +449,7 @@ const SetAppointment = () => {
             {!selectedPatient && !showNewPatient && (
                 <>
                     <div className="flex gap-3 mb-2 mt-2 items-center align-middle">
-                        <button onClick={() => navigate('/receptionist/upcoming-doctor-appointments')} className="text-primary">
+                        <button onClick={() => navigate('/receptionist/upcoming-doctor-appointments')} className="text-success -mt-2">
                             <FaArrowLeft size={20} />
                         </button>
                         <h2 className="font-semibold text-2xl">
@@ -385,7 +469,7 @@ const SetAppointment = () => {
                         </Form.Group>
                     </Form>
 
-                    {loading && <Spinner animation="border" />}
+                    
                     {noData && <p>No data found</p>}
                     {!loading && patients.length > 0 && !showNewPatient && (
                         <>
@@ -413,7 +497,7 @@ const SetAppointment = () => {
                     )}
 
                     <Button variant="success" onClick={handleNewPatient} className="mt-3">
-                        Add New Patient
+                    {loading ? <Spinner animation="border" size='sm' /> :  "Add New Patient" }
                     </Button>
                 </>
             )}
@@ -442,6 +526,12 @@ const SetAppointment = () => {
             <Row>
                 {selectedPatient && !showNewPatient && (
                     <>
+                    <div className="flex gap-3 items-center align-middle">
+                        <button onClick={() => navigate('/receptionist/upcoming-doctor-appointments')} className="text-success -mt-2">
+                            <FaArrowLeft size={20} />
+                        </button>
+                        <h2 className='text-2xl font-semibold'>Set Appointment</h2>
+                    </div>
                         <div className="bg-[#F8F8F8] rounded-md p-4 mb-4 shadow-sm">
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
@@ -483,7 +573,7 @@ const SetAppointment = () => {
 
                         <Col className="mt-2">
                             <h4>Appointment Details</h4>
-                            <Form className='space-y-4'>
+                            <Form className='space-y-4 mt-4'>
                                 <Form.Group controlId="doctorSelection">
                                     <Form.Label>Select Doctor</Form.Label>
                                     <Form.Control className='!border-[#04394F]' as="select" value={appointmentData.doctorID} onChange={(e) => handleDoctorChange(doctors.find(d => d.doctorID === parseInt(e.target.value)))} required disabled={fetchFromLocal}>
@@ -561,33 +651,94 @@ const SetAppointment = () => {
                                             )}
                                         </Form.Group> */}
 
-                                        <Form.Group controlId="formAppointmentTime">
-                                            <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
-                                            <Form.Control
-                                                as="select"
-                                                value={appointmentData.appointmentTime}
-                                                onChange={(e) => setAppointmentData(prev => ({
-                                                    ...prev,
-                                                    appointmentTime: e.target.value // Directly update appointmentTime
-                                                }))}
-                                                disabled={!selectedDoctor || !appointmentData.appointmentDate}
-                                                className='!border-[#04394F]'
-                                            >
-                                                <option value="">Select Appointment Time</option>
-                                                {getAvailableTimeSlots().map((slot, index) => (
-                                                    <option key={index} value={slot.split(' - ')[0]}>{slot}</option>
-                                                ))}
-                                            </Form.Control>
+                                        <div className="mt-3 flex justify-between">
+                                            <div className="custom-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    id="consultation"
+                                                    value="Consultation"
+                                                    checked={isConsultationSelected}
+                                                    onChange={handleCheckboxChange}
+                                                    className="custom-checkbox-input"
+                                                />
+                                                <label htmlFor="consultation" className="custom-checkbox-label">Consultation</label>
+                                            </div>
+                                            <div className="custom-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    id="procedure"
+                                                    value="Procedure"
+                                                    checked={isProcedureSelected}
+                                                    onChange={handleCheckboxChange}
+                                                    className="custom-checkbox-input"
+                                                />
+                                                <label htmlFor="procedure" className="custom-checkbox-label">Procedure</label>
+                                            </div>
+                                        </div>
 
-                                        </Form.Group>
+
+                                        {isProcedureSelected && (
+                                            <div className="flex justify-between mt-4">
+                                                <h3 className="font-semibold text-xl">Procedure Items</h3>
+                                                <Button variant="outline-primary" onClick={() => setShowModal(true)}>Add Procedure</Button>
+                                            </div>
+                                        )}
+
+                                        {/* Procedure Items Table */}
+                                        {isProcedureSelected && appointmentData.ProcedureItems.length > 0 ? (
+                                            <div>
+                                                <Table striped bordered hover responsive className="mt-3">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Procedure ID</th>
+                                                            <th>Procedure Name</th>
+                                                            <th>Procedure Detail</th>
+                                                            <th>Amount</th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {appointmentData.ProcedureItems.map(item => (
+                                                            <tr>
+                                                                <td>{item.procedureItemID}</td>
+                                                                <td>{item.ProcedureName}</td>
+                                                                <td>{item.ProcedureDetail || 'N/A'}</td>
+                                                                <td>{item.Amount}</td>
+                                                                <td>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        className='!text-xs'
+                                                                        onClick={() => deleteProcedureItem(item.procedureItemID)}
+                                                                        disabled={deletingId === item.procedureItemID}
+                                                                    >
+                                                                        {deletingId === item.procedureItemID ? (
+                                                                            <Spinner as="span" animation="border" size="sm" />
+                                                                        ) : (
+                                                                            "Delete Procedure"
+                                                                        )}
+                                                                    </Button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+                                        ) : (
+                                            isProcedureSelected && <div className="text-center mt-3">No procedure items added.</div>
+                                        )}
+
+                                        <div className='flex justify-between border-t-[1px] border-b-[1px] border-solid border-black pt-3'>
+                                            <p>Total Amount</p>
+                                            <p>{appointmentData?.Amount}</p>
+                                        </div>
 
                                         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-                                    </>
-                                )}
 
-                                <Button variant="outline-success" className="border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white" onClick={handleFormSubmit} disabled={loading}>
+                                        <Button variant="outline-success" className="mt-4 border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white" onClick={handleFormSubmit} disabled={loading}>
                                     {loading ? 'Setting...' : 'Set Appointment'}
                                 </Button>
+                                    </>
+                                )}
                             </Form>
                         </Col>
                     </>
@@ -688,6 +839,16 @@ const SetAppointment = () => {
                     schedules={selectedDoctor.schedules}
                 />
             }
+
+            {isProcedureSelected && (
+                <AddProcedureModal
+                    show={showModal}
+                    handleClose={() => setShowModal(false)}
+                    newProcedure={newProcedure}
+                    setNewProcedure={setNewProcedure}
+                    onAddProcedure={addProcedureItem}
+                />
+            )}
         </div>
     );
 };

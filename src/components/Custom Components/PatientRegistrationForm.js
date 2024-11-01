@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Breadcrumb, Toast, ListGroup, Card, Spinner } from 'react-bootstrap';
+import { Button, Form, Breadcrumb, Toast, ListGroup, Card, Spinner, Table } from 'react-bootstrap';
 import DoctorScheduleModal from './DoctorScheduleModal';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';  // Useful for formatting dates
@@ -7,6 +7,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import AddProcedureModal from './AddProcedureModal';
 
 
 const RegisterPatient = () => {
@@ -22,6 +23,8 @@ const RegisterPatient = () => {
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
+    const [showModal, setShowModal] = useState(false);
+
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -107,9 +110,82 @@ const RegisterPatient = () => {
         appointment: {
             DoctorID: '',
             AppointmentDate: '',
-            AppointmentTime: ''
+            AppointmentTime: '',
+            Amount: 0,
+            ProcedureItems: []
         }
     });
+
+    const [newProcedure, setNewProcedure] = useState({
+        ProcedureName: '',
+        ProcedureDetail: '',
+        Amount: 0
+    });
+
+    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
+    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
+
+    const [deletingId, setDeletingId] = useState(null);
+
+    const handleCheckboxChange = (e) => {
+        const { value, checked } = e.target;
+        if (value === 'Consultation') {
+            setIsConsultationSelected(checked);
+        } else if (value === 'Procedure') {
+            setIsProcedureSelected(checked);
+        }
+
+        // Update the Amount based on the checked boxes
+        setAppointmentData(prev => ({
+            ...prev,
+            appointment: {
+                ...prev.appointment,
+                Amount: calculateTotalAmount(checked, value)
+            }
+        }));
+    };
+
+    const calculateTotalAmount = (isChecked, type) => {
+        const procedureAmount = appointmentData.appointment.ProcedureItems.reduce((sum, item) => sum + item.Amount, 0);
+        const consultationFee = isConsultationSelected || type === 'Consultation' && isChecked ? selectedDoctor.consultationFee : 0;
+        const procedureFee = isProcedureSelected || type === 'Procedure' && isChecked ? procedureAmount : 0;
+
+        return consultationFee + procedureFee;
+    };
+
+    const addProcedureItem = () => {
+        const newItem = { ...newProcedure, procedureItemID: Date.now() };
+
+        setAppointmentData(prev => ({
+            ...prev,
+            appointment: {
+                ...prev.appointment,
+                ProcedureItems: [...prev.appointment.ProcedureItems, newItem],
+                Amount: prev.appointment.Amount + Number(newProcedure.Amount) // Ensure Amount is treated as a number
+            }
+        }));
+
+
+        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0 });
+        setShowModal(false);
+    };
+
+    const deleteProcedureItem = (procedureItemID) => {
+        setDeletingId(procedureItemID);
+        const itemToDelete = appointmentData.ProcedureItems.find(item => item.procedureItemID === procedureItemID);
+
+        setAppointmentData(prev => ({
+            ...prev,
+            appointment: {
+                ...prev.appointment,
+                ProcedureItems: prev.appointment.ProcedureItems.filter(item => item.procedureItemID !== procedureItemID),
+                Amount: prev.appointment.Amount - (itemToDelete ? itemToDelete.Amount : 0) // Ensure itemToDelete is valid
+            }
+        }));
+        setDeletingId(null);
+    };
+
+
 
     useEffect(() => {
         if (selectedDoctor && selectedDoctor.doctorID) {
@@ -530,7 +606,7 @@ const RegisterPatient = () => {
     return (
         <div>
             <div className="flex gap-3 items-center align-middle">
-                <button onClick={() => navigate('/receptionist/patients-portal')} className="text-primary">
+                <button onClick={() => navigate('/receptionist/patients-portal')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />
                 </button>
                 <h2 className="font-semibold text-2xl" >{step === 1 ? `Patient Registration` : `Set Appointment`}</h2>
@@ -650,7 +726,7 @@ const RegisterPatient = () => {
                     </Form.Group>
 
                     <Form.Group controlId="formBloodGroup">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Blood Group</Form.Label>
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Blood Group <span className='text-xs'>(optional)</span></Form.Label>
                         <Form.Control
                             as="select"
                             value={appointmentData.patient.BloodGroup || ""}
@@ -677,7 +753,7 @@ const RegisterPatient = () => {
                     </Form.Group>
 
                     <Form.Group controlId="formEmail">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Email</Form.Label>
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Email <span className='text-xs'>(optional)</span></Form.Label>
                         <Form.Control
                             type="email"
                             value={appointmentData.patient.Email}
@@ -715,7 +791,7 @@ const RegisterPatient = () => {
 
                     {/* Medical History */}
                     <Form.Group controlId="formMedicalHistory">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Medical History/Allergies</Form.Label>
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Medical History/Allergies <span className='text-xs'>(optional)</span></Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={3}
@@ -878,6 +954,86 @@ const RegisterPatient = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
 
+                            <div className="mt-3 flex justify-between">
+                                <div className="custom-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        id="consultation"
+                                        value="Consultation"
+                                        checked={isConsultationSelected}
+                                        onChange={handleCheckboxChange}
+                                        className="custom-checkbox-input"
+                                    />
+                                    <label htmlFor="consultation" className="custom-checkbox-label">Consultation</label>
+                                </div>
+                                <div className="custom-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        id="procedure"
+                                        value="Procedure"
+                                        checked={isProcedureSelected}
+                                        onChange={handleCheckboxChange}
+                                        className="custom-checkbox-input"
+                                    />
+                                    <label htmlFor="procedure" className="custom-checkbox-label">Procedure</label>
+                                </div>
+                            </div>
+
+                            {isProcedureSelected && (
+                                <div className="flex justify-between mt-4">
+                                    <h3 className="font-semibold text-xl">Procedure Items</h3>
+                                    <Button variant="outline-primary" onClick={() => setShowModal(true)}>Add Procedure</Button>
+                                </div>
+                            )}
+
+                            {/* Procedure Items Table */}
+                            {isProcedureSelected && appointmentData.appointment.ProcedureItems.length > 0 ? (
+                                <div>
+                                    <Table striped bordered hover responsive className="mt-3">
+                                        <thead>
+                                            <tr>
+                                                <th>Procedure ID</th>
+                                                <th>Procedure Name</th>
+                                                <th>Procedure Detail</th>
+                                                <th>Amount</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {appointmentData.appointment.ProcedureItems.map(item => (
+                                                <tr>
+                                                    <td>{item.procedureItemID}</td>
+                                                    <td>{item.ProcedureName}</td>
+                                                    <td>{item.ProcedureDetail || 'N/A'}</td>
+                                                    <td>{item.Amount}</td>
+                                                    <td>
+                                                        <Button
+                                                            variant="outline-danger"
+                                                            className='!text-xs'
+                                                            onClick={() => deleteProcedureItem(item.procedureItemID)}
+                                                            disabled={deletingId === item.procedureItemID}
+                                                        >
+                                                            {deletingId === item.procedureItemID ? (
+                                                                <Spinner as="span" animation="border" size="sm" />
+                                                            ) : (
+                                                                "Delete Procedure"
+                                                            )}
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            ) : (
+                                isProcedureSelected && <div className="text-center mt-3">No procedure items added.</div>
+                            )}
+
+                            <div className='flex justify-between'>
+                                <p>Total Amount</p>
+                                <p>{appointmentData.appointment?.Amount}</p>
+                            </div>
+
                             <Button
                                 variant="outline-success"
                                 className="border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white"
@@ -966,6 +1122,15 @@ const RegisterPatient = () => {
                     schedules={selectedDoctor.schedules}
                 />
             }
+            {isProcedureSelected && (
+                <AddProcedureModal
+                    show={showModal}
+                    handleClose={() => setShowModal(false)}
+                    newProcedure={newProcedure}
+                    setNewProcedure={setNewProcedure}
+                    onAddProcedure={addProcedureItem}
+                />
+            )}
         </div>
     );
 };

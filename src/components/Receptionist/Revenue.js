@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, Tab, Spinner, Row, Col, Card, Table } from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto'; // Required for Chart.js to work
+import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const RevenueComponent = () => {
     const [key, setKey] = useState('doctors');
@@ -9,6 +11,7 @@ const RevenueComponent = () => {
     const [doctorsData, setDoctorsData] = useState([]);
     const [revenueRecords, setRevenueRecords] = useState([]);
     const [loading, setLoading] = useState(true); // Loading state
+    const navigate = useNavigate();
 
     // Fetch data from API
     useEffect(() => {
@@ -32,7 +35,7 @@ const RevenueComponent = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex justify-center items-center h-[450px]">
                 <Spinner animation="border" role="status">
                     <span className="sr-only">Loading...</span>
                 </Spinner>
@@ -75,6 +78,12 @@ const RevenueComponent = () => {
 
     return (
         <div className="w-full p-5">
+            <div className="flex gap-3 items-center align-middle mb-4">
+                <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="font-bold text-2xl">Revenue Portal</h2>
+            </div>
             <Tabs
                 id="revenue-tabs"
                 activeKey={key}
@@ -106,8 +115,8 @@ const RevenueComponent = () => {
                         {latestClinicData.length > 0 ? (
                             <>
                                 <Line data={clinicChartData} />
-                                <div className="overflow-auto max-h-60">
-                                    <Table className="table-auto w-full mt-4">
+                                <div className="overflow-auto max-h-60 mt-4">
+                                    <Table className="table-auto w-full ">
                                         <thead>
                                             <tr>
                                                 <th>Date</th>

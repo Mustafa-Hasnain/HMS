@@ -46,3 +46,21 @@ code {
   line-height: 22px;
   text-align: left;
 }
+
+.custom-checkbox {
+  display: flex;
+  align-items: center; /* Align checkbox and label vertically */
+  cursor: pointer; /* Change cursor to pointer when hovering */
+}
+
+.custom-checkbox-input {
+  width: 20px; /* Custom size for the checkbox */
+  height: 20px; /* Custom size for the checkbox */
+  margin-right: 8px; /* Space between checkbox and label */
+  border: 2px solid #04394F; /* Custom border color */
+  accent-color: #04394F; /* Change the checkbox color on selection */
+}
+
+.custom-checkbox-label {
+  cursor: pointer; /* Make the label clickable */
+}

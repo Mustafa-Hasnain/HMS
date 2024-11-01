@@ -5,6 +5,7 @@ import AddScheduleModal from '../Custom Components/AddScheduleModal';
 import EditScheduleModal from '../Custom Components/EditScheduleModal';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import { toast, ToastContainer } from 'react-toastify';
 
 
 const DoctorSchedule = () => {
@@ -38,9 +39,7 @@ const DoctorSchedule = () => {
             setSchedules(response.data);
         } catch (error) {
             console.error("Error fetching schedules:", error);
-            setToastMessage("Failed to fetch schedules.");
-            setToastVariant("danger");
-            setShowToast(true);
+            toast.error("Failed to fetch schedules.")
         } finally {
             setLoading(false);
         }
@@ -50,14 +49,16 @@ const DoctorSchedule = () => {
         try {
             await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${scheduleId}`);
             setSchedules(schedules.filter(schedule => schedule.doctorScheduleId !== scheduleId));
-            setToastMessage("Schedule deleted successfully.");
-            setToastVariant("success");
-            setShowToast(true);
+            // setToastMessage("Schedule deleted successfully.");
+            // setToastVariant("success");
+            // setShowToast(true);
+            toast.success("Schedule deleted successfully.")
         } catch (error) {
             console.error("Error deleting schedule:", error);
-            setToastMessage("Failed to delete schedule.");
-            setToastVariant("danger");
-            setShowToast(true);
+            // setToastMessage("Failed to delete schedule.");
+            // setToastVariant("danger");
+            // setShowToast(true);
+            toast.error("Failed to delete schedule.");
         }
     };
 
@@ -74,12 +75,13 @@ const DoctorSchedule = () => {
     };
 
     return (
-        <div className="p-4">
+        <div className="pt-4">
+            <ToastContainer />
             <div className="flex gap-3 mb-4">
-                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                {/* <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />
-                </button>
-                <h2 className="text-2xl font-semibold">Doctor's Schedule</h2>
+                </button> */}
+                <h2 className="text-2xl font-semibold">Edit Doctor's Schedule</h2>
             </div>
             {loading ? (
                 <Spinner animation="border" />
@@ -105,7 +107,7 @@ const DoctorSchedule = () => {
                     ))}
                 </div>
             )}
-            <Button variant="primary" onClick={() => setShowAddModal(true)} className="mt-4">
+            <Button variant="outline-success" onClick={() => setShowAddModal(true)} className="mt-4">
                 Add Schedule
             </Button>
 

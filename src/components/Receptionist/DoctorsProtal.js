@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Pagination, Card, Accordion, Spinner, Alert, Button } from 'react-bootstrap';
+import { Table, Pagination, Card, Accordion, Spinner, Alert, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
-import { FaEllipsisV } from 'react-icons/fa';
-import { Menu } from '@headlessui/react';
+import { FaEdit, FaTrash, FaCalendarAlt, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import ConfirmationModal from '../Custom Components/confirmationModal';
 
-
 const DoctorPortal = () => {
   const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [doctorsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
-  const [refresh, updateRefresh] = useState(0);
-  const [DeleteDoctorId, setDeleteDoctorId] = useState(null);
-
+  const [deleteDoctorId, setDeleteDoctorId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
@@ -24,40 +22,41 @@ const DoctorPortal = () => {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
+      setError(null); // Reset error before fetching
       const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
       setDoctors(response.data);
-      setLoading(false); // Stop loading once data is fetched
     } catch (error) {
+      setError('Error fetching doctor data. Please try again.');
       console.error('Error fetching doctor data:', error);
-      setLoading(false); // Stop loading even if there's an error
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    updateRefresh(Math.random * 100);
-  }, [])
-
-  useEffect(() => {
-
-
     fetchDoctors();
-  }, [refresh]);
+  }, []);
 
   // Pagination Logic
   const indexOfLastDoctor = currentPage * doctorsPerPage;
   const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = doctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+  const currentDoctors = doctors
+    .filter(doctor =>
+      doctor.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice(indexOfFirstDoctor, indexOfLastDoctor);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const setDoctorUnavailable = async (doctorId) => {
-    setShowModal(false)
+    setShowModal(false);
     try {
       const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       if (!response.ok) {
@@ -75,7 +74,7 @@ const DoctorPortal = () => {
   // Show spinner while loading data
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-[450px]">
         <Spinner animation="border" variant="primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </Spinner>
@@ -83,10 +82,19 @@ const DoctorPortal = () => {
     );
   }
 
+  // Show error alert if fetch error occurs
+  if (error) {
+    return (
+      <div className="flex justify-center items-center pt-20">
+        <Alert variant="danger">{error}</Alert>
+      </div>
+    );
+  }
+
   // No Data Found Logic
   if (doctors.length === 0) {
     return (
-      <div className="flex justify-center items-center pt-20 ">
+      <div className="flex justify-center items-center pt-20">
         <div className="text-center">
           <Alert variant="warning">
             No doctors available.
@@ -104,19 +112,36 @@ const DoctorPortal = () => {
 
   return (
     <>
-      <ToastContainer></ToastContainer>
+      <ToastContainer />
       <div className="container mx-auto py-5">
-        <div className='flex items-center justify-between align-middle mb-4'>
-          <div className='flex gap-[4%]'>
-            <h1 className="text-2xl font-bold">Doctors</h1>
-            <h1 className="text-2xl font-bold">({currentDoctors.length})</h1>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex gap-3 items-center align-middle">
+            <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+              <FaArrowLeft size={20} />
+            </button>
+            <div className="flex gap-3">
+              <h1 className="text-2xl font-bold">Doctors</h1>
+              <h1 className="text-2xl font-bold">({currentDoctors.length})</h1>
+            </div>
           </div>
-          <Button onClick={() => (navigate('/receptionist/add-doctor'))} variant="success">Add New Doctor</Button>
+          <Button onClick={() => navigate('/receptionist/add-doctor')} variant="success">
+            Add New Doctor
+          </Button>
         </div>
+
+        {/* Search input */}
+        <Form.Control
+          type="text"
+          placeholder="Search by name or specialty"
+          className="mb-4"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
         {currentDoctors.map((doctor) => (
           <Card className="mb-5" key={doctor.doctorID}>
             <Card.Body>
-              <Table className='table' hover responsive>
+              <Table className="table" hover responsive>
                 <thead>
                   <tr>
                     <th>Doctor ID</th>
@@ -139,42 +164,27 @@ const DoctorPortal = () => {
                     <td>Rs.{doctor.consultationFee}</td>
                     <td>{new Date(doctor.joinedDate).toLocaleDateString()}</td>
                     <td>
-                      <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button>
-                          <FaEllipsisV />
-                        </Menu.Button>
-
-                        <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                          <div className="py-1 Barlow">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  onClick={() => {
-                                    setDeleteDoctorId(doctor.doctorID);
-                                    setShowModal(true);
-                                  }}
-                                  href="#"
-                                  className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                                >
-                                  Remove Doctor
-                                </a>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  onClick={() => (navigate(`/receptionist/edit-doctor/${doctor.doctorID}/`))}
-                                  href="#"
-                                  className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                                >
-                                  Edit Doctor
-                                </a>
-                              )}
-                            </Menu.Item>
-                          </div>
-                        </Menu.Items>
-                      </Menu>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => navigate(`/receptionist/edit-doctor/${doctor.doctorID}`)}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => {
+                            setDeleteDoctorId(doctor.doctorID);
+                            setShowModal(true);
+                          }}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </div>
                     </td>
+
                   </tr>
                 </tbody>
               </Table>
@@ -191,7 +201,6 @@ const DoctorPortal = () => {
                           <th>Start Time</th>
                           <th>End Time</th>
                           <th>Meeting Duration (mins)</th>
-                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -203,29 +212,12 @@ const DoctorPortal = () => {
                               <td>{schedule.startTime}</td>
                               <td>{schedule.endTime}</td>
                               <td>{schedule.slotDuration} minutes</td>
-                              <td>
-                                <Menu as="div" className="relative inline-block text-left">
-                                  <Menu.Button>
-                                    <FaEllipsisV />
-                                  </Menu.Button>
-
-                                  <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="py-1 Barlow">
-                                      <Menu.Item>
-                                        {({ active }) => (
-                                          <a
-                                            onClick={() => (navigate(`/receptionist/update-schedule/${doctor.doctorID}/`))}
-                                            href="#"
-                                            className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                                          >
-                                            Edit Schedule
-                                          </a>
-                                        )}
-                                      </Menu.Item>
-                                    </div>
-                                  </Menu.Items>
-                                </Menu>
-                              </td>
+                              {/* <td>
+                                <FaEdit
+                                  className="text-primary cursor-pointer"
+                                  onClick={() => navigate(`/receptionist/update-schedule/${doctor.doctorID}`)}
+                                />
+                              </td> */}
                             </tr>
                           ))
                         ) : (
@@ -253,6 +245,7 @@ const DoctorPortal = () => {
           ))}
         </Pagination>
       </div>
+
       <ConfirmationModal
         show={showModal}
         onHide={() => setShowModal(false)}
@@ -260,7 +253,7 @@ const DoctorPortal = () => {
         confirmText="Are you sure you want to delete this doctor?"
         confirmButtonText="Confirm Delete"
         cancelButtonText="Cancel"
-        id={DeleteDoctorId}
+        id={deleteDoctorId}
       />
     </>
   );

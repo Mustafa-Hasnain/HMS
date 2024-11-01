@@ -17,7 +17,7 @@ const Dashboard = () => {
     const [data, setData] = useState(null); // State to hold API data
     const [appointmentsLoading, setAppointmentsLoading] = useState(true); // Loading for appointments
     const [appointments, setAppointments] = useState([]); // State for upcoming appointments
-    const { setRefreshFunction } = useRefreshContext();
+    const { refreshKey } = useRefreshContext(); // Use refreshKey from context
 
 
     const navigate = useNavigate();
@@ -38,10 +38,7 @@ const Dashboard = () => {
         };
 
         fetchData();
-
-
-        setRefreshFunction(() => fetchData);
-    }, [setRefreshFunction]);
+    }, [refreshKey]);
 
     const formatTime = (time24, duration) => {
         const [hours, minutes] = time24.split(':').map(Number);
@@ -158,27 +155,13 @@ const Dashboard = () => {
                                                         </Button>
                                                     </td>
                                                     <td>
-                                                        <Menu as="div" className="relative inline-block text-left">
-                                                            <Menu.Button>
-                                                                <FaEllipsisV />
-                                                            </Menu.Button>
-
-                                                            <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                                                <div className="py-1 Barlow">
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <a
-                                                                                href="#"
-                                                                                onClick={() => (navigate(''))}
-                                                                                className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                                                                            >
-                                                                                View Details
-                                                                            </a>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                </div>
-                                                            </Menu.Items>
-                                                        </Menu>
+                                                        <Button
+                                                            variant="outline-success"
+                                                            className=' !text-xs'
+                                                            onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                        >
+                                                            Details
+                                                        </Button>
                                                     </td>
                                                 </tr>
                                             );

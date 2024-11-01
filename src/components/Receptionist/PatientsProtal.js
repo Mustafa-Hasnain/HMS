@@ -1,40 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Pagination, Card, Accordion, Spinner, Alert, Button } from 'react-bootstrap';
+import { Table, Pagination, Card, Accordion, Spinner, Alert, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import "../../styles/table.css";
-import { Menu } from '@headlessui/react';
-import { FaEllipsisV } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const PatientPortal = () => {
   const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [filteredPatients, setFilteredPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Error state
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState(''); // Search term state
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch patients data from the API
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patients'); // Adjust API endpoint as needed
-        console.log("Patients: ", response.data)
+        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patients');
         setPatients(response.data);
-        setLoading(false); // Stop loading once data is fetched
+        setFilteredPatients(response.data); // Initialize filteredPatients
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching patient data:', error);
-        setLoading(false); // Stop loading even if there's an error
+        setError('Failed to fetch patient data. Please try again later.');
+        setLoading(false);
       }
     };
 
     fetchPatients();
   }, []);
 
+  // Search filter logic
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setFilteredPatients(
+      patients.filter(patient =>
+        Object.values(patient).some(val =>
+          val.toString().toLowerCase().includes(e.target.value.toLowerCase())
+        )
+      )
+    );
+  };
+
   // Pagination Logic
   const indexOfLastPatient = currentPage * patientsPerPage;
   const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
-  const currentPatients = patients.slice(indexOfFirstPatient, indexOfLastPatient);
+  const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -49,6 +64,17 @@ const PatientPortal = () => {
     );
   }
 
+  // Error message if data fetching fails
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center pt-20">
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
+      </div>
+    );
+  }
+
   // No Data Found Logic
   if (patients.length === 0) {
     return (
@@ -56,24 +82,44 @@ const PatientPortal = () => {
         <Alert variant="warning" className="text-center">
           No Patients Added.
         </Alert>
-        <Button onClick={() => (navigate('/receptionist/set-appointment'))} variant="success">Add New Patient</Button>
+        <Button onClick={() => navigate('/receptionist/set-appointment')} variant="success">
+          Add New Patient
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto py-5">
-      <div className='flex items-center justify-between align-middle mb-4'>
-        <div className='flex gap-[4%]'>
-          <h1 className="text-2xl font-bold">Patients</h1>
-          <h1 className="text-2xl font-bold">({patients.length})</h1>
+      <div className="flex items-center justify-between align-middle mb-4">
+        <div className="flex gap-[4%]">
+          <div className="flex gap-3 items-center align-middle">
+            <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+              <FaArrowLeft size={20} />
+            </button>
+            <h1 className="text-2xl font-bold">Patients</h1>
+            <h1 className="text-2xl font-bold">({filteredPatients.length})</h1>
+          </div>
         </div>
-        <Button onClick={() => (navigate('/receptionist/set-appointment'))} variant="success">Add New Patient</Button>
+        <Button onClick={() => navigate('/receptionist/set-appointment')} variant="success">
+          Add New Patient
+        </Button>
       </div>
-      <Table className='table' hover responsive>
+
+      {/* Search Bar */}
+      <Form.Group className="mb-4">
+        <Form.Control
+          type="text"
+          placeholder="Search Patients..."
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+      </Form.Group>
+
+      <Table className="table" hover responsive>
         <thead>
           <tr>
-            <th>Patient ID</th>
+            <th>ID</th>
             <th>Name</th>
             <th>Phone No</th>
             <th>Gender</th>
@@ -83,34 +129,36 @@ const PatientPortal = () => {
         </thead>
         <tbody>
           {currentPatients.map((patient) => (
-            <tr key={patient.patientID}>
+            <tr key={patient.patientID} onClick={() => navigate(`/receptionist/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
               <td>{patient.patientID}</td>
               <td>{patient.firstName}</td>
               <td>{patient.mobileNumber}</td>
               <td>{patient.gender}</td>
               <td>{new Date(patient.registrationDate).toLocaleDateString()}</td>
               <td>
-                <Menu as="div" className="relative inline-block text-left">
-                  <Menu.Button>
-                    <FaEllipsisV />
-                  </Menu.Button>
-
-                  <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <div className="py-1 Barlow">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            href="#"
-                            onClick={() => (navigate(`/receptionist/patients-details/${patient.patientID}`))}
-                            className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                          >
-                            View Details
-                          </a>
-                        )}
-                      </Menu.Item>
-                    </div>
-                  </Menu.Items>
-                </Menu>
+                <div className='flex gap-3'>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click from firing
+                      navigate(`/receptionist/edit-patient/${patient.patientID}`);
+                    }}
+                  >
+                    <FaEdit />
+                  </Button>
+                  <Button
+                    variant="outline-success"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      localStorage.setItem('patient', JSON.stringify(patient));
+                      navigate(`/receptionist/set-appointment`);
+                    }}
+                  >
+                    Set Appointment
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}
@@ -120,7 +168,7 @@ const PatientPortal = () => {
       {/* Pagination */}
       <div className="flex justify-center mt-4">
         <Pagination>
-          {Array.from({ length: Math.ceil(patients.length / patientsPerPage) }, (_, index) => (
+          {Array.from({ length: Math.ceil(filteredPatients.length / patientsPerPage) }, (_, index) => (
             <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
               {index + 1}
             </Pagination.Item>

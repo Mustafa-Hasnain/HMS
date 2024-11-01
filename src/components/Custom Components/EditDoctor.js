@@ -4,6 +4,8 @@ import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaArrowLeft } from 'react-icons/fa';
+import EditScheduleModal from './EditScheduleModal';
+import DoctorSchedule from '../Doctor/DoctorSchedules';
 
 const EditDoctorForm = () => {
     const { doctor_id } = useParams();
@@ -93,7 +95,7 @@ const EditDoctorForm = () => {
     return (
         <Container fluid className="p-4">
             <div className="flex gap-3 mb-4 items-center align-middle">
-                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-primary">
+                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />
                 </button>
                 <h2 className="text-left text-2xl font-bold">Edit Doctor</h2>
@@ -239,11 +241,13 @@ const EditDoctorForm = () => {
                         </Col>
                     </Row>
 
-                    <Button type="submit" className="bg-[#04394F] text-white" disabled={submitting}>
+                    <Button variant='outline-success' type="submit" disabled={submitting}>
                         {submitting ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Update Doctor'}
                     </Button>
                 </Form>
             )}
+
+                <DoctorSchedule></DoctorSchedule>
         </Container>
     );
 };

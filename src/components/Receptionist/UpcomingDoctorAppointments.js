@@ -3,7 +3,7 @@ import { Form, InputGroup, Spinner, ListGroup, Card, Table, Badge, Button } from
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '@headlessui/react';
-import { FaEllipsisV } from 'react-icons/fa';
+import { FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
 import PaymentModal from '../Custom Components/PaymentModal';
 
 const UpcomingDoctorAppointments = () => {
@@ -20,7 +20,7 @@ const UpcomingDoctorAppointments = () => {
     const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
     const [invoices, setInvoices] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    
+
 
 
 
@@ -117,11 +117,17 @@ const UpcomingDoctorAppointments = () => {
     };
 
     return (
-        <div className="container mt-2">
-            <div className='flex justify-between items-center'>
-                <h2 className="font-semibold text-2xl mt-3">Appointments</h2>
+        <div className="container mt-2 p-4">
+            <div className='flex justify-between items-center mb-4'>
+                <div className="flex gap-3 items-center align-middle">
+                    <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+                        <FaArrowLeft size={20} />
+                    </button>
+                    <h2 className="font-bold text-2xl">Appointments</h2>
+                </div>
                 {/* {loadingDoctors && <Spinner animation="border" variant="primary" />} */}
                 <Button onClick={() => (navigate('/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
+
             </div>
             <InputGroup className="mb-3 relative">
                 <Form.Control
@@ -230,7 +236,7 @@ const UpcomingDoctorAppointments = () => {
                                                         <Button
                                                             variant="outline-success"
                                                             className=' !text-xs'
-                                                            onClick={()=>(navigate(`/receptionist/invoice-details/${appt.appointmentID}`))}
+                                                            onClick={() => (navigate(`/receptionist/invoice-details/${appt.appointmentID}`))}
                                                         >
                                                             Details
                                                         </Button>

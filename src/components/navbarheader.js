@@ -10,7 +10,7 @@ function NavbarHeader() {
   const location = useLocation();
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [currentDate, setCurrentDate] = useState('');
-  const { handleRefresh } = useRefreshContext(); // Access handleRefresh from the context
+  const { handleReload } = useRefreshContext();
 
 
   useEffect(() => {
@@ -38,9 +38,9 @@ function NavbarHeader() {
 
   return (
     <div className="bg-white text-white p-4 flex items-center justify-between fixed top-0 left-64 right-0 z-40 border-b border-[rgba(4, 57, 79, 0.3)]">
-      <div className='flex flex-row w-[100%] justify-between '>
+      <div className='flex flex-row w-[100%] justify-end '>
 
-        <Form className="d-none d-md-flex mx-4 w-[40%]">
+        {/* <Form  className="d-none d-md-flex mx-4 w-[40%]">
           <InputGroup className='relative'>
             <FormControl
               type="search"
@@ -51,18 +51,18 @@ function NavbarHeader() {
               <FaSearch />
             </InputGroup.Text>
           </InputGroup>
-        </Form>
+        </Form> */}
 
         {/* Right section: Notification and Profile */}
         <div className="d-flex align-items-center gap-3">
           <button
             className="text-black border border-black rounded p-2 hover:bg-gray-200"
-            onClick={handleRefresh}
+            onClick={()=>window.location.reload(false)}
           >
             <FaSync />
           </button>
           <div className='flex gap-2 -mb-2'>
-            <div className="text-sm font-bold text-black">{welcomeMessage}</div>
+            <div className="text-sm font-semibold text-black">{welcomeMessage}</div>
             <div className='text-black'>|</div>
             {currentDate && <div className="text-sm text-gray-600 font-semibold">{currentDate}</div>}
           </div>
@@ -71,9 +71,9 @@ function NavbarHeader() {
             <FaBell size={20} />
           </Button> */}
 
-          <button className="bg-red-600 px-4 py-2 rounded hover:bg-red-700" onClick={handleLogout}>
+          <Button variant='outline-danger' className="px-4 py-2 rounded" onClick={handleLogout}>
             Logout
-          </button>
+          </Button>
 
           {/* Hamburger button for mobile */}
           <Button

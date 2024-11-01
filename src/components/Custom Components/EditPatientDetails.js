@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const EditPatientDetails = () => {
     const { patient_id } = useParams();
@@ -105,7 +106,13 @@ const EditPatientDetails = () => {
     };
 
     if (loading) {
-        return <Spinner animation="border" className="mt-5" />;
+        return (
+            <div className="flex justify-center items-center h-[450px]">
+                <Spinner animation="border" variant="primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+            </div>
+        );
     }
 
     if (error) {
@@ -114,8 +121,13 @@ const EditPatientDetails = () => {
 
     return (
         <Container className='pt-3'>
-            <h2 className="font-semibold text-2xl">Update Patient Details</h2>
-            <Form onSubmit={handleSubmit} className="space-y-4 w-[450px]">
+            <div className="flex gap-3 items-center align-middle">
+                <button onClick={() => navigate(-1)} className="text-success -mt-2">
+                    <FaArrowLeft size={20} />
+                </button>
+                <h2 className="font-semibold text-2xl">Update Patient Details</h2>
+            </div>
+            <Form onSubmit={handleSubmit} className="space-y-4 w-[450px] mt-4">
                 <Form.Group controlId="formFirstName">
                     <Form.Label>Name</Form.Label>
                     <Form.Control

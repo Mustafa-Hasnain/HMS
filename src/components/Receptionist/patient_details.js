@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Container, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
+import { FaArrowLeft } from "react-icons/fa";
 
 const PatientDetails = () => {
     const { patient_id } = useParams(); // Get patient ID from the route params
@@ -15,16 +16,16 @@ const PatientDetails = () => {
     const calculateAge = (dateString) => {
         const birthDate = new Date(dateString);
         const today = new Date();
-    
+
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
         const dayDiff = today.getDate() - birthDate.getDate();
-    
+
         // Adjust if the current month and day are before the birth month and day
         if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
             age--;
         }
-    
+
         return age;
     };
 
@@ -70,8 +71,13 @@ const PatientDetails = () => {
     return (
         <Container className="pt-4">
             <div className="flex justify-between">
-                <h2 className="font-semibold text-2xl">Patient Details</h2>
-                <Button onClick={(()=>{navigate(`/receptionist/edit-patient/${patient_id}`)})} variant="success">Edit Patient</Button>
+                <div className="flex gap-3 items-center align-middle">
+                    <button onClick={() => navigate('/receptionist/patients-portal')} className="text-success -mt-2">
+                        <FaArrowLeft size={20} />
+                    </button>
+                    <h2 className="font-semibold text-2xl">Patient Details</h2>
+                </div>
+                <Button onClick={(() => { navigate(`/receptionist/edit-patient/${patient_id}`) })} variant="success">Edit Patient</Button>
             </div>
             <div className="bg-[#F8F8F8] grid grid-cols-1 md:grid-cols-3 gap-4 p-6 mt-4 rounded-md">
                 <div className="patientDetails">
@@ -92,7 +98,7 @@ const PatientDetails = () => {
                 </div>
                 <div className="patientDetails">
                     <p>Age</p>
-                    <h2>{patient?.dateOfBirth ? calculateAge(patient.dateOfBirth): 'N/A'} Years</h2>
+                    <h2>{patient?.dateOfBirth ? calculateAge(patient.dateOfBirth) : 'N/A'} Years</h2>
                 </div>
                 <div className="patientDetails">
                     <p>CNIC</p>

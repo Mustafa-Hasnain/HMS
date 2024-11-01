@@ -3,6 +3,7 @@ import { Tabs, Tab, Table, Button, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import PaymentModal from '../Custom Components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const InvoiceManagement = () => {
   const [key, setKey] = useState('unpaid');
@@ -54,7 +55,12 @@ const InvoiceManagement = () => {
 
   return (
     <div className="container my-4">
-      <h2 className="mb-4 font-semibold text-2xl">Invoice Management</h2>
+      <div className="flex gap-3 items-center align-middle mb-4">
+        <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+          <FaArrowLeft size={20} />
+        </button>
+        <h2 className="font-bold text-2xl">Invoice Management</h2>
+      </div>
 
       {/* Tabs for switching between unpaid and paid invoices */}
       <Tabs
