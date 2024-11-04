@@ -13,7 +13,7 @@ const calculateAge = (dob) => {
     return age;
 };
 
-const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appointmentDate, appointmentTime }, ref) => {
+const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appointment, appointmentDate, appointmentTime }, ref) => {
     const mainInvoice = invoices[0];
     const totalAppointments = mainInvoice.secondaryAppointments.length + 1; // 1 for main appointment
     const totalProcedures = mainInvoice.procedureItems.length;
@@ -97,9 +97,8 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
             )}
 
             {/* Secondary Appointments Table */}
-            {mainInvoice.secondaryAppointments.length > 0 && (
                 <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ color: 'black', fontWeight: 600 }}>SECONDARY APPOINTMENTS</h3>
+                    <h3 style={{ color: 'black', fontWeight: 600 }}>APPOINTMENTS</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
@@ -110,10 +109,17 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                             </tr>
                         </thead>
                         <tbody>
+                        <tr key={appointment.appointmentID}>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.appointmentID}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {doctor.firstName} {doctor.lastName}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.amount}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.paid ? 'Paid' : 'Unpaid'}</td>
+                            </tr>
+
                             {mainInvoice.secondaryAppointments.map(app => (
                                 <tr key={app.secondaryAppointmentID}>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{app.secondaryAppointmentID}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {doctor.firstName} {doctor.lastName}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {app.doctor.firstName} {app.doctor.lastName}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{app.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{app.paid ? 'Paid' : 'Unpaid'}</td>
                                 </tr>
@@ -121,7 +127,6 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                         </tbody>
                     </table>
                 </div>
-            )}
 
             {/* Summary */}
             <div style={{
@@ -139,7 +144,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                     <p><span style={{ fontWeight: '600' }}>Total Appointments:</span> {totalAppointments}</p>
                     <p><span style={{ fontWeight: '600' }}>Total Procedure Items:</span> {totalProcedures}</p>
 
-                    <p><span style={{ fontWeight: '600' }}>Total Amount:</span> ${mainInvoice.amount.toFixed(2)}</p>
+                    <p><span style={{ fontWeight: '600' }}>Total Amount:</span> Rs. {mainInvoice.amount.toFixed(2)}</p>
                 </div>
             </div>
         </div>

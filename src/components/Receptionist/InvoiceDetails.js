@@ -372,6 +372,7 @@ const InvoiceDetails = () => {
                         patient={patient}
                         doctor={doctor}
                         invoices={invoices}
+                        appointment={appointment}
                         appointmentDate={appointment.appointmentDate}
                         appointmentTime={appointment.appointmentTime}
                     />
