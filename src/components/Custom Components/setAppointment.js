@@ -168,6 +168,7 @@ const SetAppointment = () => {
         try {
             const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
+            console.log("Doctors Appointment: ", data);
             setAppointments(data);
         } catch (error) {
             console.error('Error fetching appointments:', error);
@@ -875,7 +876,7 @@ const SetAppointment = () => {
 
                                             return (
                                                 <ListGroup.Item key={index}>
-                                                    <strong>{formattedDate}</strong>: {formattedStartTime} - {formattedEndTime}
+                                                    <strong>{formattedDate}</strong>: {appt.referredByDoctor ? "Referred By Doctor" : `${formattedStartTime} - ${formattedEndTime}`}
                                                     <div>
                                                         <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
                                                     </div>

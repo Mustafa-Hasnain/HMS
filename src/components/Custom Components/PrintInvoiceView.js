@@ -143,7 +143,6 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
 
                     <p><span style={{ fontWeight: '600' }}>Total Appointments:</span> {totalAppointments}</p>
                     <p><span style={{ fontWeight: '600' }}>Total Procedure Items:</span> {totalProcedures}</p>
-
                     <p><span style={{ fontWeight: '600' }}>Total Amount:</span> Rs. {mainInvoice.amount.toFixed(2)}</p>
                 </div>
             </div>
