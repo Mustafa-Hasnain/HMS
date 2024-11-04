@@ -195,7 +195,7 @@ const UpcomingDoctorAppointments = () => {
                                             <th>Patient Name</th>
                                             <th>Doctor Name</th>
                                             <th>Appointment Time</th>
-                                            <th>Invoice Status</th>
+                                            {/* <th>Invoice Status</th> */}
                                             <th>Appointment Status</th>
                                             <th>Action</th>
                                         </tr>
@@ -213,16 +213,16 @@ const UpcomingDoctorAppointments = () => {
                                                 <td>{appt.patient.firstName}</td>
                                                 <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
                                                 <td>{getMeetingTime(appt)}</td>
-                                                <td>
+                                                {/* <td>
                                                     <Badge bg={appt.invoices[0]?.status === 'Paid' ? 'success' : 'danger'}>
                                                         {appt.invoices[0]?.status || 'Unpaid'}
                                                     </Badge>
-                                                </td>
+                                                </td> */}
                                                 <td>{appt.status}</td>
 
                                                 <td>
                                                     <div className='flex gap-2'>
-                                                        {appt.invoices[0]?.status !== 'Paid' &&
+                                                        {/* {appt.invoices[0]?.status !== 'Paid' &&
                                                             <Button
                                                                 variant="outline-success"
                                                                 className=' !text-xs'
@@ -232,7 +232,7 @@ const UpcomingDoctorAppointments = () => {
                                                                 }}
                                                             >
                                                                 Mark as Paid
-                                                            </Button>}
+                                                            </Button>} */}
                                                         <Button
                                                             variant="outline-success"
                                                             className=' !text-xs'

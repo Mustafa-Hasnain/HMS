@@ -3,16 +3,18 @@ import { Button, Table, Breadcrumb, Form, Toast, Spinner, Alert, Card, ListGroup
 import axios from 'axios';
 import debounce from 'lodash.debounce';
 import RegisterPatient from './PatientRegistrationForm';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
-import { format } from 'date-fns';  // Useful for formatting dates
+import { format, interval } from 'date-fns';  // Useful for formatting dates
 import DoctorScheduleModal from './DoctorScheduleModal';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddProcedureModal from './AddProcedureModal';
+import { toast, ToastContainer } from 'react-toastify';
 
 
 
 const SetAppointment = () => {
+    const { patient_id, invoice_id } = useParams();
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [searchInfo, setSearchInfo] = useState('');
     const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -21,11 +23,14 @@ const SetAppointment = () => {
     const [showNewPatient, setShowNewPatient] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [appointmentData, setAppointmentData] = useState({
+        invoice_id: invoice_id,
         doctorID: 0,
-        patientID: 0,
+        patientID: patient_id,
         appointmentDate: '',
         appointmentTime: '',
         Amount: 0,
+        ConsultationAmount: 0,
+        referredByDoctor: false,
         ProcedureItems: []
     });
 
@@ -58,15 +63,23 @@ const SetAppointment = () => {
         const { value, checked } = e.target;
         if (value === 'Consultation') {
             setIsConsultationSelected(checked);
+            setAppointmentData(prev => ({
+                ...prev, ConsultationAmount: selectedDoctor?.consultationFee ?? 0
+            }))
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
+            setAppointmentData(prev => ({
+                ...prev, ConsultationAmount: 0
+            }))
         }
 
         // Update the Amount based on the checked boxes
         setAppointmentData(prev => ({
             ...prev,
-            Amount: calculateTotalAmount(checked, value)
+            Amount: calculateTotalAmount(checked, value),
+            ConsultationAmount: selectedDoctor?.consultationFee ?? 0
         }));
+
     };
 
     const calculateTotalAmount = (isChecked, type) => {
@@ -105,7 +118,7 @@ const SetAppointment = () => {
     useEffect(() => {
         // Check for patient data in localStorage
         const storedPatient = localStorage.getItem('patient');
-        
+
         if (storedPatient) {
             // Parse the patient data and set it to the selectedPatient state
             const patientData = JSON.parse(storedPatient);
@@ -116,6 +129,31 @@ const SetAppointment = () => {
             localStorage.removeItem('patient');
         }
     }, []);
+
+
+    useEffect(() => {
+        const fetchPatientData = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/get-patient-details/${patient_id}`);
+                const patientData = response.data;
+                console.log("patientData: ", patientData);
+                if (patientData) {
+                    setSelectedPatient(patientData);
+                    setPatients([patientData]);
+
+                }
+            } catch (err) {
+                toast.error("An error occurred while fetching the patient data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (patient_id) {
+            fetchPatientData();
+        }
+    }, [patient_id]);
 
 
 
@@ -234,13 +272,17 @@ const SetAppointment = () => {
 
 
         const payload = {
+            invoiceID: invoice_id,
             doctorID: appointmentData.doctorID,
             patientID: selectedPatient.patientID,
             appointmentDate: appointmentData.appointmentDate,
             appointmentTime: appointmentTimeIn24hr,
             Amount: appointmentData.Amount,
+            ReferredByDoctor: appointmentData.referredByDoctor, 
             ProcedureItems: appointmentData.ProcedureItems
         };
+
+        console.log("Payload: ", payload);
 
         if (!isValidAppointment(payload)) {
             setLoading(false);
@@ -248,7 +290,7 @@ const SetAppointment = () => {
         }
 
         try {
-            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment', payload);
+            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-secondary-appointment', payload);
             setToastMessage('Appointment set successfully.');
             setToastVariant('success');
             // setAppointmentData({
@@ -259,6 +301,9 @@ const SetAppointment = () => {
             // });
             // setSelectedPatient(null);
             if (location.pathname.includes("/receptionist/")) {
+                if (patient_id && invoice_id) {
+                    navigate(-1);
+                }
                 navigate("/receptionist/upcoming-doctor-appointments");
             } else {
                 navigate("/doctor/appointments");
@@ -446,6 +491,7 @@ const SetAppointment = () => {
 
     return (
         <div className="container mx-auto p-4">
+            <ToastContainer />
             {!selectedPatient && !showNewPatient && (
                 <>
                     <div className="flex gap-3 mb-2 mt-2 items-center align-middle">
@@ -469,7 +515,7 @@ const SetAppointment = () => {
                         </Form.Group>
                     </Form>
 
-                    
+
                     {noData && <p>No data found</p>}
                     {!loading && patients.length > 0 && !showNewPatient && (
                         <>
@@ -497,7 +543,7 @@ const SetAppointment = () => {
                     )}
 
                     <Button variant="success" onClick={handleNewPatient} className="mt-3">
-                    {loading ? <Spinner animation="border" size='sm' /> :  "Add New Patient" }
+                        {loading ? <Spinner animation="border" size='sm' /> : "Add New Patient"}
                     </Button>
                 </>
             )}
@@ -526,12 +572,12 @@ const SetAppointment = () => {
             <Row>
                 {selectedPatient && !showNewPatient && (
                     <>
-                    <div className="flex gap-3 items-center align-middle">
-                        <button onClick={() => navigate('/receptionist/upcoming-doctor-appointments')} className="text-success -mt-2">
-                            <FaArrowLeft size={20} />
-                        </button>
-                        <h2 className='text-2xl font-semibold'>Set Appointment</h2>
-                    </div>
+                        <div className="flex gap-3 items-center align-middle">
+                            <button onClick={() => navigate(-1)} className="text-success -mt-2">
+                                <FaArrowLeft size={20} />
+                            </button>
+                            <h2 className='text-2xl font-semibold'>Set Appointment</h2>
+                        </div>
                         <div className="bg-[#F8F8F8] rounded-md p-4 mb-4 shadow-sm">
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
@@ -651,6 +697,40 @@ const SetAppointment = () => {
                                             )}
                                         </Form.Group> */}
 
+                                        <Form.Group controlId="formReferredByDoctor">
+                                            <Form.Check
+                                                type="checkbox"
+                                                label="Referred by Doctor"
+                                                checked={!!appointmentData.referredByDoctor} // Ensure it's a Boolean
+                                                onChange={(e) => setAppointmentData(prev => ({
+                                                    ...prev,
+                                                    referredByDoctor: e.target.checked ? true : false, // Explicitly set to Boolean true or false
+                                                    appointmentTime: e.target.checked ? "" : appointmentData.appointmentTime // Clear appointmentTime if checked
+                                                }))}
+                                                className="text-[16px] font-medium leading-[22px]"
+                                            />
+                                        </Form.Group>
+
+                                        <Form.Group controlId="formAppointmentTime">
+                                            <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
+                                            <Form.Control
+                                                as="select"
+                                                value={appointmentData.appointmentTime}
+                                                onChange={(e) => setAppointmentData(prev => ({
+                                                    ...prev,
+                                                    appointmentTime: e.target.value // Directly update appointmentTime
+                                                }))}
+                                                disabled={!selectedDoctor || !appointmentData.appointmentDate || appointmentData.referredByDoctor}
+                                                className='!border-[#04394F]'
+                                            >
+                                                <option value="">Select Appointment Time</option>
+                                                {getAvailableTimeSlots().map((slot, index) => (
+                                                    <option key={index} value={slot.split(' - ')[0]}>{slot}</option>
+                                                ))}
+                                            </Form.Control>
+                                        </Form.Group>
+
+
                                         <div className="mt-3 flex justify-between">
                                             <div className="custom-checkbox">
                                                 <input
@@ -735,8 +815,8 @@ const SetAppointment = () => {
                                         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
                                         <Button variant="outline-success" className="mt-4 border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white" onClick={handleFormSubmit} disabled={loading}>
-                                    {loading ? 'Setting...' : 'Set Appointment'}
-                                </Button>
+                                            {loading ? 'Setting...' : 'Set Appointment'}
+                                        </Button>
                                     </>
                                 )}
                             </Form>

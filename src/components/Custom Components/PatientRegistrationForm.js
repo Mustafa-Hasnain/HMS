@@ -112,6 +112,8 @@ const RegisterPatient = () => {
             AppointmentDate: '',
             AppointmentTime: '',
             Amount: 0,
+            ConsultationAmount: 0,
+            referredByDoctor: false,
             ProcedureItems: []
         }
     });
@@ -131,8 +133,18 @@ const RegisterPatient = () => {
         const { value, checked } = e.target;
         if (value === 'Consultation') {
             setIsConsultationSelected(checked);
+            setAppointmentData(prev => ({
+                ...prev, appointment: {
+                    ...prev.appointment,
+                     ConsultationAmount: selectedDoctor?.consultationFee ?? 0}
+            }))
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
+            setAppointmentData(prev => ({
+                ...prev, appointment: {
+                    ...prev.appointment,
+                     ConsultationAmount: 0}
+            }))
         }
 
         // Update the Amount based on the checked boxes
@@ -140,9 +152,11 @@ const RegisterPatient = () => {
             ...prev,
             appointment: {
                 ...prev.appointment,
-                Amount: calculateTotalAmount(checked, value)
+                Amount: calculateTotalAmount(checked, value),
+                ConsultationAmount: selectedDoctor?.consultationFee ?? 0
             }
         }));
+        
     };
 
     const calculateTotalAmount = (isChecked, type) => {
@@ -930,6 +944,20 @@ const RegisterPatient = () => {
                                     </div>
                                 )}
                             </Form.Group> */}
+
+                            <Form.Group controlId="formReferredByDoctor">
+                                <Form.Check
+                                    type="checkbox"
+                                    label="Referred by Doctor"
+                                    checked={!!appointmentData.referredByDoctor} // Ensure it's a Boolean
+                                    onChange={(e) => setAppointmentData(prev => ({
+                                        ...prev,
+                                        referredByDoctor: e.target.checked ? true : false, // Explicitly set to Boolean true or false
+                                        appointmentTime: e.target.checked ? "" : appointmentData.appointmentTime // Clear appointmentTime if checked
+                                    }))}
+                                    className="text-[16px] font-medium leading-[22px]"
+                                />
+                            </Form.Group>
 
                             <Form.Group controlId="formAppointmentTime">
                                 <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>

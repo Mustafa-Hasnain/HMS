@@ -1,10 +1,10 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 
-const PaymentModal = ({ show, onHide, invoiceID, markAsPaid }) => {
+const PaymentModal = ({ show, onHide, ID, markAsPaid }) => {
     const handlePayment = (paymentMethod) => {
         // Call the markAsPaid function with the invoiceID
-        markAsPaid(invoiceID);
+        markAsPaid(ID);
         // Close the modal after the action
         onHide();
     };

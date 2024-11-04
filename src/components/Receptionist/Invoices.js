@@ -127,7 +127,7 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
           <th>Patient Phone</th>
           <th>Doctor Name</th>
           <th>Total Amount</th>
-          <th>Status</th>
+          {/* <th>Status</th> */}
           <th>Action</th>
         </tr>
       </thead>
@@ -139,11 +139,11 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
             <td>{invoice.appointment.patient.mobileNumber}</td>
             <td>{invoice.appointment.doctor.firstName}</td>
             <td>{invoice.amount}</td>
-            <td>{invoice.status}</td>
+            {/* <td>{invoice.status}</td> */}
 
             <td>
               <div className='flex gap-3'>
-                {showPayButton && (
+                {/* {showPayButton && (
                   <Button
                     variant="outline-success"
                     onClick={() => {
@@ -159,7 +159,7 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
                       'Mark as Paid'
                     )}
                   </Button>
-                )}
+                )} */}
                 <Button variant='outline-success' className='!text-sm'
                   onClick={() => (navigate(`/receptionist/invoice-details/${invoice.appointment.appointmentID}/`))}
                 >

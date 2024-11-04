@@ -70,6 +70,7 @@ function App() {
               <Route path="edit-patient/:patient_id" element={<EditPatientDetails />} />
               <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
               <Route path="set-appointment" element={<SetAppointment />} />
+              <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
               <Route path="patients-portal" element={<PatientPortal />} />
               <Route path="patients-details/:patient_id" element={<PatientDetails />} />
               <Route path="doctors-portal" element={<DoctorPortal />} />
