@@ -192,6 +192,7 @@ const SetAppointment = () => {
     const fetchDoctors = async () => {
         try {
             const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            console.log("Doctors: ",response.data);
             setDoctors(response.data);
 
             // Check if doctor exists in localStorage
@@ -290,8 +291,17 @@ const SetAppointment = () => {
             return;
         }
 
+        let url = "";
+
+        if(patient_id && invoice_id){
+            url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-secondary-appointment"
+        }
+        else{
+            url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment"
+        }
+
         try {
-            const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-secondary-appointment', payload);
+            const response = await axios.post(`${url}`, payload);
             setToastMessage('Appointment set successfully.');
             setToastVariant('success');
             // setAppointmentData({
@@ -928,6 +938,10 @@ const SetAppointment = () => {
                     newProcedure={newProcedure}
                     setNewProcedure={setNewProcedure}
                     onAddProcedure={addProcedureItem}
+                    doctors={doctors}
+                    selectedDoctor={selectedDoctor}
+                    setSelectedDoctor={setSelectedDoctor}
+                    doctorDefaultSelected={true}
                 />
             )}
         </div>

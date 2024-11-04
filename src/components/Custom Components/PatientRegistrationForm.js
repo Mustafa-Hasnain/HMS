@@ -1157,6 +1157,10 @@ const RegisterPatient = () => {
                     newProcedure={newProcedure}
                     setNewProcedure={setNewProcedure}
                     onAddProcedure={addProcedureItem}
+                    doctors={doctors}
+                    selectedDoctor={selectedDoctor}
+                    setSelectedDoctor={setSelectedDoctor}
+                    doctorDefaultSelected ={true}
                 />
             )}
         </div>

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu } from '@headlessui/react';
 import { FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
 import PaymentModal from '../Custom Components/PaymentModal';
+import { toast, ToastContainer } from 'react-toastify';
 
 const UpcomingDoctorAppointments = () => {
     const [searchInput, setSearchInput] = useState('');
@@ -20,6 +21,7 @@ const UpcomingDoctorAppointments = () => {
     const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
     const [invoices, setInvoices] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [info, setinfo] = useState("Today's Appointment")
 
 
 
@@ -103,21 +105,29 @@ const UpcomingDoctorAppointments = () => {
     };
 
     const handleFilter = async () => {
-        // if (fromDate && toDate) {
-        //     try {
-        //         setLoadingAppointments(true);
-        //         const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/appointments?fromDate=${fromDate}&toDate=${toDate}`);
-        //         setFilteredRecords(response.data);
-        //     } catch (error) {
-        //         console.error('Error fetching filtered appointments:', error);
-        //     } finally {
-        //         setLoadingAppointments(false);
-        //     }
-        // }
+        if (fromDate && toDate) {
+            try {
+                setLoadingAppointments(true);
+                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
+                const heading = fromDate && toDate ? `Appointments from ${fromDate} to ${toDate} (${response.data.length} records found)` : 'Upcoming Appointments'
+                setinfo(heading);
+                setFilteredRecords(response.data);
+            } catch (error) {
+                console.error('Error fetching filtered appointments:', error);
+                toast.error('Failed to fetch filtered appointments.');
+            } finally {
+                setLoadingAppointments(false);
+                
+            }
+        } else {
+            toast.warn('Please select both From Date and To Date.');
+        }
     };
+
 
     return (
         <div className="container mt-2 p-4">
+            <ToastContainer />
             <div className='flex justify-between items-center mb-4'>
                 <div className="flex gap-3 items-center align-middle">
                     <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
@@ -175,9 +185,10 @@ const UpcomingDoctorAppointments = () => {
 
             <div className="mt-4">
                 <h5>
-                    {fromDate && toDate
+                    {/* {fromDate && toDate
                         ? `Appointments from ${fromDate} to ${toDate} (${filteredRecords.length} records found)`
-                        : 'Upcoming Appointments'}
+                        : 'Upcoming Appointments'} */}
+                    {info}
                 </h5>
 
                 {loadingAppointments ? (

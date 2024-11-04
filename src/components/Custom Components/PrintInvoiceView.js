@@ -77,7 +77,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                         <thead>
                             <tr>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Procedure Name</th>
-                                <th style={{ border: '1px solid black', padding: '8px' }}>Detail</th>
+                                <th style={{ border: '1px solid black', padding: '8px' }}>Doctor Name</th>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Amount</th>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Paid Status</th>
                             </tr>
@@ -86,7 +86,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                             {mainInvoice.procedureItems.map(item => (
                                 <tr key={item.procedureItemID}>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.procedureName}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{item.procedureDetail || 'N/A'}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }} className="text-center">Dr. {item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.paid ? 'Paid' : 'Unpaid'}</td>
                                 </tr>

@@ -18,7 +18,7 @@ const InvoiceDetails = () => {
     const [addloading, setAddLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const [newProcedure, setNewProcedure] = useState({ ProcedureName: "", ProcedureDetail: "", Amount: "" });
+    const [newProcedure, setNewProcedure] = useState({ ProcedureName: "", ProcedureDetail: "", Amount: "", DoctorID: null });
     const [showModal, setShowModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [deletingId, setDeletingId] = useState(null); // Track which procedure item is being deleted
@@ -29,6 +29,9 @@ const InvoiceDetails = () => {
     const [procedurefunction, setfunction] = useState(false); // false for consultation true for procedure
     const [functionId, setfunctionId] = useState(null);
     const [isPrimaryAppointment, setIsPrimaryAppointment] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState(null);
+    const [doctors, setDoctors] = useState([]);
+
 
 
     const formatTime = (time) => {
@@ -86,15 +89,37 @@ const InvoiceDetails = () => {
             }
         };
 
+        const fetchDoctors = async () => {
+            try {
+                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+                console.log("Doctors: ",response.data);
+                setDoctors(response.data);
+    
+                // Check if doctor exists in localStorage
+                const doctorData = JSON.parse(localStorage.getItem('doctor'));
+    
+                // Find doctor in the fetched doctors list
+                const doctorInList = response.data.find(doc => doc.doctorID === doctorData.doctorID);
+    
+                // If the doctor from localStorage is in the list, set it as the selectedDoctor and make it immutable
+                
+                    setSelectedDoctor(doctorInList);
+                }
+            catch (error) {
+                console.error("Error fetching doctors:", error);
+            }
+        };
+
         fetchAppointmentDetails();
+        fetchDoctors();
     }, [appointment_id, refresh]);
 
-    const addProcedureItem = async (invoiceId) => {
+    const addProcedureItem = async (invoiceId, finalProcedure) => {
         try {
             setAddLoading(true);
             const response = await axios.post(
                 `https://mustafahasnain36-001-site1.gtempurl.com/add-procedure-item/${invoiceId}`,
-                newProcedure
+                finalProcedure
             );
 
             const addedProcedure = response.data;
@@ -299,6 +324,8 @@ const InvoiceDetails = () => {
 
         });
     }
+
+    
 
 
     if (loading) {
@@ -618,6 +645,7 @@ const InvoiceDetails = () => {
                                 <th>Procedure ID</th>
                                 <th>Procedure Name</th>
                                 <th>Procedure Detail</th>
+                                <th>Doctor</th>
                                 <th>Amount</th>
                                 <th>Paid</th>
                             </tr>
@@ -629,6 +657,7 @@ const InvoiceDetails = () => {
                                         <td>{item.procedureItemID}</td>
                                         <td>{item.procedureName}</td>
                                         <td>{item.procedureDetail || 'N/A'}</td>
+                                        <td className="text-center">{item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
                                         <td>{item.amount}</td>
                                         <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : "Paid"}
@@ -696,13 +725,27 @@ const InvoiceDetails = () => {
                 </Card>
 
 
+                {/* <AddProcedureModal
+                    show={showModal}
+                    handleClose={() => setShowModal(false)}
+                    newProcedure={newProcedure}
+                    setNewProcedure={setNewProcedure}
+                    // onAddProcedure={() => addProcedureItem(invoices[0].invoiceID)}
+                    onAddProcedure={(finalProcedure) => addProcedureItem(invoices[0].invoiceID, finalProcedure)}
+                    loading={addloading}
+                /> */}
+
                 <AddProcedureModal
                     show={showModal}
                     handleClose={() => setShowModal(false)}
                     newProcedure={newProcedure}
                     setNewProcedure={setNewProcedure}
-                    onAddProcedure={() => addProcedureItem(invoices[0].invoiceID)}
+                    onAddProcedure={(finalProcedure) => addProcedureItem(invoices[0].invoiceID, finalProcedure)}
                     loading={addloading}
+                    doctors={doctors}
+                    selectedDoctor={selectedDoctor}
+                    setSelectedDoctor={setSelectedDoctor}
+                    doctorDefaultSelected={false}
                 />
                 <PaymentModal
                     show={showPaymentModal}
