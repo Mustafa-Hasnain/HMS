@@ -69,7 +69,7 @@ const InvoiceManagement = () => {
         onSelect={(k) => setKey(k)}
         className="mb-3"
       >
-        <Tab eventKey="unpaid" title="Unpaid Invoices">
+        <Tab eventKey="unpaid" title="Invoices">
           {loading ? (
             <div className="text-center">
               <Spinner animation="border" />
@@ -87,7 +87,7 @@ const InvoiceManagement = () => {
           )}
         </Tab>
 
-        <Tab eventKey="paid" title="Paid Invoices">
+        {/* <Tab eventKey="paid" title="Paid Invoices">
           {loading ? (
             <div className="text-center">
               <Spinner animation="border" />
@@ -101,7 +101,7 @@ const InvoiceManagement = () => {
               setShowPaymentModal={setShowPaymentModal}
             />
           )}
-        </Tab>
+        </Tab> */}
       </Tabs>
       <PaymentModal
         show={showPaymentModal}

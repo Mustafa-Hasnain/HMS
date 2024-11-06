@@ -119,7 +119,7 @@ const PatientPortal = () => {
       <Table className="table" hover responsive>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>MR. No.</th>
             <th>Name</th>
             <th>Phone No</th>
             <th>Gender</th>

@@ -352,12 +352,9 @@ const InvoiceDetails = () => {
     const primaryInvoice = invoices.find(invoice => invoice.isConsultationInvoice);
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
     const procedureItems = primaryInvoice?.procedureItems || [];
-    const totalConsultations = secondaryAppointments.length + 1; // Including primary consultation
+    const totalConsultations = appointment.isConsultation ? secondaryAppointments.length + 1 : secondaryAppointments.length;
     const totalProcedures = procedureItems.length;
     const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-
-
-
 
     return (
         <>
@@ -457,6 +454,8 @@ const InvoiceDetails = () => {
                             <h3 className="font-semibold text-xl">Appointments/Consultation</h3>
                             <Button variant="outline-primary" onClick={() => (navigate(`/receptionist/set-appointment/${patient.patientID}/${invoices[0].invoiceID}`))}>Add Consultation</Button>
                         </div>
+
+                        {invoices.some(invoice => invoice.secondaryAppointments.length > 0) || appointment.isConsultation ? (
                         <Table striped bordered hover responsive className="mt-3">
                             <thead>
                                 <tr>
@@ -472,6 +471,7 @@ const InvoiceDetails = () => {
                             </thead>
                             <tbody>
                                 {/* Primary Appointment Row */}
+                                {appointment.isConsultation &&
                                 <tr>
                                     <td>{new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
                                         weekday: 'short',
@@ -481,7 +481,7 @@ const InvoiceDetails = () => {
                                     })}</td>
                                     <td>{appointment.patient.firstName}</td>
                                     <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
-                                    <td>{getMeetingTime(appointment)}</td>
+                                    <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
                                     <td>{appointment.amount}</td>
                                     <td>
                                         <Badge bg={!appointment.paid ? 'danger' : 'success'}>
@@ -506,6 +506,8 @@ const InvoiceDetails = () => {
                                         </div>
                                     </td>
                                 </tr>
+
+                                }
 
                                 {/* Secondary Appointments Rows */}
                                 {invoices.map((invoice, invoiceIndex) =>
@@ -555,8 +557,12 @@ const InvoiceDetails = () => {
                                         </tr>
                                     ))
                                 )}
-                            </tbody>
+                                
+                            </tbody> 
                         </Table>
+                        ) :(
+                            <div className="text-center mt-3">No Consultations Added.</div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center mt-3">No Appointment Available.</div>

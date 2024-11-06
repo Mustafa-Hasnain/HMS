@@ -24,10 +24,15 @@ const RegisterPatient = () => {
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [referredDoctor, setReferredDoctor] = useState('');
+    const [fetchingAppointments, setfetchingAppointments] = useState(false)
 
 
     const navigate = useNavigate();
     const location = useLocation();
+
+    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
+    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
 
 
     const fetchDoctors = async () => {
@@ -114,6 +119,8 @@ const RegisterPatient = () => {
             Amount: 0,
             ConsultationAmount: 0,
             referredByDoctor: false,
+            ReferredDoctorName: referredDoctor,
+            isConsultation: isConsultationSelected,
             ProcedureItems: []
         }
     });
@@ -124,8 +131,7 @@ const RegisterPatient = () => {
         Amount: 0
     });
 
-    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
-    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
+
 
     const [deletingId, setDeletingId] = useState(null);
 
@@ -136,14 +142,18 @@ const RegisterPatient = () => {
             setAppointmentData(prev => ({
                 ...prev, appointment: {
                     ...prev.appointment,
-                     ConsultationAmount: selectedDoctor?.consultationFee ?? 0}
+                    ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
+                    isConsultation: true
+                }
             }))
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
             setAppointmentData(prev => ({
                 ...prev, appointment: {
                     ...prev.appointment,
-                     ConsultationAmount: 0}
+                    ConsultationAmount: 0,
+                    isConsultation: false
+                }
             }))
         }
 
@@ -153,10 +163,25 @@ const RegisterPatient = () => {
             appointment: {
                 ...prev.appointment,
                 Amount: calculateTotalAmount(checked, value),
-                ConsultationAmount: selectedDoctor?.consultationFee ?? 0
+                ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
+                isConsultation: true
             }
         }));
-        
+
+    };
+
+    const handleDoctorSelectChange = (doctorID) => {
+        const selectedDoctor = filteredDoctors.find(doc => doc.doctorID === parseInt(doctorID));
+        const doctorFirstName = selectedDoctor ? selectedDoctor.firstName : '';
+    
+        setReferredDoctor(doctorFirstName);
+        // setAppointmentData(prev => ({
+        //     ...prev,
+        //     appointment: {
+        //         ...prev.appointment,
+        //         ReferredDoctorName: doctorFirstName
+        //     }
+        // }));
     };
 
     const calculateTotalAmount = (isChecked, type) => {
@@ -186,7 +211,7 @@ const RegisterPatient = () => {
 
     const deleteProcedureItem = (procedureItemID) => {
         setDeletingId(procedureItemID);
-        const itemToDelete = appointmentData.ProcedureItems.find(item => item.procedureItemID === procedureItemID);
+        const itemToDelete = appointmentData.appointment.ProcedureItems.find(item => item.procedureItemID === procedureItemID);
 
         setAppointmentData(prev => ({
             ...prev,
@@ -203,19 +228,24 @@ const RegisterPatient = () => {
 
     useEffect(() => {
         if (selectedDoctor && selectedDoctor.doctorID) {
+
             fetchDoctorAppointments(selectedDoctor.doctorID);
         }
         console.log("Selected Doctor: ", selectedDoctor);
-    }, [selectedDoctor]);
+    }, [appointmentData.appointment.AppointmentDate]);
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
+            setfetchingAppointments(true)
+            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointment.AppointmentDate}`);
             const data = await response.json();
             console.log("Appointments: ", data)
             setAppointments(data);
         } catch (error) {
             console.error('Error fetching appointments:', error);
+        }
+        finally{
+            setfetchingAppointments(false);
         }
     };
 
@@ -236,7 +266,7 @@ const RegisterPatient = () => {
         if (!selectedDoctor) errors.DoctorID = 'Please select a doctor';
         if (!appointmentData.patient.DateOfBirth) errors.DateOfBirth = 'Date of Birth is required';
         if (!appointmentData.appointment.AppointmentDate) errors.AppointmentDate = 'Appointment Date is required';
-        if (!appointmentData.appointment.AppointmentTime) errors.AppointmentTime = 'Appointment Time is required';
+        if (!!appointmentData.appointment.referredByDoctor && !appointmentData.appointment.AppointmentTime) errors.AppointmentTime = 'Appointment Time is required';
         if (!appointmentData.patient.MobileNumber) {
             errors.MobileNumber = 'Mobile Number is required';
         } else if (!/^\d{11}$/.test(appointmentData.patient.MobileNumber)) {
@@ -247,6 +277,10 @@ const RegisterPatient = () => {
             errors.Cnic = 'CNIC is required';
         } else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
             errors.Cnic = 'CNIC must be exactly 13 digits';
+        }
+
+        if (appointmentData.appointment.referredByDoctor && !referredDoctor) {
+            errors.ReferredDoctor = 'Please select a referred doctor';
         }
 
         // if (!isTimeSlotAvailable()) {
@@ -949,15 +983,43 @@ const RegisterPatient = () => {
                                 <Form.Check
                                     type="checkbox"
                                     label="Referred by Doctor"
-                                    checked={!!appointmentData.referredByDoctor} // Ensure it's a Boolean
+                                    checked={!!appointmentData.appointment.referredByDoctor} // Ensure it's a Boolean
                                     onChange={(e) => setAppointmentData(prev => ({
                                         ...prev,
+                                        appointment:{
+                                            ...prev.appointment,
                                         referredByDoctor: e.target.checked ? true : false, // Explicitly set to Boolean true or false
-                                        appointmentTime: e.target.checked ? "" : appointmentData.appointmentTime // Clear appointmentTime if checked
-                                    }))}
+                                        // appointmentTime: e.target.checked ? "" : appointmentData.appointment.AppointmentTime // Clear appointmentTime if checked
+                                        }}))}
                                     className="text-[16px] font-medium leading-[22px]"
                                 />
                             </Form.Group>
+
+                            {appointmentData.appointment.referredByDoctor && (
+                                <Form.Group controlId="formDoctor">
+                                    <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Select Referred Doctor</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        value={referredDoctor}
+                                        onChange={(e) => setAppointmentData(prev => ({
+                                            ...prev,
+                                            appointment: { ...prev.appointment, ReferredDoctorName: e.target.value }
+                                        }))}
+                                        isInvalid={!!validationErrors.ReferredDoctor}
+                                        className="!border-[#04394F]"
+                                    >
+                                        <option value="">Select Referred Doctor</option>
+                                        {filteredDoctors.map((doctor) => (
+                                            <option key={doctor.doctorID} value={doctor.firstName}>
+                                                {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                            </option>
+                                        ))}
+                                    </Form.Control>
+                                    <Form.Control.Feedback type="invalid">
+                                        {validationErrors.ReferredDoctor}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            )}
 
                             <Form.Group controlId="formAppointmentTime">
                                 <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
@@ -969,7 +1031,7 @@ const RegisterPatient = () => {
                                         appointment: { ...prev.appointment, AppointmentTime: e.target.value }
                                     }))}
                                     isInvalid={!!validationErrors.AppointmentTime}
-                                    disabled={!selectedDoctor || !appointmentData.appointment.AppointmentDate}
+                                    disabled={!selectedDoctor || !appointmentData.appointment.AppointmentDate || appointmentData.appointment.referredByDoctor}
                                     className='!border-[#04394F]'
                                 >
                                     <option value="">Select Appointment Time</option>
@@ -1071,11 +1133,14 @@ const RegisterPatient = () => {
                         </Form>
                     </div>
 
-                    {selectedDoctor && (
+                    {selectedDoctor && appointmentData.appointment.AppointmentDate && (
                         <div className="col-md-6">
                             <Card>
                                 <Card.Header>Doctor's Appointments</Card.Header>
                                 <Card.Body>
+                                    {fetchingAppointments ?
+                                    <Spinner size='md'></Spinner>
+                                    :
                                     <ListGroup>
                                         {appointments.length > 0 ? (
                                             appointments.map((appt, index) => {
@@ -1137,6 +1202,7 @@ const RegisterPatient = () => {
                                             <ListGroup.Item>No upcoming appointments found.</ListGroup.Item>
                                         )}
                                     </ListGroup>
+                                    }
                                 </Card.Body>
                             </Card>
                         </div>
@@ -1160,7 +1226,7 @@ const RegisterPatient = () => {
                     doctors={doctors}
                     selectedDoctor={selectedDoctor}
                     setSelectedDoctor={setSelectedDoctor}
-                    doctorDefaultSelected ={true}
+                    doctorDefaultSelected={false}
                 />
             )}
         </div>

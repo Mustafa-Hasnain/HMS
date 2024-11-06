@@ -121,6 +121,7 @@ const PatientDetails = () => {
                             <th>Appointment Date</th>
                             <th>Amount</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,6 +145,13 @@ const PatientDetails = () => {
                                         : "N/A"}
                                 </td>
                                 <td>{appointment.status}</td>
+                                <td> <Button
+                                    variant="outline-success"
+                                    className=' !text-xs'
+                                    onClick={() => navigate(`/receptionist/invoice-details/${appointment.appointmentID}`)}
+                                >
+                                    Details
+                                </Button></td>
                             </tr>
                         ))}
                     </tbody>

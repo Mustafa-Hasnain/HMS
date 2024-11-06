@@ -15,7 +15,7 @@ const calculateAge = (dob) => {
 
 const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appointment, appointmentDate, appointmentTime }, ref) => {
     const mainInvoice = invoices[0];
-    const totalAppointments = mainInvoice.secondaryAppointments.length + 1; // 1 for main appointment
+    const totalAppointments = appointment.isConsultation ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
     const totalProcedures = mainInvoice.procedureItems.length;
     const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
     const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
@@ -76,6 +76,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
+                                <th style={{ border: '1px solid black', padding: '8px' }}>S.no.</th>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Procedure Name</th>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Doctor Name</th>
                                 <th style={{ border: '1px solid black', padding: '8px' }}>Amount</th>
@@ -83,10 +84,11 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                             </tr>
                         </thead>
                         <tbody>
-                            {mainInvoice.procedureItems.map(item => (
+                            {mainInvoice.procedureItems.map((item, index) => (
                                 <tr key={item.procedureItemID}>
+                                    <td style={{ border: '1px solid black', padding: '8px' }}>{index + 1}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.procedureName}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }} className="text-center">Dr. {item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
+                                    <td style={{ border: '1px solid black', padding: '8px' }} className="text-center">{item?.doctor?.doctorID ? `Dr. ${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '8px' }}>{item.paid ? 'Paid' : 'Unpaid'}</td>
                                 </tr>
@@ -97,36 +99,51 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
             )}
 
             {/* Secondary Appointments Table */}
-                <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ color: 'black', fontWeight: 600 }}>APPOINTMENTS</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                <th style={{ border: '1px solid black', padding: '8px' }}>Appointment ID</th>
-                                <th style={{ border: '1px solid black', padding: '8px' }}>Doctor Name</th>
-                                <th style={{ border: '1px solid black', padding: '8px' }}>Amount</th>
-                                <th style={{ border: '1px solid black', padding: '8px' }}>Paid Status</th>
+            {invoices.some(invoice => invoice.secondaryAppointments.length > 0) && appointment.isConsultation && (<div style={{ marginBottom: '20px' }}>
+                <h3 style={{ color: 'black', fontWeight: 600 }}>APPOINTMENTS</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr>
+                            <th style={{ border: '1px solid black', padding: '8px' }}>S.no.</th>
+                            <th style={{ border: '1px solid black', padding: '8px' }}>Doctor Name</th>
+                            <th style={{ border: '1px solid black', padding: '8px' }}>Amount</th>
+                            <th style={{ border: '1px solid black', padding: '8px' }}>Paid Status</th>
+                        </tr>
+                    </thead>
+                    {/* <tbody>
+                        {appointment.isConsultation &&
+                            <tr key={appointment.appointmentID}>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.appointmentID}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {doctor.firstName} {doctor.lastName}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.amount}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.paid ? 'Paid' : 'Unpaid'}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                        <tr key={appointment.appointmentID}>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.appointmentID}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {doctor.firstName} {doctor.lastName}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.amount}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{appointment.paid ? 'Paid' : 'Unpaid'}</td>
-                            </tr>
+                        }
 
-                            {mainInvoice.secondaryAppointments.map(app => (
-                                <tr key={app.secondaryAppointmentID}>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{app.secondaryAppointmentID}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {app.doctor.firstName} {app.doctor.lastName}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{app.amount}</td>
-                                    <td style={{ border: '1px solid black', padding: '8px' }}>{app.paid ? 'Paid' : 'Unpaid'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        {mainInvoice.secondaryAppointments.map(app => (
+                            <tr key={app.secondaryAppointmentID}>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{app.secondaryAppointmentID}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>Dr. {app.doctor.firstName} {app.doctor.lastName}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{app.amount}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{app.paid ? 'Paid' : 'Unpaid'}</td>
+                            </tr>
+                        ))}
+                    </tbody> */}
+                    <tbody>
+                        {[...(appointment.isConsultation ? [appointment] : []), ...mainInvoice.secondaryAppointments].map((app, index) => (
+                            <tr key={app.appointmentID || app.secondaryAppointmentID}>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{index + 1}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>
+                                    Dr. {app.doctor.firstName} {app.doctor.lastName}
+                                </td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{app.amount}</td>
+                                <td style={{ border: '1px solid black', padding: '8px' }}>{app.paid ? 'Paid' : 'Unpaid'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            )}
 
             {/* Summary */}
             <div style={{

@@ -53,6 +53,7 @@ const UpcomingDoctorAppointments = () => {
             const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments');
             console.log(response.data);
             setAppointments(response.data);
+            setFilteredRecords(response.data);
         } catch (error) {
             console.error('Error fetching upcoming appointments:', error);
         } finally {
@@ -60,20 +61,46 @@ const UpcomingDoctorAppointments = () => {
         }
     };
 
-    const handleSearchChange = (e) => {
-        const value = e.target.value;
-        setSearchInput(value);
 
-        if (value === '') {
-            setFilteredDoctors(doctors);
-        } else {
-            const filtered = doctors.filter(doctor =>
-                doctor.firstName.toLowerCase().includes(value.toLowerCase()) ||
-                doctor.specialty.toLowerCase().includes(value.toLowerCase())
-            );
-            setFilteredDoctors(filtered);
-        }
-        setShowDropdown(true); // Show the dropdown when typing
+    const handleSearchChange = (e) => {
+        const searchValue = e.target.value.toLowerCase();
+        setSearchInput(searchValue);
+    
+        // Check if searchValue is a numeric string with less than 3 digits
+        const isShortNumeric = /^\d{1,2}$/.test(searchValue);
+    
+        const filtered = (fromDate && toDate ? filteredRecords : appointments).filter(appt => {
+            const {
+                patient: { firstName: patientName, patientID, mobileNumber: patientMobile },
+                doctor: { firstName: doctorFirstName, lastName: doctorLastName, specialty, mobileNumber: doctorMobile },
+                status,
+                referredByDoctor,
+                invoices
+            } = appt;
+    
+            if (isShortNumeric) {
+                // Only filter by patientID when searchValue is a short numeric string
+                return String(patientID).includes(searchValue);
+            } else {
+                // Filter by all attributes otherwise
+                return (
+                    patientName.toLowerCase().includes(searchValue) ||
+                    String(patientID).includes(searchValue) ||
+                    patientMobile.includes(searchValue) ||
+                    doctorFirstName.toLowerCase().includes(searchValue) ||
+                    doctorLastName.toLowerCase().includes(searchValue) ||
+                    specialty.toLowerCase().includes(searchValue) ||
+                    doctorMobile.includes(searchValue) ||
+                    status.toLowerCase().includes(searchValue) ||
+                    (referredByDoctor && 'referred by doctor'.includes(searchValue)) ||
+                    invoices.some(invoice =>
+                        invoice.status.toLowerCase().includes(searchValue)
+                    )
+                );
+            }
+        });
+    
+        setFilteredRecords(filtered);
     };
 
     const formatTime = (time) => {
@@ -117,7 +144,7 @@ const UpcomingDoctorAppointments = () => {
                 toast.error('Failed to fetch filtered appointments.');
             } finally {
                 setLoadingAppointments(false);
-                
+
             }
         } else {
             toast.warn('Please select both From Date and To Date.');
@@ -144,7 +171,6 @@ const UpcomingDoctorAppointments = () => {
                     placeholder="Search Appointments"
                     value={searchInput}
                     onChange={handleSearchChange}
-                    onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
                 />
             </InputGroup>
 
@@ -195,24 +221,23 @@ const UpcomingDoctorAppointments = () => {
                     <Spinner animation="border" variant="primary" />
                 ) : (
                     <Card>
-                        <Card.Header>Appointments</Card.Header>
+                        <Card.Header>{info}</Card.Header>
                         <Card.Body>
-                            {filteredRecords.length > 0 || appointments.length > 0 ? (
+                            {filteredRecords.length > 0 ? (
                                 <Table hover>
                                     <thead>
                                         <tr>
                                             <th>Day</th>
-                                            {/* <th>Appointment Time</th> */}
+                                            <th>MR. No.</th>
                                             <th>Patient Name</th>
                                             <th>Doctor Name</th>
                                             <th>Appointment Time</th>
-                                            {/* <th>Invoice Status</th> */}
                                             <th>Appointment Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(fromDate && toDate ? filteredRecords : appointments).map((appt, index) => (
+                                        {filteredRecords.map((appt, index) => (
                                             <tr key={index}>
                                                 <td>{new Date(appt.appointmentDate).toLocaleDateString('en-US', {
                                                     weekday: 'short',
@@ -220,34 +245,17 @@ const UpcomingDoctorAppointments = () => {
                                                     month: 'short',
                                                     day: 'numeric'
                                                 })}</td>
-                                                {/* <td>{formatTime(appt.appointmentTime)}</td> */}
+                                                <td>{appt.patient.patientID}</td>
                                                 <td>{appt.patient.firstName}</td>
                                                 <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
-                                                <td>{getMeetingTime(appt)}</td>
-                                                {/* <td>
-                                                    <Badge bg={appt.invoices[0]?.status === 'Paid' ? 'success' : 'danger'}>
-                                                        {appt.invoices[0]?.status || 'Unpaid'}
-                                                    </Badge>
-                                                </td> */}
+                                                <td>{appt.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appt)}</td>
                                                 <td>{appt.status}</td>
-
                                                 <td>
                                                     <div className='flex gap-2'>
-                                                        {/* {appt.invoices[0]?.status !== 'Paid' &&
-                                                            <Button
-                                                                variant="outline-success"
-                                                                className=' !text-xs'
-                                                                onClick={() => {
-                                                                    setUpdatingInvoiceID(appt.invoices[0]?.invoiceID)
-                                                                    setShowPaymentModal(true);
-                                                                }}
-                                                            >
-                                                                Mark as Paid
-                                                            </Button>} */}
                                                         <Button
                                                             variant="outline-success"
                                                             className=' !text-xs'
-                                                            onClick={() => (navigate(`/receptionist/invoice-details/${appt.appointmentID}`))}
+                                                            onClick={() => navigate(`/receptionist/invoice-details/${appt.appointmentID}`)}
                                                         >
                                                             Details
                                                         </Button>

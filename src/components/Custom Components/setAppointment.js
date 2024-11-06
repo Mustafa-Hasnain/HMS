@@ -22,6 +22,11 @@ const SetAppointment = () => {
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [showNewPatient, setShowNewPatient] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [referredDoctor, setReferredDoctor] = useState('');
+    const [fetchingAppointments, setfetchingAppointments] = useState(false)
+    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
+    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
+
     const [appointmentData, setAppointmentData] = useState({
         invoice_id: invoice_id,
         doctorID: 0,
@@ -30,7 +35,9 @@ const SetAppointment = () => {
         appointmentTime: '',
         Amount: 0,
         ConsultationAmount: 0,
-        referredByDoctor: false,
+        ReferredByDoctor: false,
+        ReferredDoctorName: referredDoctor,
+        isConsultation: isConsultationSelected,
         ProcedureItems: []
     });
 
@@ -40,8 +47,7 @@ const SetAppointment = () => {
         Amount: 0
     });
 
-    const [isProcedureSelected, setIsProcedureSelected] = useState(false);  // Track Procedure checkbox
-    const [isConsultationSelected, setIsConsultationSelected] = useState(false);
+
 
     const [deletingId, setDeletingId] = useState(null);
 
@@ -64,12 +70,16 @@ const SetAppointment = () => {
         if (value === 'Consultation') {
             setIsConsultationSelected(checked);
             setAppointmentData(prev => ({
-                ...prev, ConsultationAmount: selectedDoctor?.consultationFee ?? 0
+                ...prev, ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
+                isConsultation: true
+
             }))
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
             setAppointmentData(prev => ({
-                ...prev, ConsultationAmount: 0
+                ...prev, ConsultationAmount: 0,
+                isConsultation: false
+
             }))
         }
 
@@ -77,9 +87,24 @@ const SetAppointment = () => {
         setAppointmentData(prev => ({
             ...prev,
             Amount: calculateTotalAmount(checked, value),
-            ConsultationAmount: selectedDoctor?.consultationFee ?? 0
-        }));
+            ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
+            isConsultation: true
 
+        }));
+    };
+
+    const handleDoctorSelectChange = (doctorID) => {
+        const selectedDoctor = doctors.find(doc => doc.doctorID === parseInt(doctorID));
+        const doctorFirstName = selectedDoctor ? selectedDoctor.firstName : '';
+
+        setReferredDoctor(doctorFirstName);
+        // setAppointmentData(prev => ({
+        //     ...prev,
+        //     appointment: {
+        //         ...prev.appointment,
+        //         ReferredDoctorName: doctorFirstName
+        //     }
+        // }));
     };
 
     const calculateTotalAmount = (isChecked, type) => {
@@ -162,16 +187,19 @@ const SetAppointment = () => {
         if (selectedDoctor && selectedDoctor.doctorID) {
             fetchDoctorAppointments(selectedDoctor.doctorID);
         }
-    }, [selectedDoctor]);
+    }, [appointmentData.appointmentDate]);
 
     const fetchDoctorAppointments = async (doctorID) => {
         try {
+            setfetchingAppointments(true)
             const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             console.log("Doctors Appointment: ", data);
             setAppointments(data);
         } catch (error) {
             console.error('Error fetching appointments:', error);
+        } finally {
+            setfetchingAppointments(false);
         }
     };
 
@@ -192,7 +220,7 @@ const SetAppointment = () => {
     const fetchDoctors = async () => {
         try {
             const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
-            console.log("Doctors: ",response.data);
+            console.log("Doctors: ", response.data);
             setDoctors(response.data);
 
             // Check if doctor exists in localStorage
@@ -280,8 +308,10 @@ const SetAppointment = () => {
             appointmentDate: appointmentData.appointmentDate,
             appointmentTime: appointmentTimeIn24hr,
             Amount: appointmentData.Amount,
-            ReferredByDoctor: appointmentData.referredByDoctor, 
-            ProcedureItems: appointmentData.ProcedureItems
+            ProcedureItems: appointmentData.ProcedureItems,
+            ReferredByDoctor: appointmentData.ReferredByDoctor,
+            ReferredDoctorName: referredDoctor,
+            isConsultation: appointmentData.isConsultation,
         };
 
         console.log("Payload: ", payload);
@@ -293,10 +323,10 @@ const SetAppointment = () => {
 
         let url = "";
 
-        if(patient_id && invoice_id){
+        if (patient_id && invoice_id) {
             url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-secondary-appointment"
         }
-        else{
+        else {
             url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment"
         }
 
@@ -712,15 +742,38 @@ const SetAppointment = () => {
                                             <Form.Check
                                                 type="checkbox"
                                                 label="Referred by Doctor"
-                                                checked={!!appointmentData.referredByDoctor} // Ensure it's a Boolean
+                                                checked={!!appointmentData.ReferredByDoctor} // Ensure it's a Boolean
                                                 onChange={(e) => setAppointmentData(prev => ({
                                                     ...prev,
-                                                    referredByDoctor: e.target.checked ? true : false, // Explicitly set to Boolean true or false
-                                                    appointmentTime: e.target.checked ? "" : appointmentData.appointmentTime // Clear appointmentTime if checked
+                                                    ReferredByDoctor: e.target.checked ? true : false, // Explicitly set to Boolean true or false
+                                                    // appointmentTime: e.target.checked ? "" : appointmentData.appointmentTime // Clear appointmentTime if checked
                                                 }))}
                                                 className="text-[16px] font-medium leading-[22px]"
                                             />
                                         </Form.Group>
+
+                                        {appointmentData.ReferredByDoctor && (
+                                            <Form.Group controlId="formDoctor">
+                                                <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Select Referred Doctor</Form.Label>
+                                                <Form.Control
+                                                    as="select"
+                                                    value={referredDoctor}
+                                                    onChange={(e) => setReferredDoctor(e.target.value)}
+                                                    // isInvalid={!!validationErrors.ReferredDoctor}
+                                                    className="!border-[#04394F]"
+                                                >
+                                                    <option value="">Select Referred Doctor</option>
+                                                    {doctors.map((doctor) => (
+                                                        <option key={doctor.doctorID} value={doctor.firstName}>
+                                                            {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                        </option>
+                                                    ))}
+                                                </Form.Control>
+                                                {/* <Form.Control.Feedback type="invalid">
+                                                    {validationErrors.ReferredDoctor}
+                                                </Form.Control.Feedback> */}
+                                            </Form.Group>
+                                        )}
 
                                         <Form.Group controlId="formAppointmentTime">
                                             <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Appointment Time</Form.Label>
@@ -731,7 +784,7 @@ const SetAppointment = () => {
                                                     ...prev,
                                                     appointmentTime: e.target.value // Directly update appointmentTime
                                                 }))}
-                                                disabled={!selectedDoctor || !appointmentData.appointmentDate || appointmentData.referredByDoctor}
+                                                disabled={!selectedDoctor || !appointmentData.appointmentDate || appointmentData.ReferredByDoctor}
                                                 className='!border-[#04394F]'
                                             >
                                                 <option value="">Select Appointment Time</option>
@@ -834,72 +887,77 @@ const SetAppointment = () => {
                         </Col>
                     </>
                 )}
-                {selectedDoctor && selectedPatient && (
+                {selectedDoctor && selectedPatient && appointmentData.appointmentDate && (
                     <Col>
                         <Card>
                             <Card.Header>Upcoming Doctor's Appointments</Card.Header>
                             <Card.Body>
-                                <ListGroup>
-                                    {appointments.length > 0 ? (
-                                        appointments.map((appt, index) => {
-                                            // Construct a valid appointment date and time
-                                            const appointmentDateTime = new Date(appt.appointmentDate);
+                                {fetchingAppointments ?
+                                    <Spinner size='md'></Spinner>
+                                    :
+                                    <ListGroup>
+                                        {appointments.length > 0 ? (
+                                            appointments.map((appt, index) => {
+                                                // Construct a valid appointment date and time
+                                                const appointmentDateTime = new Date(appt.appointmentDate);
 
-                                            // Check if the date is valid before formatting
-                                            if (isNaN(appointmentDateTime.getTime())) {
-                                                return <ListGroup.Item key={index}>Invalid date</ListGroup.Item>;
-                                            }
+                                                // Check if the date is valid before formatting
+                                                if (isNaN(appointmentDateTime.getTime())) {
+                                                    return <ListGroup.Item key={index}>Invalid date</ListGroup.Item>;
+                                                }
 
-                                            // Find the doctor's schedule that matches the day of the appointment
-                                            const doctorSchedule = selectedDoctor.schedules.find(
-                                                schedule => schedule.dayOfWeek === appointmentDateTime.toLocaleDateString('en-US', { weekday: 'long' })
-                                            );
+                                                // Find the doctor's schedule that matches the day of the appointment
+                                                const doctorSchedule = selectedDoctor.schedules.find(
+                                                    schedule => schedule.dayOfWeek === appointmentDateTime.toLocaleDateString('en-US', { weekday: 'long' })
+                                                );
 
-                                            if (!doctorSchedule) {
-                                                return <ListGroup.Item key={index}>No matching schedule found for this appointment.</ListGroup.Item>;
-                                            }
+                                                if (!doctorSchedule) {
+                                                    return <ListGroup.Item key={index}>No matching schedule found for this appointment.</ListGroup.Item>;
+                                                }
 
-                                            // Formatting the appointment start time
-                                            const formattedStartTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`)
-                                                .toLocaleTimeString('en-US', {
+                                                // Formatting the appointment start time
+                                                const formattedStartTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`)
+                                                    .toLocaleTimeString('en-US', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        hour12: true
+                                                    });
+
+                                                // Calculating the end time based on the slot duration
+                                                const startTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`);
+                                                const endTime = new Date(startTime.getTime() + doctorSchedule.slotDuration * 60000); // Add slot duration in minutes
+
+                                                const formattedEndTime = endTime.toLocaleTimeString('en-US', {
                                                     hour: '2-digit',
                                                     minute: '2-digit',
                                                     hour12: true
                                                 });
 
-                                            // Calculating the end time based on the slot duration
-                                            const startTime = new Date(`${appt.appointmentDate.split('T')[0]}T${appt.appointmentTime}`);
-                                            const endTime = new Date(startTime.getTime() + doctorSchedule.slotDuration * 60000); // Add slot duration in minutes
+                                                // Formatting the date
+                                                const formattedDate = appointmentDateTime.toLocaleDateString('en-US', {
+                                                    day: '2-digit',
+                                                    month: 'long',
+                                                    weekday: 'long',
+                                                });
 
-                                            const formattedEndTime = endTime.toLocaleTimeString('en-US', {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                hour12: true
-                                            });
+                                                return (
+                                                    <ListGroup.Item key={index}>
+                                                        <strong>{formattedDate}</strong>: {appt.referredByDoctor ? "Referred By Doctor" : `${formattedStartTime} - ${formattedEndTime}`}
+                                                        <div>
+                                                            <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
+                                                        </div>
+                                                        <div>
+                                                            <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
+                                                        </div>
+                                                    </ListGroup.Item>
+                                                );
+                                            })
+                                        ) : (
+                                            <ListGroup.Item>No upcoming appointments found.</ListGroup.Item>
+                                        )}
+                                    </ListGroup>
+                                }
 
-                                            // Formatting the date
-                                            const formattedDate = appointmentDateTime.toLocaleDateString('en-US', {
-                                                day: '2-digit',
-                                                month: 'long',
-                                                weekday: 'long',
-                                            });
-
-                                            return (
-                                                <ListGroup.Item key={index}>
-                                                    <strong>{formattedDate}</strong>: {appt.referredByDoctor ? "Referred By Doctor" : `${formattedStartTime} - ${formattedEndTime}`}
-                                                    <div>
-                                                        <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
-                                                    </div>
-                                                    <div>
-                                                        <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
-                                                    </div>
-                                                </ListGroup.Item>
-                                            );
-                                        })
-                                    ) : (
-                                        <ListGroup.Item>No upcoming appointments found.</ListGroup.Item>
-                                    )}
-                                </ListGroup>
                             </Card.Body>
                         </Card>
                     </Col>
@@ -941,7 +999,7 @@ const SetAppointment = () => {
                     doctors={doctors}
                     selectedDoctor={selectedDoctor}
                     setSelectedDoctor={setSelectedDoctor}
-                    doctorDefaultSelected={true}
+                    doctorDefaultSelected={false}
                 />
             )}
         </div>

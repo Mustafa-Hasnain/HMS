@@ -27,6 +27,7 @@ const Dashboard = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/dashboard-overview');
+                console.log("Dashboard: ", response.data);
                 setData(response.data);
                 setAppointments(response.data.upcomingAppointments);
             } catch (error) {
@@ -94,7 +95,7 @@ const Dashboard = () => {
                         viewAllLink="/receptionist/doctors-portal"
                     />
                 </Col>
-                <Col md={4} className="mb-3">
+                {/* <Col md={4} className="mb-3">
                     <InfoCard
                         count={loading ? <Spinner animation="border" /> : data?.overviewCounts.unpaidInvoices}
                         title="Pending Invoices"
@@ -103,7 +104,7 @@ const Dashboard = () => {
                         svgBgColor="#04394F"
                         viewAllLink="/receptionist/invoices"
                     />
-                </Col>
+                </Col> */}
                 <Col md={4} className="mb-3">
                     <InfoCard
                         count={loading ? <Spinner animation="border" /> : data?.overviewCounts.clinicRevenue}
@@ -150,9 +151,15 @@ const Dashboard = () => {
                                                     <td>{appointment.patient.firstName}</td>
                                                     <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
                                                     <td>
-                                                        <Button variant="outline-primary" size="sm">
-                                                            {start} - {end} {day}
-                                                        </Button>
+                                                        {!appointment.referredByDoctor ?
+                                                            <Button onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))} variant="outline-primary" size="sm">
+                                                                {start} - {end} {day}
+                                                            </Button>
+                                                            :
+                                                            <Button onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))} variant="outline-primary" size="sm">
+                                                                Referred By Doctor
+                                                            </Button>
+                                                        }
                                                     </td>
                                                     <td>
                                                         <Button
