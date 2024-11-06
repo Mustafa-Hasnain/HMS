@@ -28,7 +28,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
             <div className="text-center mb-4" style={{ textAlign: 'center' }}>
                 <img src={Logo} alt="Woodlands Health Center Logo" style={{ width: '100px', marginBottom: '10px' }} />
                 <h2 style={{ margin: 0 }}>Woodlands Health Center</h2>
-                <p>Address | Contact Number | Website</p>
+                <p>4th floor, Building 1-C, F8 Markaz, Islamabad. | Ph: 051 6103000, Email: woodlandshealthcenter@gmail.com | woodlandshealthcenter.com</p>
             </div>
 
             <hr />
