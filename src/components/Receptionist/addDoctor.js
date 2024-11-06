@@ -22,6 +22,7 @@ function AddDoctor() {
     const availabilityRef = useRef(null);
     const consultationFeeRef = useRef(null);
     const joinedDateRef = useRef(null);
+    const username = useRef(null);
 
     // Handle specialty selection change
     const handleSpecialtyChange = (e) => {
@@ -317,6 +318,19 @@ function AddDoctor() {
                                         type="date"
                                         ref={joinedDateRef}
                                         className="!border-[#04394F]  rounded-md"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group >
+                                    <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Doctor Username</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter Doctor Username"
+                                        ref={username}
+                                        className="!border-[#04394F] rounded-md"
                                     />
                                 </Form.Group>
                             </Col>
