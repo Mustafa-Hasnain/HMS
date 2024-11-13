@@ -16,6 +16,7 @@ import { toast, ToastContainer } from 'react-toastify';
 const SetAppointment = () => {
     const { patient_id, invoice_id } = useParams();
     const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({});
     const [searchInfo, setSearchInfo] = useState('');
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [patients, setPatients] = useState([]);
@@ -37,7 +38,7 @@ const SetAppointment = () => {
         ConsultationAmount: 0,
         ReferredByDoctor: false,
         ReferredDoctorName: referredDoctor,
-        isConsultation: isConsultationSelected,
+        isConsultation: false,
         ProcedureItems: []
     });
 
@@ -65,31 +66,48 @@ const SetAppointment = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const calculateTotalAmount = (isChecked, type) => {
+        // Ensure all amounts are treated as numbers
+        const procedureAmount = appointmentData.ProcedureItems.reduce((sum, item) => sum + Number(item.Amount), 0);
+
+        // Return 0 immediately if the checkbox is unchecked for either type
+        if (!isChecked) {
+            if (type === 'Consultation') return isProcedureSelected ? procedureAmount : 0;
+            if (type === 'Procedure') return isConsultationSelected ? Number(selectedDoctor?.consultationFee ?? 0) : 0;
+        }
+
+        // Determine consultation fee directly based on the type and isChecked value
+        const consultationFee = (type === 'Consultation' && isChecked) || isConsultationSelected
+            ? Number(selectedDoctor?.consultationFee ?? 0)
+            : 0;
+
+        // Determine procedure fee directly based on the type and isChecked value
+        const procedureFee = (type === 'Procedure' && isChecked) || isProcedureSelected
+            ? procedureAmount
+            : 0;
+
+        return consultationFee + procedureFee;
+    };
+
     const handleCheckboxChange = (e) => {
         const { value, checked } = e.target;
+    
         if (value === 'Consultation') {
             setIsConsultationSelected(checked);
             setAppointmentData(prev => ({
-                ...prev, ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
-                isConsultation: true
-
-            }))
+                ...prev,
+                ConsultationAmount: checked ? Number(selectedDoctor?.consultationFee ?? 0) : 0,
+                isConsultation: checked
+            }));
+    
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
-            setAppointmentData(prev => ({
-                ...prev, ConsultationAmount: 0,
-                isConsultation: false
-
-            }))
         }
-
-        // Update the Amount based on the checked boxes
+    
+        // Update the Amount immediately after updating checkboxes
         setAppointmentData(prev => ({
             ...prev,
             Amount: calculateTotalAmount(checked, value),
-            ConsultationAmount: selectedDoctor?.consultationFee ?? 0,
-            isConsultation: true
-
         }));
     };
 
@@ -107,13 +125,8 @@ const SetAppointment = () => {
         // }));
     };
 
-    const calculateTotalAmount = (isChecked, type) => {
-        const procedureAmount = appointmentData.ProcedureItems.reduce((sum, item) => sum + item.Amount, 0);
-        const consultationFee = isConsultationSelected || type === 'Consultation' && isChecked ? selectedDoctor.consultationFee : 0;
-        const procedureFee = isProcedureSelected || type === 'Procedure' && isChecked ? procedureAmount : 0;
 
-        return consultationFee + procedureFee;
-    };
+
 
     const addProcedureItem = () => {
         const newItem = { ...newProcedure, procedureItemID: Date.now() };
@@ -192,7 +205,7 @@ const SetAppointment = () => {
     const fetchDoctorAppointments = async (doctorID) => {
         try {
             setfetchingAppointments(true)
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointmentDate}`);
             const data = await response.json();
             console.log("Doctors Appointment: ", data);
             setAppointments(data);
@@ -293,9 +306,61 @@ const SetAppointment = () => {
         return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}`; // Return in HH:mm format
     };
 
+    const validateForm = () => {
+        const errors = {};
+
+        // Condition: Both Consultation and Procedure are unselected
+        if (!isProcedureSelected && !isConsultationSelected) {
+            const message = 'Please select either a Procedure or a Consultation or both';
+            errors.ConsultationOrProcedure = message;
+            toast.error(message);
+        }
+
+        // Condition: Procedure selected but no procedure items
+        if (isProcedureSelected && appointmentData.ProcedureItems.length === 0) {
+            const message = 'Please add at least one Procedure item';
+            errors.ProcedureItems = message;
+            toast.error(message);
+        }
+
+        // Condition: Referred by doctor but no referred doctor name
+        if (appointmentData.ReferredByDoctor && !referredDoctor) {
+            const message = 'Referred Doctor Name is required.';
+            errors.ReferredDoctorName = message;
+            toast.error(message);
+        }
+
+        // Condition: Referred by doctor, appointment time not mandatory; otherwise, it is mandatory
+        if (!appointmentData.ReferredByDoctor && !appointmentData.appointmentTime) {
+            const message = 'Appointment Time is required';
+            errors.AppointmentTime = message;
+            toast.error(message);
+        }
+
+        // Condition: Selected doctor must be set if not referred by another doctor
+        if (!appointmentData.ReferredByDoctor && !selectedDoctor) {
+            const message = 'Please select a Doctor';
+            errors.SelectedDoctor = message;
+            toast.error(message);
+        }
+
+        // Condition: Appointment date must be set
+        if (!appointmentData.appointmentDate) {
+            const message = 'Appointment Date is required';
+            errors.AppointmentDate = message;
+            toast.error(message);
+        }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
         setLoading(true);
 
         const appointmentTimeIn24hr = convertTo24HourFormat(appointmentData.appointmentTime);
@@ -758,7 +823,13 @@ const SetAppointment = () => {
                                                 <Form.Control
                                                     as="select"
                                                     value={referredDoctor}
-                                                    onChange={(e) => setReferredDoctor(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setAppointmentData(prev => ({
+                                                            ...prev,
+                                                            ReferredDoctorName: e.target.value 
+                                                        }));
+                                                        setReferredDoctor(e.target.value);
+                                                    }}
                                                     // isInvalid={!!validationErrors.ReferredDoctor}
                                                     className="!border-[#04394F]"
                                                 >

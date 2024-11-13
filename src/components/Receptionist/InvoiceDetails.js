@@ -92,19 +92,19 @@ const InvoiceDetails = () => {
         const fetchDoctors = async () => {
             try {
                 const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
-                console.log("Doctors: ",response.data);
+                console.log("Doctors: ", response.data);
                 setDoctors(response.data);
-    
+
                 // Check if doctor exists in localStorage
                 const doctorData = JSON.parse(localStorage.getItem('doctor'));
-    
+
                 // Find doctor in the fetched doctors list
                 const doctorInList = response.data.find(doc => doc.doctorID === doctorData.doctorID);
-    
+
                 // If the doctor from localStorage is in the list, set it as the selectedDoctor and make it immutable
-                
-                    setSelectedDoctor(doctorInList);
-                }
+
+                setSelectedDoctor(doctorInList);
+            }
             catch (error) {
                 console.error("Error fetching doctors:", error);
             }
@@ -325,7 +325,7 @@ const InvoiceDetails = () => {
         });
     }
 
-    
+
 
 
     if (loading) {
@@ -353,8 +353,58 @@ const InvoiceDetails = () => {
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
     const procedureItems = primaryInvoice?.procedureItems || [];
     const totalConsultations = appointment.isConsultation ? secondaryAppointments.length + 1 : secondaryAppointments.length;
-    const totalProcedures = procedureItems.length;
-    const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+
+    const mainInvoice = invoices[0];
+    const totalAppointments = appointment.isConsultation ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
+    const totalProcedures = mainInvoice.procedureItems.length;
+    const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
+    const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
+    const totalPaidProcedures = mainInvoice.procedureItems.filter(item => item.paid).length;
+    const totalUnpaidProcedures = totalProcedures - totalPaidProcedures;
+    const totalAmount = mainInvoice.procedureItems.reduce((total, item) => total + item.amount, 0);
+
+
+    let totalAppointmentAmount = 0;
+    let totalAppointmentPaid = 0;
+    let totalAppointmentUnpaid = 0;
+
+    let totalProcedureAmount = 0;
+    let totalProcedurePaid = 0;
+    let totalProcedureUnpaid = 0;
+
+    if (appointment.isConsultation) {
+        totalAppointmentAmount += appointment.amount;
+        if (appointment.paid) {
+            totalAppointmentPaid += appointment.amount;
+        } else {
+            totalAppointmentUnpaid += appointment.amount;
+        }
+    }
+
+    appointment.invoices.forEach(invoice => {
+        invoice.secondaryAppointments.forEach(appointment => {
+            totalAppointmentAmount += appointment.amount;
+            if (appointment.paid) {
+                totalAppointmentPaid += appointment.amount;
+            } else {
+                totalAppointmentUnpaid += appointment.amount;
+            }
+        });
+    });
+
+    appointment.invoices.forEach(invoice => {
+        invoice.procedureItems.forEach(item => {
+            totalProcedureAmount += item.amount;
+            if (item.paid) {
+                totalProcedurePaid += item.amount;
+            } else {
+                totalProcedureUnpaid += item.amount;
+            }
+        });
+    });
+
+    const totalPaid = totalAppointmentPaid + totalProcedurePaid;
+    const totalUnpaid = totalAppointmentUnpaid + totalProcedureUnpaid;
 
     return (
         <>
@@ -456,111 +506,111 @@ const InvoiceDetails = () => {
                         </div>
 
                         {invoices.some(invoice => invoice.secondaryAppointments.length > 0) || appointment.isConsultation ? (
-                        <Table striped bordered hover responsive className="mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Day</th>
-                                    <th>Patient Name</th>
-                                    <th>Doctor Name</th>
-                                    <th>Appointment Time</th>
-                                    <th>Amount</th>
-                                    <th>Invoice Status</th>
-                                    <th>Appointment Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {/* Primary Appointment Row */}
-                                {appointment.isConsultation &&
-                                <tr>
-                                    <td>{new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
-                                        weekday: 'short',
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })}</td>
-                                    <td>{appointment.patient.firstName}</td>
-                                    <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
-                                    <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
-                                    <td>{appointment.amount}</td>
-                                    <td>
-                                        <Badge bg={!appointment.paid ? 'danger' : 'success'}>
-                                            {!appointment.paid ? 'Unpaid' : 'Paid'}
-                                        </Badge>
-                                    </td>
-                                    <td>{appointment.status}</td>
-                                    <td>
-                                        <div className="flex gap-2">
-                                            {!appointment.paid ?
-                                                <Button
-                                                    variant="outline-success"
-                                                    className="!text-xs"
-                                                    disabled={submitting}
-                                                    onClick={() => { handlePayPrimaryAppointment(appointment.appointmentID) }}
-                                                >
-                                                    Mark as Paid
-                                                </Button>
-                                                :
-                                                "Paid"
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                }
-
-                                {/* Secondary Appointments Rows */}
-                                {invoices.map((invoice, invoiceIndex) =>
-                                    invoice.secondaryAppointments.map((appt, apptIndex) => (
-                                        <tr key={`${invoiceIndex}-${apptIndex}`}>
-                                            <td>{new Date(appt.appointmentDate).toLocaleDateString('en-US', {
+                            <Table striped bordered hover responsive className="mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Patient Name</th>
+                                        <th>Doctor Name</th>
+                                        <th>Appointment Time</th>
+                                        <th>Amount</th>
+                                        <th>Invoice Status</th>
+                                        <th>Appointment Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {/* Primary Appointment Row */}
+                                    {appointment.isConsultation &&
+                                        <tr>
+                                            <td>{new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
                                                 weekday: 'short',
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric'
                                             })}</td>
-                                            <td>{patient.firstName}</td>
-                                            <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
-                                            <td>{!appt.referredByDoctor ? getMeetingTime(appt) : 'Referred By Doctor'}</td>
-                                            <td>{appt.amount}</td>
+                                            <td>{appointment.patient.firstName}</td>
+                                            <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                            <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
+                                            <td>{appointment.amount}</td>
                                             <td>
-                                                <Badge bg={appt.paid ? 'success' : 'danger'}>
-                                                    {appt.paid ? 'Paid' : 'Unpaid'}
+                                                <Badge bg={!appointment.paid ? 'danger' : 'success'}>
+                                                    {!appointment.paid ? 'Unpaid' : 'Paid'}
                                                 </Badge>
                                             </td>
-                                            <td>{appt.status}</td>
+                                            <td>{appointment.status}</td>
                                             <td>
-                                                {!appt.paid ? (
-                                                    <div className="flex gap-2">
+                                                <div className="flex gap-2">
+                                                    {!appointment.paid ?
                                                         <Button
                                                             variant="outline-success"
                                                             className="!text-xs"
-                                                            onClick={() => {
-                                                                handlePaySecondaryAppointment(appt.secondaryAppointmentID);
-                                                            }}
+                                                            disabled={submitting}
+                                                            onClick={() => { handlePayPrimaryAppointment(appointment.appointmentID) }}
                                                         >
                                                             Mark as Paid
                                                         </Button>
-                                                        <Button
-                                                            variant="outline-danger"
-                                                            className="!text-xs"
-                                                            disabled={deletingId !== null || submitting}
-                                                            onClick={() => deleteSecondaryAppointment(invoice.invoiceID, appt.secondaryAppointmentID)}
-                                                        >
-                                                            {deletingId === appt.secondaryAppointmentID ? <Spinner as="span" animation="border" size="sm" /> : "Delete"}
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    "Paid"
-                                                )}
+                                                        :
+                                                        "Paid"
+                                                    }
+                                                </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                                
-                            </tbody> 
-                        </Table>
-                        ) :(
+
+                                    }
+
+                                    {/* Secondary Appointments Rows */}
+                                    {invoices.map((invoice, invoiceIndex) =>
+                                        invoice.secondaryAppointments.map((appt, apptIndex) => (
+                                            <tr key={`${invoiceIndex}-${apptIndex}`}>
+                                                <td>{new Date(appt.appointmentDate).toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })}</td>
+                                                <td>{patient.firstName}</td>
+                                                <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
+                                                <td>{!appt.referredByDoctor ? getMeetingTime(appt) : 'Referred By Doctor'}</td>
+                                                <td>{appt.amount}</td>
+                                                <td>
+                                                    <Badge bg={appt.paid ? 'success' : 'danger'}>
+                                                        {appt.paid ? 'Paid' : 'Unpaid'}
+                                                    </Badge>
+                                                </td>
+                                                <td>{appt.status}</td>
+                                                <td>
+                                                    {!appt.paid ? (
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="outline-success"
+                                                                className="!text-xs"
+                                                                onClick={() => {
+                                                                    handlePaySecondaryAppointment(appt.secondaryAppointmentID);
+                                                                }}
+                                                            >
+                                                                Mark as Paid
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline-danger"
+                                                                className="!text-xs"
+                                                                disabled={deletingId !== null || submitting}
+                                                                onClick={() => deleteSecondaryAppointment(invoice.invoiceID, appt.secondaryAppointmentID)}
+                                                            >
+                                                                {deletingId === appt.secondaryAppointmentID ? <Spinner as="span" animation="border" size="sm" /> : "Delete"}
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        "Paid"
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+
+                                </tbody>
+                            </Table>
+                        ) : (
                             <div className="text-center mt-3">No Consultations Added.</div>
                         )}
                     </div>
@@ -706,18 +756,41 @@ const InvoiceDetails = () => {
                     <h5 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b">Invoice Summary</h5>
 
                     <Row className="border-b border-gray-200 py-2">
-                        <Col>
+                        {/* <Col>
                             <div className="text-gray-600 text-sm font-medium">Patient Name</div>
                             <div className="text-gray-800 text-base font-semibold">{patient.firstName}</div>
-                        </Col>
+                        </Col> */}
 
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Consultations</div>
                             <div className="text-gray-800 text-base font-semibold">{totalConsultations}</div>
                         </Col>
+
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Procedures</div>
                             <div className="text-gray-800 text-base font-semibold">{totalProcedures}</div>
+                        </Col>
+
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Consultations Paid</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentPaid}</div>
+                        </Col>
+                    </Row>
+
+                    <Row className="border-b border-gray-200 py-2">
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Consultations Unpaid</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentUnpaid}</div>
+                        </Col>
+
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Procedures Paid</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalProcedurePaid}</div>
+                        </Col>
+
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Procedures Unpaid</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalProcedureUnpaid}</div>
                         </Col>
                     </Row>
 
@@ -726,6 +799,14 @@ const InvoiceDetails = () => {
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Amount</div>
                             <div className="text-gray-800 text-lg font-bold">Rs. {totalAmount.toFixed(2)}</div>
+                        </Col>
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Paid</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {totalPaid.toFixed(2)}</div>
+                        </Col>
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Balance due</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {totalUnpaid.toFixed()}</div>
                         </Col>
                     </Row>
                 </Card>
