@@ -780,12 +780,12 @@ const InvoiceDetails = () => {
                     <Row className="border-b border-gray-200 py-2">
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Consultations Unpaid</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentUnpaid}</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalUnpaidAppointments}</div>
                         </Col>
 
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Procedures Paid</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalProcedurePaid}</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalPaidProcedures}</div>
                         </Col>
 
                         <Col>
@@ -798,7 +798,7 @@ const InvoiceDetails = () => {
 
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Amount</div>
-                            <div className="text-gray-800 text-lg font-bold">Rs. {totalAmount.toFixed(2)}</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {totalAppointmentAmount + totalProcedureAmount}</div>
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Paid</div>
