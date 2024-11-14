@@ -157,6 +157,21 @@ const InvoiceDetails = () => {
         }
     };
 
+    const deletePrimaryAppointment = async (invoiceId, appointmentItemId) => {
+        setDeletingId(appointmentItemId); // Set the ID of the item being deleted
+        setSubmitting(true);
+        try {
+            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/remove-primary-appointment/${invoiceId}/${appointmentItemId}/delete`);
+            toast.success("Appointment deleted successfully.");
+            updateRefresh(Math.random() * 10);
+        } catch (error) {
+            toast.error("Unable to delete Appointment.");
+        } finally {
+            setDeletingId(null); // Reset deleting state
+            setSubmitting(false);
+        }
+    };
+
     const deleteSecondaryAppointment = async (invoiceId, appointmentItemId) => {
         setDeletingId(appointmentItemId); // Set the ID of the item being deleted
         setSubmitting(true);
@@ -352,10 +367,10 @@ const InvoiceDetails = () => {
     const primaryInvoice = invoices.find(invoice => invoice.isConsultationInvoice);
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
     const procedureItems = primaryInvoice?.procedureItems || [];
-    const totalConsultations = appointment.isConsultation ? secondaryAppointments.length + 1 : secondaryAppointments.length;
+    const totalConsultations = (appointment.isConsultation && !appointment.isDeleted) ? secondaryAppointments.length + 1 : secondaryAppointments.length;
 
     const mainInvoice = invoices[0];
-    const totalAppointments = appointment.isConsultation ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
+    const totalAppointments = (appointment.isConsultation && !appointment.isDeleted) ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
     const totalProcedures = mainInvoice.procedureItems.length;
     const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
     const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
@@ -372,7 +387,7 @@ const InvoiceDetails = () => {
     let totalProcedurePaid = 0;
     let totalProcedureUnpaid = 0;
 
-    if (appointment.isConsultation) {
+    if ((appointment.isConsultation && !appointment.isDeleted)) {
         totalAppointmentAmount += appointment.amount;
         if (appointment.paid) {
             totalAppointmentPaid += appointment.amount;
@@ -487,6 +502,10 @@ const InvoiceDetails = () => {
                         <h2>{patient.dateOfBirth ? calculateAge(patient.dateOfBirth) : 'N/A'} Years</h2>
                     </div>
                     <div className="patientDetails">
+                        <p>Blood Group</p>
+                        <h2>{patient.bloodGroup || 'N/A'}</h2>
+                    </div>
+                    <div className="patientDetails">
                         <p>Invoice Date</p>
                         <h2>{invoices[0].invoiceDate ? new Date(invoices[0].invoiceDate).toLocaleDateString('en-US', {
                             weekday: 'short',
@@ -505,7 +524,7 @@ const InvoiceDetails = () => {
                             <Button variant="outline-primary" onClick={() => (navigate(`/receptionist/set-appointment/${patient.patientID}/${invoices[0].invoiceID}`))}>Add Consultation</Button>
                         </div>
 
-                        {invoices.some(invoice => invoice.secondaryAppointments.length > 0) || appointment.isConsultation ? (
+                        {invoices.some(invoice => invoice.secondaryAppointments.length > 0) || (appointment.isConsultation && !appointment.isDeleted) ? (
                             <Table striped bordered hover responsive className="mt-3">
                                 <thead>
                                     <tr>
@@ -521,7 +540,7 @@ const InvoiceDetails = () => {
                                 </thead>
                                 <tbody>
                                     {/* Primary Appointment Row */}
-                                    {appointment.isConsultation &&
+                                    {appointment.isConsultation && !appointment.isDeleted &&
                                         <tr>
                                             <td>{new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
                                                 weekday: 'short',
@@ -540,16 +559,26 @@ const InvoiceDetails = () => {
                                             </td>
                                             <td>{appointment.status}</td>
                                             <td>
-                                                <div className="flex gap-2">
+                                                <div>
                                                     {!appointment.paid ?
-                                                        <Button
-                                                            variant="outline-success"
-                                                            className="!text-xs"
-                                                            disabled={submitting}
-                                                            onClick={() => { handlePayPrimaryAppointment(appointment.appointmentID) }}
-                                                        >
-                                                            Mark as Paid
-                                                        </Button>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="outline-success"
+                                                                className="!text-xs"
+                                                                disabled={submitting}
+                                                                onClick={() => { handlePayPrimaryAppointment(appointment.appointmentID) }}
+                                                            >
+                                                                Mark as Paid
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline-danger"
+                                                                className="!text-xs"
+                                                                disabled={deletingId !== null || submitting}
+                                                                onClick={() => deletePrimaryAppointment(invoices[0].invoiceID, appointment.appointmentID)}
+                                                            >
+                                                                {deletingId === appointment.appointmentID ? <Spinner as="span" animation="border" size="sm" /> : "Delete"}
+                                                            </Button>
+                                                        </div>
                                                         :
                                                         "Paid"
                                                     }

@@ -18,7 +18,7 @@ const calculateAge = (dob) => {
 
 const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appointment, appointmentDate, appointmentTime }, ref) => {
     const mainInvoice = invoices[0];
-    const totalAppointments = appointment.isConsultation ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
+    const totalAppointments = (appointment.isConsultation && !appointment.isDeleted) ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
     const totalProcedures = mainInvoice.procedureItems.length;
     const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
     const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
@@ -35,7 +35,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
     let totalProcedurePaid = 0;
     let totalProcedureUnpaid = 0;
 
-    if (appointment.isConsultation) {
+    if ((appointment.isConsultation && !appointment.isDeleted)) {
         totalAppointmentAmount += appointment.amount;
         if (appointment.paid) {
             totalAppointmentPaid += appointment.amount;
@@ -109,8 +109,9 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
     // console.log("Total Unpaid (Appointments + Procedures):", totalUnpaid);
 
 
-    const shouldShowAppointments = (appointment.isConsultation || mainInvoice.secondaryAppointments.length > 0) &&
-        !(appointment.isConsultation === false && mainInvoice.secondaryAppointments.length === 0);
+    const shouldShowAppointments =
+        ((appointment.isConsultation && !appointment.isDeleted) || mainInvoice.secondaryAppointments.length > 0) &&
+        !((!appointment.isConsultation || appointment.isDeleted) && mainInvoice.secondaryAppointments.length === 0);
 
     return (
         <div ref={ref} className="p-4 print-container" style={{ fontFamily: 'Arial, sans-serif' }}>
@@ -121,10 +122,20 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
 
                     <p className="font-bold" style={{ fontSize: '16px', marginBottom: '6px' }}>From</p>
                     <p style={{ fontSize: '12px', lineHeight: '1.2' }}>4th floor, Building 1-C, F8 Markaz, Islamabad. Ph: 051 6103000</p>
-                    <div style={{ marginTop: '8px', lineHeight: '1.2' }}>
+                    <div style={{ marginTop: '3px', lineHeight: '1.2' }}>
                         <p style={{ fontSize: '12px', marginBottom: '2px' }}>woodlandshealthcenter@gmail.com</p>
                         <p style={{ fontSize: '12px' }}>woodlandshealthcenter.com</p>
                     </div>
+                    <p className="font-bold" style={{ fontSize: '16px', marginBottom: '6px' }}>Medical Details</p>
+                    <div style={{ fontSize: '12px', lineHeight: '1.2' }}>
+                        <p style={{ marginBottom: '3px' }}>
+                            <strong>Blood Group:</strong> {patient.bloodGroup || 'N/A'}
+                        </p>
+                        <p style={{ marginBottom: '3px' }}>
+                            <strong>Medical History:</strong> {patient.medicalHistory || 'N/A'}
+                        </p>
+                    </div>
+
                 </Col>
                 <Col className="text-right mb-4" style={{ textAlign: 'right', fontFamily: 'Arial, sans-serif' }}>
                     {/* <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>Invoice</h1> */}
@@ -253,7 +264,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                         </thead>
                         <tbody>
                             {/* Map main appointment if isConsultation is true */}
-                            {appointment.isConsultation && (
+                            {(appointment.isConsultation && !appointment.isDeleted) && (
                                 <tr>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>1</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>
@@ -275,7 +286,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                             {/* Map secondary appointments */}
                             {mainInvoice.secondaryAppointments.map((app, index) => (
                                 <tr key={app.secondaryAppointmentID}>
-                                    <td style={{ border: '1px solid black', padding: '4px' }}>{appointment.isConsultation ? index + 2 : index + 1}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{(appointment.isConsultation && !appointment.isDeleted) ? index + 2 : index + 1}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>
                                         {new Date(app.appointmentDate).toLocaleDateString('en-US', {
                                             weekday: 'short',
@@ -313,7 +324,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                     lineHeight: '1.3',
                     position: 'absolute',
                     bottom: 5,
-                    right:20
+                    right: 20
                 }}
             >
                 <h3
