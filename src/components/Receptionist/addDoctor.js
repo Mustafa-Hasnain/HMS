@@ -1,15 +1,19 @@
 import React, { useState, useRef } from 'react';
-import { Container, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Spinner, Table } from 'react-bootstrap';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'tailwindcss/tailwind.css';
+import AdDoctorServiceModal from '../Custom Components/AddDoctorServicesModal';
 
 function AddDoctor() {
     const [schedules, setSchedules] = useState([{ dayOfWeek: '', startTime: '', endTime: '', slotDuration: '' }]);
     const [loading, setLoading] = useState(false);
     const [specialty, setSpecialty] = useState(""); // State to track specialty selection
+    const [doctorServices, setDoctorServices] = useState([]); // New state for managing doctor services
+    const [showServiceModal, setShowServiceModal] = useState(false); // State to manage modal visibility
+
 
 
     // Refs for form inputs
@@ -23,6 +27,17 @@ function AddDoctor() {
     const consultationFeeRef = useRef(null);
     const joinedDateRef = useRef(null);
     const username = useRef(null);
+
+    // Add service to doctorServices state
+    const addService = (newService) => {
+        setDoctorServices([...doctorServices, newService]);
+    };
+
+    // Delete service from doctorServices state
+    const deleteService = (index) => {
+        const updatedServices = doctorServices.filter((_, i) => i !== index);
+        setDoctorServices(updatedServices);
+    };
 
     // Handle specialty selection change
     const handleSpecialtyChange = (e) => {
@@ -147,6 +162,12 @@ function AddDoctor() {
                 StartTime: schedule.startTime,
                 EndTime: schedule.endTime,
                 SlotDuration: parseInt(schedule.slotDuration)
+            })),
+            DoctorServices: doctorServices.map(service => ({
+                ServiceName: service.serviceName.trim(),
+                Description: service.description.trim(),
+                Price: service.price,
+                DoctorCutPercentage: service.doctorCutPercentage,
             }))
         };
 
@@ -186,6 +207,7 @@ function AddDoctor() {
         consultationFeeRef.current.value = '';
         joinedDateRef.current.value = '';
         setSchedules([{ dayOfWeek: '', startTime: '', endTime: '', slotDuration: '' }]);
+        setDoctorServices([]);
     };
 
     return (
@@ -444,6 +466,48 @@ function AddDoctor() {
                                 Add Schedule
                             </Button>
 
+                            <h3 className="mb-4 text-left text-xl font-semibold mt-4">Set Doctor's Services</h3>
+                            <Button variant="outline-primary" onClick={() => setShowServiceModal(true)} className="mb-4">
+                                Add Doctor Service
+                            </Button>
+
+                            {/* Table to show added services */}
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                    <tr>
+                                        <th>Service Name</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Doctor's Cut (%)</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {doctorServices.length > 0 ? (
+                                        doctorServices.map((service, index) => (
+                                            <tr key={index}>
+                                                <td>{service.serviceName}</td>
+                                                <td>{service.description || 'N/A'}</td>
+                                                <td>{service.price}</td>
+                                                <td>{service.doctorCutPercentage}</td>
+                                                <td>
+                                                    <Button variant="outline-danger" size='sm' className='!text-xs' onClick={() => deleteService(index)}>
+                                                        Delete
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center">
+                                                No services added.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+
+
                             <Button
                                 variant="outline-success"
                                 type="submit"
@@ -469,6 +533,11 @@ function AddDoctor() {
                     </Form>
                 </Col>
             </Row>
+            <AdDoctorServiceModal
+                show={showServiceModal}
+                onHide={() => setShowServiceModal(false)}
+                addService={addService}
+            />
         </Container>
 
     );

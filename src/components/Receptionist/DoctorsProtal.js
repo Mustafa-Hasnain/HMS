@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Pagination, Card, Accordion, Spinner, Alert, Button, Form } from 'react-bootstrap';
+import { Table, Pagination, Card, Spinner, Alert, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaCalendarAlt, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import ConfirmationModal from '../Custom Components/confirmationModal';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionItemHeading,
+  AccordionItemPanel,
+  AccordionItemButton,
+} from 'react-accessible-accordion';
+import 'react-accessible-accordion/dist/fancy-example.css';
 
 const DoctorPortal = () => {
   const [doctors, setDoctors] = useState([]);
@@ -189,48 +197,76 @@ const DoctorPortal = () => {
                 </tbody>
               </Table>
 
-              <Accordion>
-                <Accordion.Item eventKey="0">
-                  <Accordion.Header>Schedules</Accordion.Header>
-                  <Accordion.Body>
-                    <Table striped bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Schedule ID</th>
-                          <th>Day of Week</th>
-                          <th>Start Time</th>
-                          <th>End Time</th>
-                          <th>Meeting Duration (mins)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {doctor.schedules && doctor.schedules.length > 0 ? (
-                          doctor.schedules.map((schedule) => (
+              <Accordion allowZeroExpanded>
+                <AccordionItem>
+                  <AccordionItemHeading>
+                    <AccordionItemButton>Schedules</AccordionItemButton>
+                  </AccordionItemHeading>
+                  <AccordionItemPanel>
+                    {doctor.schedules && doctor.schedules.length > 0 ? (
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Schedule ID</th>
+                            <th>Day of Week</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Meeting Duration (mins)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {doctor.schedules.map((schedule) => (
                             <tr key={schedule.doctorScheduleId}>
                               <td>{schedule.doctorScheduleId}</td>
                               <td>{schedule.dayOfWeek}</td>
                               <td>{schedule.startTime}</td>
                               <td>{schedule.endTime}</td>
                               <td>{schedule.slotDuration} minutes</td>
-                              {/* <td>
-                                <FaEdit
-                                  className="text-primary cursor-pointer"
-                                  onClick={() => navigate(`/receptionist/update-schedule/${doctor.doctorID}`)}
-                                />
-                              </td> */}
                             </tr>
-                          ))
-                        ) : (
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>No schedules available</p>
+                    )}
+                  </AccordionItemPanel>
+                </AccordionItem>
+              </Accordion>
+
+              <Accordion allowZeroExpanded className='mt-3'>
+                <AccordionItem>
+                  <AccordionItemHeading>
+                    <AccordionItemButton>Services</AccordionItemButton>
+                  </AccordionItemHeading>
+                  <AccordionItemPanel>
+                    {doctor.doctorServices && doctor.doctorServices.length > 0 ? (
+                      <table className="table">
+                        <thead>
                           <tr>
-                            <td colSpan="5" className="text-center">
-                              No schedules available
-                            </td>
+                            <th>ID</th>
+                            <th>Service Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Doctor Percentage</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </Table>
-                  </Accordion.Body>
-                </Accordion.Item>
+                        </thead>
+                        <tbody>
+                          {doctor.doctorServices.map((service) => (
+                            <tr key={service.doctorServiceID}>
+                              <td>{service.doctorServiceID}</td>
+                              <td>{service.serviceName}</td>
+                              <td>{service.description}</td>
+                              <td>{service.price}</td>
+                              <td>{service.doctorCutPercentage}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>No Services Added for the Doctor</p>
+                    )}
+                  </AccordionItemPanel>
+                </AccordionItem>
               </Accordion>
             </Card.Body>
           </Card>

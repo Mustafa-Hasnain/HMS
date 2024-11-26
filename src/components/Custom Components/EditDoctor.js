@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FaArrowLeft } from 'react-icons/fa';
 import EditScheduleModal from './EditScheduleModal';
 import DoctorSchedule from '../Doctor/DoctorSchedules';
+import DoctorServices from './EditDoctorService';
 
 const EditDoctorForm = () => {
     const { doctor_id } = useParams();
@@ -248,6 +249,8 @@ const EditDoctorForm = () => {
             )}
 
                 <DoctorSchedule></DoctorSchedule>
+
+                <DoctorServices doctorId={doctor_id}></DoctorServices>
         </Container>
     );
 };
