@@ -63,6 +63,8 @@ function Sidebar() {
           { label: 'Doctors/Staff', path: '/receptionist/doctors-portal', icon: <FaUserMd /> },
           { label: 'Invoices', path: '/receptionist/invoices', icon: <FaFileInvoiceDollar /> },
           { label: 'Revenue', path: '/receptionist/revenue', icon: <FaChartLine /> },
+          { label: 'Expenses', path: '/receptionist/expenses', icon: <FaChartLine /> },
+          { label: 'Inventory', path: '/receptionist/inventory', icon: <FaChartLine /> },
         ].map((item) => (
           <button
             key={item.path}

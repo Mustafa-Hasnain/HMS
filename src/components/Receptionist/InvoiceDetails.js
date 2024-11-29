@@ -33,7 +33,6 @@ const InvoiceDetails = () => {
     const [doctors, setDoctors] = useState([]);
 
 
-
     const formatTime = (time) => {
         const [hour, minute] = time.split(':');
         const date = new Date();

@@ -30,6 +30,7 @@ import EditDoctorForm from './components/Custom Components/EditDoctor';
 import EditPatientDetails from './components/Custom Components/EditPatientDetails';
 import InvoiceDetails from './components/Receptionist/InvoiceDetails';
 import { RefreshProvider } from './contexts/RefreshContext';
+import ExpensesManager from './components/Receptionist/Expenses';
 
 
 
@@ -79,6 +80,7 @@ function App() {
               <Route path="inventory" element={<InventoryManager />} />
               <Route path="invoices" element={<InvoiceManagement />} />
               <Route path="revenue" element={<RevenueComponent />} />
+              <Route path="expenses" element={<ExpensesManager />} />
 
             </Route>
 
