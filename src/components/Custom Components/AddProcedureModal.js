@@ -34,7 +34,7 @@ const AddProcedureModal = ({
         setIsDiscounted(false);
         setDiscountPercentage(null);
         setDiscountedAmount(0);
-        setSelectedDoctor(null);
+        // setSelectedDoctor(null);
         setSelectedService(null);
         setIsValid(false);
     };
@@ -159,7 +159,7 @@ const AddProcedureModal = ({
                                             <option value={0} disabled>Select a service...</option>
                                             {selectedDoctor.doctorServices.map((service) => (
                                                 <option key={service.doctorServiceID} value={service.doctorServiceID}>
-                                                    {service.serviceName} - ${service.price}
+                                                    {service.serviceName} - Rs. {service.price}
                                                 </option>
                                             ))}
                                         </Form.Control>
