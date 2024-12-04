@@ -10,6 +10,7 @@ import PaymentModal from "../Custom Components/PaymentModal";
 import { useReactToPrint } from "react-to-print";
 import PrintableInvoiceView from "../Custom Components/PrintInvoiceView";
 import AddProcedureModal from "../Custom Components/AddProcedureModal";
+import InventoryModal from "../Custom Components/InventoryModal";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -20,7 +21,10 @@ const InvoiceDetails = () => {
     const navigate = useNavigate();
     const [newProcedure, setNewProcedure] = useState({ ProcedureName: "", ProcedureDetail: "", Amount: "", DoctorID: null });
     const [showModal, setShowModal] = useState(false);
+    const [showInventoryModal, setShowInventoryModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showInventoryPaymentModal, setShowInventoryPaymentModal] = useState(false);
+    
     const [deletingId, setDeletingId] = useState(null); // Track which procedure item is being deleted
     const [refresh, updateRefresh] = useState(0);
     const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
@@ -31,6 +35,7 @@ const InvoiceDetails = () => {
     const [isPrimaryAppointment, setIsPrimaryAppointment] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [doctors, setDoctors] = useState([]);
+    const [inventoryItems, setInventoryItems] = useState([])
 
 
     const formatTime = (time) => {
@@ -88,6 +93,19 @@ const InvoiceDetails = () => {
             }
         };
 
+        const fetchInventoryItems = async () => {
+            try {
+                // setLoading(true);
+                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
+                console.log("Inventory Items: ", response.data);
+                setInventoryItems(response.data);
+            } catch (error) {
+                console.error("Error fetching inventory items:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         const fetchDoctors = async () => {
             try {
                 const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
@@ -111,6 +129,7 @@ const InvoiceDetails = () => {
 
         fetchAppointmentDetails();
         fetchDoctors();
+        fetchInventoryItems();
     }, [appointment_id, refresh]);
 
     const addProcedureItem = async (invoiceId, finalProcedure) => {
@@ -241,6 +260,11 @@ const InvoiceDetails = () => {
         setShowPaymentModal(true);
     }
 
+    const handlePayInventoryItem = (id) => {
+        setfunctionId(id);
+        setShowInventoryPaymentModal(true);
+    }
+
     const handlePaySecondaryAppointment = (id) => {
         setfunctionId(id);
         setfunction(false);
@@ -339,6 +363,96 @@ const InvoiceDetails = () => {
         });
     }
 
+    const handleAddInventoryItem = async (data) => {
+        const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/AddInventoryItemInInvoice", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        if (response.ok) {
+            updateRefresh(Math.random() * 10);
+        }
+
+        if (!response.ok) {
+            throw new Error("Failed to add item to invoice");
+        }
+    };
+
+    const handleDeleteInventoryItem = async (invoiceId, InventoryItemId) => {
+        setDeletingId(InventoryItemId); // Set the ID of the item being deleted
+        const bodyData = JSON.stringify({
+            invoiceID: invoiceId,
+            invoiceInventoryItemID: InventoryItemId, // Corrected the property name to match updated API logic
+        });
+
+        try {
+            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/RemoveInventoryItemInInvoice`,
+                bodyData, // Send stringified data
+                {
+                    headers: {
+                        "Content-Type": "application/json", // Ensure correct content type
+                    },
+                }
+            );
+            toast.success("Inventory Item deleted successfully.");
+
+            // Update the appointment state to remove the deleted procedure item
+            setAppointment(prevAppointment => {
+                const updatedInvoices = prevAppointment.invoices.map(invoice => {
+                    if (invoice.invoiceID === invoiceId) {
+                        return {
+                            ...invoice,
+                            invoiceInventoryItems: invoice.invoiceInventoryItems.filter(item => item.invoiceInventoryItemID !== InventoryItemId),
+                            amount: invoice.amount - invoice.invoiceInventoryItems.find(item => item.invoiceInventoryItemID === InventoryItemId).amount // Decrease the amount
+                        };
+                    }
+                    return invoice;
+                });
+
+                return {
+                    ...prevAppointment,
+                    invoices: updatedInvoices,
+                };
+            });
+        } catch (error) {
+            toast.error("Unable to delete procedure item.");
+        } finally {
+            setDeletingId(null); // Reset deleting state
+        }
+    };
+
+    const markAsPaidInventoryItem = async (InventoryItemID) => {
+        setSubmitting(true);
+        try {
+            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/PayInventoryItem/${InventoryItemID}`);
+            toast.success("Procedure Mark as Paid Successfully");
+            setAppointment((prevAppointment) => {
+                if (!prevAppointment) return prevAppointment; // No update if no appointment data
+
+                // Map over invoices to find the procedure item and mark it as paid
+                const updatedInvoices = prevAppointment.invoices.map((invoice) => {
+                    const updatedProcedureItems = invoice.invoiceInventoryItems.map((item) => {
+                        if (item.invoiceInventoryItemID === InventoryItemID) {
+                            return { ...item, paid: true };
+                        }
+                        return item;
+                    });
+                    return { ...invoice, invoiceInventoryItems: updatedProcedureItems };
+                });
+
+                // Return the updated appointment object
+                return { ...prevAppointment, invoices: updatedInvoices };
+            });
+
+        } catch (error) {
+            toast.error("Error Occured.");
+        } finally {
+            setSubmitting(false);
+            setfunctionId(null)
+        }
+    };
 
 
 
@@ -757,6 +871,47 @@ const InvoiceDetails = () => {
                     <div className="text-center mt-3">No procedure items added.</div>
                 )}
 
+
+
+                <div className="flex justify-between mt-4">
+                    <h3 className="font-semibold text-xl">Inventory Items</h3>
+                    <Button variant="outline-primary" onClick={() => setShowInventoryModal(true)}>Add Inventory Item</Button>
+                </div>
+                {invoices.some(invoice => invoice.invoiceInventoryItems.length > 0) ? (
+                    <Table striped bordered hover responsive className="mt-3">
+                        <thead>
+                            <tr>
+                                <th>InventoryItem ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total Price</th>
+                                <th>Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {invoices.flatMap(invoice =>
+                                invoice.invoiceInventoryItems.map(item => (
+                                    <tr key={item.invoiceInventoryItemID}>
+                                        <td>{item.invoiceInventoryItemID}</td>
+                                        <td>{item.inventoryItem.name}</td>
+                                        <td>{item.inventoryItem.price}</td>
+                                        <td>{item.quantity || 0}</td>
+                                        <td>{item.amount}</td>
+                                        <td className="flex gap-3">
+                                            {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Paid</Button> : "Paid"}
+                                            {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => handleDeleteInventoryItem(invoice.invoiceID, item.invoiceInventoryItemID)}
+                                                disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Item"}</Button>}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </Table>
+                ) : (
+                    <div className="text-center mt-3">No inventoey items added.</div>
+                )}
+
                 {/* <h3 className="font-semibold text-xl mt-4">Summary</h3> */}
 
                 {/* <Table bordered hover responsive className="mt-3">
@@ -867,6 +1022,21 @@ const InvoiceDetails = () => {
                     onHide={() => setShowPaymentModal(false)}
                     ID={functionId}
                     markAsPaid={procedurefunction ? () => markAsPaidProcedureItem(functionId) : () => markAsPaidAppointment(functionId)}
+                />
+
+                <PaymentModal
+                    show={showInventoryPaymentModal}
+                    onHide={() => setShowInventoryPaymentModal(false)}
+                    ID={functionId}
+                    markAsPaid={()=>markAsPaidInventoryItem(functionId)}
+                />
+
+                <InventoryModal
+                    show={showInventoryModal}
+                    onHide={() => setShowInventoryModal(false)}
+                    invoiceID={appointment_id} // Example Invoice ID
+                    inventoryItems={inventoryItems}
+                    onAddInventoryItem={handleAddInventoryItem}
                 />
 
             </Container>

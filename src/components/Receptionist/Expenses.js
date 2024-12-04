@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Form, Spinner } from "react-bootstrap";
+import { Table, Button, Form, Spinner, Tab, Nav } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import ClinicExpenses from "./ClinicExpenses";
 
 const ExpensesManager = () => {
   const [doctors, setDoctors] = useState([]);
@@ -95,142 +96,161 @@ const ExpensesManager = () => {
     <div className="p-4">
       <ToastContainer />
 
-      <h2 className="mb-4 text-2xl font-bold">Expenses</h2>
-      
-      {loading ? (
-        <div className="flex justify-center items-center my-4">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      ) : (
-        <>
-          {/* Form to Add Expense */}
-          <Form className="mb-4 bg-light p-4 rounded shadow">
-            <Form.Group className="mb-3">
-              <Form.Label>Product Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="productName"
-                placeholder="Enter product name"
-                value={formData.productName}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
+      <Tab.Container defaultActiveKey="doctors">
+        <Nav variant="tabs">
+          <Nav.Item>
+            <Nav.Link eventKey="doctors">Doctors</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="clinic">Clinic</Nav.Link>
+          </Nav.Item>
+        </Nav>
+        <Tab.Content className="mt-3">
+          <Tab.Pane eventKey="doctors">
+            <h2 className="mb-4 text-2xl font-bold">Expenses</h2>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="amount"
-                placeholder="Enter amount"
-                value={formData.amount}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
+            {loading ? (
+              <div className="flex justify-center items-center my-4">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
+              </div>
+            ) : (
+              <>
+                {/* Form to Add Expense */}
+                <Form className="mb-4 bg-light p-4 rounded shadow">
+                  <Form.Group className="mb-3">
+                    <Form.Label>Product Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="productName"
+                      placeholder="Enter product name"
+                      value={formData.productName}
+                      onChange={handleInputChange}
+                    />
+                  </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Invoice ID</Form.Label>
-              <Form.Control
-                type="number"
-                name="invoiceID"
-                placeholder="Enter invoice ID"
-                value={formData.invoiceID}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="amount"
+                      placeholder="Enter amount"
+                      value={formData.amount}
+                      onChange={handleInputChange}
+                    />
+                  </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Doctor</Form.Label>
-              <Form.Select
-                name="doctorID"
-                value={formData.doctorID}
-                onChange={handleInputChange}
-              >
-                <option value="">Select a Doctor</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor.doctorID} value={doctor.doctorID}>
-                    {doctor.firstName} {doctor.lastName} ({doctor.specialty})
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Invoice ID</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="invoiceID"
+                      placeholder="Enter invoice ID"
+                      value={formData.invoiceID}
+                      onChange={handleInputChange}
+                    />
+                  </Form.Group>
 
-            <Button
-              variant="primary"
-              onClick={handleAddExpense}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                "Add Expense"
-              )}
-            </Button>
-          </Form>
-
-         
-
-          {expenses.length > 0 ?
-          (
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Product Name</th>
-                <th>Amount</th>
-                <th>Invoice ID</th>
-                <th>Doctor</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map((expense) => (
-                <tr key={expense.expenseID}>
-                  <td>{expense.expenseID}</td>
-                  <td>{expense.productName}</td>
-                  <td>{expense.amount}</td>
-                  <td>{expense.invoiceID}</td>
-                  <td>
-                    {expense.doctor
-                      ? `${expense.doctor.firstName} ${expense.doctor.lastName}`
-                      : "N/A"}
-                  </td>
-                  <td>
-                    <Button
-                      variant="danger"
-                      onClick={() => handleDeleteExpense(expense.expenseID)}
-                      disabled={submitting}
+                  <Form.Group className="mb-3">
+                    <Form.Label>Doctor</Form.Label>
+                    <Form.Select
+                      name="doctorID"
+                      value={formData.doctorID}
+                      onChange={handleInputChange}
                     >
-                      {submitting ? (
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        "Delete"
-                      )}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          ):
-          (
-            <p className="mt-5 font-semibold text-base text-center">No Expenses Added Yet</p>
-          )}
-        </>
-      )}
+                      <option value="">Select a Doctor</option>
+                      {doctors.map((doctor) => (
+                        <option key={doctor.doctorID} value={doctor.doctorID}>
+                          {doctor.firstName} {doctor.lastName} ({doctor.specialty})
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Button
+                    variant="primary"
+                    onClick={handleAddExpense}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      "Add Expense"
+                    )}
+                  </Button>
+                </Form>
+
+
+
+                {expenses.length > 0 ?
+                  (
+                    <Table striped bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Product Name</th>
+                          <th>Amount</th>
+                          <th>Invoice ID</th>
+                          <th>Doctor</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses.map((expense) => (
+                          <tr key={expense.expenseID}>
+                            <td>{expense.expenseID}</td>
+                            <td>{expense.productName}</td>
+                            <td>{expense.amount}</td>
+                            <td>{expense.invoiceID}</td>
+                            <td>
+                              {expense.doctor
+                                ? `${expense.doctor.firstName} ${expense.doctor.lastName}`
+                                : "N/A"}
+                            </td>
+                            <td>
+                              <Button
+                                variant="danger"
+                                onClick={() => handleDeleteExpense(expense.expenseID)}
+                                disabled={submitting}
+                              >
+                                {submitting ? (
+                                  <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  "Delete"
+                                )}
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) :
+                  (
+                    <p className="mt-5 font-semibold text-base text-center">No Expenses Added Yet</p>
+                  )}
+              </>
+            )}
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="clinic">
+            <ClinicExpenses></ClinicExpenses>            
+          </Tab.Pane>
+
+        </Tab.Content>
+      </Tab.Container>
     </div>
   );
 };
