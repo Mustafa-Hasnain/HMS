@@ -19,6 +19,11 @@ const EditPatientDetails = () => {
     const [cnic, setCnic] = useState('');
     const [bloodGroup, setBloodGroup] = useState('');
     const [email, setEmail] = useState('');
+    const [country, setCountry] = useState('');
+    const [state, setState] = useState('');
+    const [city, setCity] = useState('');
+    const [streetAddress, setStreetAddress] = useState('');
+    const [postalCode, setPostalCode] = useState('');
     const [medicalHistory, setMedicalHistory] = useState('');
 
     const [validationErrors, setValidationErrors] = useState({});
@@ -41,6 +46,13 @@ const EditPatientDetails = () => {
                     setBloodGroup(patientData.bloodGroup || '');
                     setEmail(patientData.email || '');
                     setMedicalHistory(patientData.medicalHistory || '');
+                    setCountry(patientData.country || '');
+                    setCity(patientData.city || '');
+                    setState(patientData.state || '');
+                    setStreetAddress(patientData.streetAddress || '');
+                    setPostalCode(patientData.postalCode || '');
+                    
+
                 } else {
                     setError("Patient not found");
                 }
@@ -52,6 +64,57 @@ const EditPatientDetails = () => {
         };
         fetchPatientData();
     }, [patient_id]);
+
+    const [countries, setCountries] = useState([]);
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+
+    // Fetch countries on component mount
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get("https://countriesnow.space/api/v0.1/countries/states");
+                setCountries(response.data.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        };
+        fetchCountries();
+    }, []);
+
+    // Fetch states when the country changes
+    useEffect(() => {
+        if (country) {
+            const selectedCountry = countries.find(
+                (item) => item.name === country
+            );
+            setStates(selectedCountry ? selectedCountry.states : []);
+            setCities([]);
+
+        }
+    }, [country, countries]);
+
+    // Fetch cities when the state changes
+    useEffect(() => {
+        if (state && country) {
+            const fetchCities = async () => {
+                try {
+                    const response = await axios.post(
+                        "https://countriesnow.space/api/v0.1/countries/state/cities",
+                        {
+                            country: country,
+                            state: state
+                        }
+                    );
+                    setCities(response.data.data);
+                } catch (error) {
+                    console.error("Error fetching cities:", error);
+                }
+            };
+            fetchCities();
+        }
+    }, [state, country]);
+
 
     const validateForm = () => {
         const errors = {};
@@ -90,7 +153,15 @@ const EditPatientDetails = () => {
             cnic,
             bloodGroup,
             email,
-            medicalHistory
+            medicalHistory,
+            address: "",
+            username: "",
+            license_no: "",
+            country,
+            city,
+            state,
+            streetAddress,
+            postalCode
         };
 
         try {
@@ -240,6 +311,76 @@ const EditPatientDetails = () => {
                     {validationErrors.dateOfBirth && (
                         <div className="text-red-500 text-sm mt-1">{validationErrors.dateOfBirth}</div>
                     )}
+                </Form.Group>
+
+                <Form.Group controlId="formCountry">
+                    <Form.Label>Country</Form.Label>
+                    <Form.Control
+                        as="select"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                    >
+                        <option value="">Select Country</option>
+                        {countries.map((country, index) => (
+                            <option key={index} value={country.name}>
+                                {country.name}
+                            </option>
+                        ))}
+                    </Form.Control>
+                </Form.Group>
+
+                {/* State */}
+                <Form.Group controlId="formState">
+                    <Form.Label>State</Form.Label>
+                    <Form.Control
+                        as="select"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                    >
+                        <option value="">Select State</option>
+                        {states.map((state, index) => (
+                            <option key={index} value={state.name}>
+                                {state.name}
+                            </option>
+                        ))}
+                    </Form.Control>
+                </Form.Group>
+
+                {/* City */}
+                <Form.Group controlId="formCity">
+                    <Form.Label>City</Form.Label>
+                    <Form.Control
+                        as="select"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                    >
+                        <option value="">Select City</option>
+                        {cities.map((city, index) => (
+                            <option key={index} value={city}>
+                                {city}
+                            </option>
+                        ))}
+                    </Form.Control>
+                </Form.Group>
+
+                {/* Street Address */}
+                <Form.Group controlId="formStreetAddress">
+                    <Form.Label>Street Address</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={streetAddress}
+                        onChange={(e) => setStreetAddress(e.target.value)}
+                    />
+                </Form.Group>
+
+                {/* Postal Code */}
+                <Form.Group controlId="formPostalCode">
+                    <Form.Label>Postal Code</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                    />
                 </Form.Group>
 
                 <Form.Group controlId="formMedicalHistory">

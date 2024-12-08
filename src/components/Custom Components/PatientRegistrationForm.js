@@ -113,6 +113,11 @@ const RegisterPatient = () => {
             MedicalHistory: '',
             username: '',
             Address: '',
+            country:'',
+            city:'',
+            state:'',
+            streetAddress:'',
+            postalCode:'',
             license_no: ''
         },
         appointment: {
@@ -133,6 +138,62 @@ const RegisterPatient = () => {
         ProcedureDetail: '',
         Amount: 0
     });
+
+    const [countries, setCountries] = useState([]);
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+
+    // Fetch countries on component mount
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get("https://countriesnow.space/api/v0.1/countries/states");
+                setCountries(response.data.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        };
+        fetchCountries();
+    }, []);
+
+    // Fetch states when the country changes
+    useEffect(() => {
+        if (appointmentData.patient.country) {
+            const selectedCountry = countries.find(
+                (country) => country.name === appointmentData.patient.country
+            );
+            setStates(selectedCountry ? selectedCountry.states : []);
+            setCities([]);
+        }
+    }, [appointmentData.patient.country, countries]);
+
+    // Fetch cities when the state changes
+    useEffect(() => {
+        if (appointmentData.patient.state && appointmentData.patient.country) {
+            const fetchCities = async () => {
+                try {
+                    const response = await axios.post(
+                        "https://countriesnow.space/api/v0.1/countries/state/cities",
+                        {
+                            country: appointmentData.patient.country,
+                            state: appointmentData.patient.state
+                        }
+                    );
+                    setCities(response.data.data);
+                } catch (error) {
+                    console.error("Error fetching cities:", error);
+                }
+            };
+            fetchCities();
+        }
+    }, [appointmentData.patient.state, appointmentData.patient.country]);
+
+    const handleInputChange = (field, value, parent = "patient") => {
+        setAppointmentData((prev) => ({
+            ...prev,
+            [parent]: { ...prev[parent], [field]: value }
+        }));
+    };
 
 
 
@@ -773,7 +834,7 @@ const RegisterPatient = () => {
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Form.Group controlId="formCNIC">
+                    {/* <Form.Group controlId="formCNIC">
                         <Form.Label className="text-[16px] font-medium leading-[22px] text-left">License No (optional)</Form.Label>
                         <Form.Control
                             type="text"
@@ -788,7 +849,7 @@ const RegisterPatient = () => {
                         <Form.Control.Feedback type="invalid">
                             {validationErrors.license_no}
                         </Form.Control.Feedback>
-                    </Form.Group>
+                    </Form.Group> */}
 
                     {/* Gender (Radio buttons) */}
                     <Form.Group controlId="formGender">
@@ -905,7 +966,7 @@ const RegisterPatient = () => {
                         )}
                     </Form.Group>
 
-                    <Form.Group controlId="formMedicalHistory">
+                    {/* <Form.Group controlId="formMedicalHistory">
                         <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Patient Address <span className='text-xs'>(optional)</span></Form.Label>
                         <Form.Control
                             as="textarea"
@@ -917,7 +978,79 @@ const RegisterPatient = () => {
                             }))}
                             className="!border-[#04394F]"
                         />
+                    </Form.Group> */}
+
+                    {/* Country */}
+                    <Form.Group controlId="formCountry">
+                        <Form.Label>Country</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={appointmentData.patient.country}
+                            onChange={(e) => handleInputChange("country", e.target.value)}
+                        >
+                            <option value="">Select Country</option>
+                            {countries.map((country, index) => (
+                                <option key={index} value={country.name}>
+                                    {country.name}
+                                </option>
+                            ))}
+                        </Form.Control>
                     </Form.Group>
+
+                    {/* State */}
+                    <Form.Group controlId="formState">
+                        <Form.Label>State</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={appointmentData.patient.state}
+                            onChange={(e) => handleInputChange("state", e.target.value)}
+                        >
+                            <option value="">Select State</option>
+                            {states.map((state, index) => (
+                                <option key={index} value={state.name}>
+                                    {state.name}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+
+                    {/* City */}
+                    <Form.Group controlId="formCity">
+                        <Form.Label>City</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={appointmentData.patient.city}
+                            onChange={(e) => handleInputChange("city", e.target.value)}
+                        >
+                            <option value="">Select City</option>
+                            {cities.map((city, index) => (
+                                <option key={index} value={city}>
+                                    {city}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+
+                    {/* Street Address */}
+                    <Form.Group controlId="formStreetAddress">
+                        <Form.Label>Street Address</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={appointmentData.patient.streetAddress}
+                            onChange={(e) => handleInputChange("streetAddress", e.target.value)}
+                        />
+                    </Form.Group>
+
+                    {/* Postal Code */}
+                    <Form.Group controlId="formPostalCode">
+                        <Form.Label>Postal Code</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={appointmentData.patient.postalCode}
+                            onChange={(e) => handleInputChange("postalCode", e.target.value.replace(/\D/g, ""))}
+                        />
+                    </Form.Group>
+
 
                     {/* Medical History */}
                     <Form.Group controlId="formMedicalHistory">

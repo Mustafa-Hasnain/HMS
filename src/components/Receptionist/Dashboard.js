@@ -142,7 +142,7 @@ const Dashboard = () => {
                         viewAllLink="/receptionist/invoices"
                     />
                 </Col> */}
-                <Col md={4} className="mb-3">
+                {/* <Col md={4} className="mb-3">
                     <InfoCard
                         count={loading ? <Spinner animation="border" /> : data?.overviewCounts.clinicRevenue}
                         title="Total Revenue"
@@ -151,7 +151,7 @@ const Dashboard = () => {
                         svgBgColor="#E8B01D"
                         viewAllLink="/receptionist/revenue"
                     />
-                </Col>
+                </Col> */}
             </Row>
 
             {/* Appointments and Earnings */}

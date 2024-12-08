@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from "../assets/Logo Green.png";
-import { FaTachometerAlt, FaUserFriends, FaCalendarAlt, FaUserMd, FaFileInvoiceDollar, FaChartLine } from 'react-icons/fa';  // Importing icons
+import { FaTachometerAlt, FaUserFriends, FaCalendarAlt, FaUserMd, FaFileInvoiceDollar, FaChartLine, FaMoneyBillWave, FaBoxes } from 'react-icons/fa';  // Importing icons
 import "../styles/sidebar.css";
 
 
@@ -63,8 +63,8 @@ function Sidebar() {
           { label: 'Doctors/Staff', path: '/receptionist/doctors-portal', icon: <FaUserMd /> },
           { label: 'Invoices', path: '/receptionist/invoices', icon: <FaFileInvoiceDollar /> },
           { label: 'Revenue', path: '/receptionist/revenue', icon: <FaChartLine /> },
-          { label: 'Expenses', path: '/receptionist/expenses', icon: <FaChartLine /> },
-          { label: 'Inventory', path: '/receptionist/inventory', icon: <FaChartLine /> },
+          { label: 'Expenses', path: '/receptionist/expenses', icon: <FaMoneyBillWave /> },
+          { label: 'Inventory', path: '/receptionist/inventory', icon: <FaBoxes /> },
         ].map((item) => (
           <button
             key={item.path}

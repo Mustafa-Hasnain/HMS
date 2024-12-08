@@ -86,9 +86,11 @@ const InvoiceDetails = () => {
                 );
                 console.log("Invoice-Appointment Data: ", response.data);
                 setAppointment(response.data);
-                setLoading(false);
             } catch (error) {
                 setError("Unable to fetch appointment details");
+                setLoading(false);
+            }
+            finally{
                 setLoading(false);
             }
         };
@@ -964,8 +966,8 @@ const InvoiceDetails = () => {
                             <div className="text-gray-800 text-base font-semibold">{totalUnpaidAppointments}</div>
                         </Col>
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Paid Consultations</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentPaid}</div>
+                            <div className="text-gray-600 text-sm font-medium">Amount to be Paid Consultations</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentUnpaid}</div>
                         </Col>
                     </Row>
 
@@ -980,7 +982,7 @@ const InvoiceDetails = () => {
                             <div className="text-gray-800 text-base font-semibold">{totalPaidProcedures}</div>
                         </Col>
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Unpaid Procedures</div>
+                            <div className="text-gray-600 text-sm font-medium">Amount to be Paid Procedures</div>
                             <div className="text-gray-800 text-base font-semibold">{totalProcedureUnpaid}</div>
                         </Col>
                     </Row>
@@ -996,8 +998,8 @@ const InvoiceDetails = () => {
                             <div className="text-gray-800 text-base font-semibold">{totalUnpaidInvoiceItems}</div>
                         </Col>
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Paid Inventory Items</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalInvoiceItemPaid}</div>
+                            <div className="text-gray-600 text-sm font-medium">Amount to be Paid Items</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalInvoiceItemUnpaid}</div>
                         </Col>
                     </Row>
 
