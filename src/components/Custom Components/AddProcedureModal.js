@@ -84,8 +84,9 @@ const AddProcedureModal = ({
         const procedurePayload = {
             ...newProcedure,
             Amount: finalAmount,
-            DoctorID: isDoctorSelected ? selectedDoctor?.doctorID : null
+            DoctorID: selectedDoctor ? selectedDoctor?.doctorID : null
         };
+        console.log("Procedure Payload: ", procedurePayload);
         onAddProcedure(procedurePayload);
         resetState();
     };

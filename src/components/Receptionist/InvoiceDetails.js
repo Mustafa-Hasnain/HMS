@@ -24,7 +24,7 @@ const InvoiceDetails = () => {
     const [showInventoryModal, setShowInventoryModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showInventoryPaymentModal, setShowInventoryPaymentModal] = useState(false);
-    
+
     const [deletingId, setDeletingId] = useState(null); // Track which procedure item is being deleted
     const [refresh, updateRefresh] = useState(0);
     const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
@@ -475,7 +475,6 @@ const InvoiceDetails = () => {
     if (!appointment) {
         return <div>No details found</div>;
     }
-
     const { patient, doctor, invoices } = appointment;
     const primaryInvoice = invoices.find(invoice => invoice.isConsultationInvoice);
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
@@ -485,12 +484,15 @@ const InvoiceDetails = () => {
     const mainInvoice = invoices[0];
     const totalAppointments = (appointment.isConsultation && !appointment.isDeleted) ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
     const totalProcedures = mainInvoice.procedureItems.length;
+    const totalInvoiceItems = mainInvoice.invoiceInventoryItems.length;
     const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
     const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
     const totalPaidProcedures = mainInvoice.procedureItems.filter(item => item.paid).length;
     const totalUnpaidProcedures = totalProcedures - totalPaidProcedures;
-    const totalAmount = mainInvoice.procedureItems.reduce((total, item) => total + item.amount, 0);
-
+    const totalPaidInvoiceItems = mainInvoice.invoiceInventoryItems.filter(item => item.paid).length;
+    const totalUnpaidInvoiceItems = totalInvoiceItems - totalPaidInvoiceItems;
+    const totalAmount = mainInvoice.procedureItems.reduce((total, item) => total + item.amount, 0)
+        + mainInvoice.invoiceInventoryItems.reduce((total, item) => total + item.amount, 0);
 
     let totalAppointmentAmount = 0;
     let totalAppointmentPaid = 0;
@@ -499,6 +501,10 @@ const InvoiceDetails = () => {
     let totalProcedureAmount = 0;
     let totalProcedurePaid = 0;
     let totalProcedureUnpaid = 0;
+
+    let totalInvoiceItemAmount = 0;
+    let totalInvoiceItemPaid = 0;
+    let totalInvoiceItemUnpaid = 0;
 
     if ((appointment.isConsultation && !appointment.isDeleted)) {
         totalAppointmentAmount += appointment.amount;
@@ -529,10 +535,19 @@ const InvoiceDetails = () => {
                 totalProcedureUnpaid += item.amount;
             }
         });
+        invoice.invoiceInventoryItems.forEach(item => {
+            totalInvoiceItemAmount += item.amount;
+            if (item.paid) {
+                totalInvoiceItemPaid += item.amount;
+            } else {
+                totalInvoiceItemUnpaid += item.amount;
+            }
+        });
     });
 
-    const totalPaid = totalAppointmentPaid + totalProcedurePaid;
-    const totalUnpaid = totalAppointmentUnpaid + totalProcedureUnpaid;
+    const totalPaid = totalAppointmentPaid + totalProcedurePaid + totalInvoiceItemPaid;
+    const totalUnpaid = totalAppointmentUnpaid + totalProcedureUnpaid + totalInvoiceItemUnpaid;
+
 
     return (
         <>
@@ -909,7 +924,7 @@ const InvoiceDetails = () => {
                         </tbody>
                     </Table>
                 ) : (
-                    <div className="text-center mt-3">No inventoey items added.</div>
+                    <div className="text-center mt-3">No inventory items added.</div>
                 )}
 
                 {/* <h3 className="font-semibold text-xl mt-4">Summary</h3> */}
@@ -938,58 +953,69 @@ const InvoiceDetails = () => {
                 <Card className="border-[1px] shadow-md rounded-md p-4 mb-3 mt-4">
                     <h5 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b">Invoice Summary</h5>
 
+                    {/* Row for Appointments */}
                     <Row className="border-b border-gray-200 py-2">
-                        {/* <Col>
-                            <div className="text-gray-600 text-sm font-medium">Patient Name</div>
-                            <div className="text-gray-800 text-base font-semibold">{patient.firstName}</div>
-                        </Col> */}
-
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Consultations</div>
                             <div className="text-gray-800 text-base font-semibold">{totalConsultations}</div>
                         </Col>
-
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Total Procedures</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalProcedures}</div>
+                            <div className="text-gray-600 text-sm font-medium">Unpaid Consultations</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalUnpaidAppointments}</div>
                         </Col>
-
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Total Consultations Paid</div>
+                            <div className="text-gray-600 text-sm font-medium">Paid Consultations</div>
                             <div className="text-gray-800 text-base font-semibold">{totalAppointmentPaid}</div>
                         </Col>
                     </Row>
 
+                    {/* Row for Procedures */}
                     <Row className="border-b border-gray-200 py-2">
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Total Consultations Unpaid</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalUnpaidAppointments}</div>
+                            <div className="text-gray-600 text-sm font-medium">Total Procedures</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalProcedures}</div>
                         </Col>
-
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Total Procedures Paid</div>
+                            <div className="text-gray-600 text-sm font-medium">Paid Procedures</div>
                             <div className="text-gray-800 text-base font-semibold">{totalPaidProcedures}</div>
                         </Col>
-
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Total Procedures Unpaid</div>
+                            <div className="text-gray-600 text-sm font-medium">Unpaid Procedures</div>
                             <div className="text-gray-800 text-base font-semibold">{totalProcedureUnpaid}</div>
                         </Col>
                     </Row>
 
+                    {/* Row for Inventory */}
                     <Row className="border-b border-gray-200 py-2">
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Total Inventory Items</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalInvoiceItems}</div>
+                        </Col>
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Unpaid Inventory Items</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalUnpaidInvoiceItems}</div>
+                        </Col>
+                        <Col>
+                            <div className="text-gray-600 text-sm font-medium">Paid Inventory Items</div>
+                            <div className="text-gray-800 text-base font-semibold">{totalInvoiceItemPaid}</div>
+                        </Col>
+                    </Row>
 
+                    {/* Row for Totals */}
+                    <Row className="py-2">
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Amount</div>
-                            <div className="text-gray-800 text-lg font-bold">Rs. {totalAppointmentAmount + totalProcedureAmount}</div>
+                            <div className="text-gray-800 text-lg font-bold">
+                                Rs. {(totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount).toFixed(2)}
+                            </div>
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Paid</div>
                             <div className="text-gray-800 text-lg font-bold">Rs. {totalPaid.toFixed(2)}</div>
                         </Col>
                         <Col>
-                            <div className="text-gray-600 text-sm font-medium">Balance due</div>
-                            <div className="text-gray-800 text-lg font-bold">Rs. {totalUnpaid.toFixed()}</div>
+                            <div className="text-gray-600 text-sm font-medium">Balance Due</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {totalUnpaid.toFixed(2)}</div>
                         </Col>
                     </Row>
                 </Card>
@@ -1028,7 +1054,7 @@ const InvoiceDetails = () => {
                     show={showInventoryPaymentModal}
                     onHide={() => setShowInventoryPaymentModal(false)}
                     ID={functionId}
-                    markAsPaid={()=>markAsPaidInventoryItem(functionId)}
+                    markAsPaid={() => markAsPaidInventoryItem(functionId)}
                 />
 
                 <InventoryModal

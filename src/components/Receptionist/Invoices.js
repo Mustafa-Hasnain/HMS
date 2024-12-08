@@ -123,6 +123,8 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
       <thead>
         <tr>
           <th>#</th>
+          <th>Invoice ID</th>
+          <th>MR. NO.</th>
           <th>Patient Name</th>
           <th>Patient Phone</th>
           <th>Doctor Name</th>
@@ -135,6 +137,8 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
         {invoices.map((invoice, index) => (
           <tr key={invoice.invoiceID}>
             <td>{index + 1}</td>
+            <td>{invoice.invoiceID}</td>
+            <td>{invoice.appointment.patient.patientID}</td>
             <td>{invoice.appointment.patient.firstName}</td>
             <td>{invoice.appointment.patient.mobileNumber}</td>
             <td>{invoice.appointment.doctor.firstName}</td>

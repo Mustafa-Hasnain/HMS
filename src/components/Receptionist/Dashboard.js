@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, Row, Col, Card, Spinner } from 'react-bootstrap';
+import { Button, Table, Row, Col, Card, Spinner, DropdownButton, Dropdown } from 'react-bootstrap';
 import patients_svg from "../../assets/patients.svg";
 import doctors_svg from "../../assets/doctors.svg";
 import docs_svg from "../../assets/docs.svg";
@@ -17,6 +17,8 @@ const Dashboard = () => {
     const [data, setData] = useState(null); // State to hold API data
     const [appointmentsLoading, setAppointmentsLoading] = useState(true); // Loading for appointments
     const [appointments, setAppointments] = useState([]); // State for upcoming appointments
+    const [filteredAppointments, setFilteredAppointments] = useState([]); // State for filtered appointments
+    const [doctorFilter, setDoctorFilter] = useState(""); // State for selected doctor
     const { refreshKey } = useRefreshContext(); // Use refreshKey from context
 
 
@@ -30,6 +32,7 @@ const Dashboard = () => {
                 console.log("Dashboard: ", response.data);
                 setData(response.data);
                 setAppointments(response.data.upcomingAppointments);
+                setFilteredAppointments(response.data.upcomingAppointments);
             } catch (error) {
                 console.error("Error fetching data", error);
             } finally {
@@ -39,6 +42,7 @@ const Dashboard = () => {
         };
 
         fetchData();
+        
     }, [refreshKey]);
 
     const formatTime = (time24, duration) => {
@@ -55,6 +59,39 @@ const Dashboard = () => {
             end: endTime.toLocaleString('en-US', options),
             day: startTime.toLocaleDateString('en-US', { weekday: 'long' })
         };
+    };
+
+    const handlePrint = () => {
+        const printContent = document.getElementById("appointmentsTable");
+        const newWindow = window.open("", "", "width=800,height=600");
+        newWindow.document.write("<html><head><title>Print Appointments</title></head><body>");
+        newWindow.document.write(printContent.innerHTML);
+        newWindow.document.write("</body></html>");
+        newWindow.document.close();
+        newWindow.print();
+    };
+
+    const handleFilterByDoctor = (doctorName) => {
+        setDoctorFilter(doctorName); // Update the dropdown title
+        if (!doctorName) {
+            // If no doctor is selected, show all appointments
+            setFilteredAppointments(appointments);
+        } else {
+            // Filter appointments for the selected doctor
+            const filtered = appointments.filter(appointment =>
+                `${appointment.doctor.firstName} ${appointment.doctor.lastName}` === doctorName
+            );
+            setFilteredAppointments(filtered);
+        }
+    };
+
+
+
+    const getUniqueDoctors = () => {
+        const uniqueDoctors = [...new Set(appointments.map(
+            appointment => `${appointment.doctor.firstName} ${appointment.doctor.lastName}`
+        ))];
+        return uniqueDoctors;
     };
 
     return (
@@ -123,58 +160,88 @@ const Dashboard = () => {
                 <Col md={8} className="mb-4">
                     <Card>
                         <Card.Header className="d-flex justify-content-between align-items-center !bg-white">
-                            <h5 className='font-semibold text-lg'>Appointment</h5>
-                            <Button variant="success">Add New Appointment</Button>
+                            <h5 className="font-semibold text-lg">Appointment</h5>
+                            <div className="d-flex gap-2">
+                                <Button variant="outline-success" onClick={() => {/* Add new appointment logic */ }}>
+                                    Add New Appointment
+                                </Button>
+                                <DropdownButton
+                                    id="doctorFilterDropdown"
+                                    title={doctorFilter || "Filter by Doctor"} // Default to "Filter by Doctor" if no selection
+                                    onSelect={handleFilterByDoctor}
+                                    variant="outline-primary"
+                                >
+                                    <Dropdown.Item eventKey="">All Doctors</Dropdown.Item> {/* Show all when no doctor is selected */}
+                                    {getUniqueDoctors().map(doctor => (
+                                        <Dropdown.Item key={doctor} eventKey={doctor}>
+                                            {doctor}
+                                        </Dropdown.Item>
+                                    ))}
+                                </DropdownButton>
+                                <Button variant="outline-info" onClick={handlePrint}>
+                                    Print
+                                </Button>
+                            </div>
                         </Card.Header>
                         <Card.Body>
                             {appointmentsLoading ? (
                                 <div className="d-flex justify-content-center">
                                     <Spinner animation="border" />
                                 </div>
-                            ) : appointments.length === 0 ? (
+                            ) : filteredAppointments.length === 0 ? (
                                 <p>No upcoming appointments</p>
                             ) : (
-                                <Table responsive bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Patient Name</th>
-                                            <th>Doctor</th>
-                                            <th>Appointments at</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {appointments.map(appointment => {
-                                            const { start, end, day } = formatTime(appointment.appointmentTime, appointment.doctor.slotDuration);
-                                            return (
-                                                <tr key={appointment.appointmentID}>
-                                                    <td>{appointment.patient.firstName}</td>
-                                                    <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
-                                                    <td>
-                                                        {!appointment.referredByDoctor ?
-                                                            <Button onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))} variant="outline-primary" size="sm">
-                                                                {start} - {end} {day}
+                                <div id="appointmentsTable">
+                                    <Table responsive bordered hover>
+                                        <thead>
+                                            <tr>
+                                                <th>Patient Name</th>
+                                                <th>Doctor</th>
+                                                <th>Appointments at</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredAppointments.map(appointment => {
+                                                const { start, end, day } = formatTime(appointment.appointmentTime, appointment.doctor.slotDuration);
+                                                return (
+                                                    <tr key={appointment.appointmentID}>
+                                                        <td>{appointment.patient.firstName}</td>
+                                                        <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                                        <td>
+                                                            {!appointment.referredByDoctor ? (
+                                                                <Button
+                                                                    onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                                    variant="outline-primary"
+                                                                    size="sm"
+                                                                >
+                                                                    {start} - {end} {day}
+                                                                </Button>
+                                                            ) : (
+                                                                <Button
+                                                                    onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                                    variant="outline-primary"
+                                                                    size="sm"
+                                                                >
+                                                                    Referred By Doctor
+                                                                </Button>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <Button
+                                                                variant="outline-success"
+                                                                className="!text-xs"
+                                                                onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                            >
+                                                                Details
                                                             </Button>
-                                                            :
-                                                            <Button onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))} variant="outline-primary" size="sm">
-                                                                Referred By Doctor
-                                                            </Button>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        <Button
-                                                            variant="outline-success"
-                                                            className=' !text-xs'
-                                                            onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
-                                                        >
-                                                            Details
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </Table>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </Table>
+                                </div>
                             )}
                         </Card.Body>
                     </Card>

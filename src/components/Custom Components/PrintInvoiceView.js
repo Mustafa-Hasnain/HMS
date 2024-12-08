@@ -18,15 +18,27 @@ const calculateAge = (dob) => {
 
 const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appointment, appointmentDate, appointmentTime }, ref) => {
     const mainInvoice = invoices[0];
-    const totalAppointments = (appointment.isConsultation && !appointment.isDeleted) ? mainInvoice.secondaryAppointments.length + 1 : mainInvoice.secondaryAppointments.length;
+    const totalAppointments = (appointment.isConsultation && !appointment.isDeleted)
+        ? mainInvoice.secondaryAppointments.length + 1
+        : mainInvoice.secondaryAppointments.length;
     const totalProcedures = mainInvoice.procedureItems.length;
+
+    // Total Invoice Items (Inventory)
+    const totalInvoiceItems = mainInvoice.invoiceInventoryItems.length;
+
+    // Appointments: Paid and Unpaid
     const totalPaidAppointments = mainInvoice.secondaryAppointments.filter(app => app.paid).length + (mainInvoice.paid ? 1 : 0);
     const totalUnpaidAppointments = totalAppointments - totalPaidAppointments;
+
+    // Procedures: Paid and Unpaid
     const totalPaidProcedures = mainInvoice.procedureItems.filter(item => item.paid).length;
     const totalUnpaidProcedures = totalProcedures - totalPaidProcedures;
-    const totalAmount = mainInvoice.procedureItems.reduce((total, item) => total + item.amount, 0);
 
+    // Inventory: Paid and Unpaid
+    const totalInvoiceItemPaid = mainInvoice.invoiceInventoryItems.filter(item => item.paid).length;
+    const totalUnpaidInvoiceItems = totalInvoiceItems - totalInvoiceItemPaid;
 
+    // Totals for Amounts
     let totalAppointmentAmount = 0;
     let totalAppointmentPaid = 0;
     let totalAppointmentUnpaid = 0;
@@ -35,7 +47,12 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
     let totalProcedurePaid = 0;
     let totalProcedureUnpaid = 0;
 
-    if ((appointment.isConsultation && !appointment.isDeleted)) {
+    let totalInvoiceItemAmount = 0;
+    let totalInvoiceItemPaidAmount = 0;
+    let totalInvoiceItemUnpaidAmount = 0;
+
+    // Appointments Calculation
+    if (appointment.isConsultation && !appointment.isDeleted) {
         totalAppointmentAmount += appointment.amount;
         if (appointment.paid) {
             totalAppointmentPaid += appointment.amount;
@@ -45,17 +62,16 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
     }
 
     appointment.invoices.forEach(invoice => {
-        invoice.secondaryAppointments.forEach(appointment => {
-            totalAppointmentAmount += appointment.amount;
-            if (appointment.paid) {
-                totalAppointmentPaid += appointment.amount;
+        invoice.secondaryAppointments.forEach(app => {
+            totalAppointmentAmount += app.amount;
+            if (app.paid) {
+                totalAppointmentPaid += app.amount;
             } else {
-                totalAppointmentUnpaid += appointment.amount;
+                totalAppointmentUnpaid += app.amount;
             }
         });
-    });
 
-    appointment.invoices.forEach(invoice => {
+        // Procedures Calculation
         invoice.procedureItems.forEach(item => {
             totalProcedureAmount += item.amount;
             if (item.paid) {
@@ -64,10 +80,22 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                 totalProcedureUnpaid += item.amount;
             }
         });
+
+        // Inventory Items Calculation
+        invoice.invoiceInventoryItems.forEach(item => {
+            totalInvoiceItemAmount += item.amount;
+            if (item.paid) {
+                totalInvoiceItemPaidAmount += item.amount;
+            } else {
+                totalInvoiceItemUnpaidAmount += item.amount;
+            }
+        });
     });
 
-    const totalPaid = totalAppointmentPaid + totalProcedurePaid;
-    const totalUnpaid = totalAppointmentUnpaid + totalProcedureUnpaid;
+    // Grand Totals
+    const totalPaid = totalAppointmentPaid + totalProcedurePaid + totalInvoiceItemPaidAmount;
+    const totalUnpaid = totalAppointmentUnpaid + totalProcedureUnpaid + totalInvoiceItemUnpaidAmount;
+
 
     console.log("app date: ", appointmentDate)
     console.log("app time: ", appointmentTime)
@@ -249,6 +277,39 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                 </div>
             )}
 
+            {mainInvoice.invoiceInventoryItems.length > 0 && (
+                <div style={{ marginBottom: '10px' }}>
+                    <h3 style={{ color: 'black', fontWeight: 600, fontSize: 16 }}>Inventory Items</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                            <tr>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>S.no.</th>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>Item Name</th>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>Item Type</th>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>Quantity</th>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>Amount</th>
+                                <th style={{ border: '1px solid black', padding: '4px' }}>Paid Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {mainInvoice.invoiceInventoryItems.map((item, index) => (
+                                <tr key={item.invoiceInventoryItemID}>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{index + 1}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.inventoryItem.name}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.inventoryItem.type}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px', textAlign: 'center' }}>
+                                        {item.quantity}
+                                    </td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.amount}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.paid ? 'Paid' : 'Unpaid'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+
             {shouldShowAppointments && (
                 <div style={{ marginBottom: '10px' }}>
                     <h3 style={{ color: 'black', fontWeight: 600, fontSize: 16 }}>Appointments/Consultations</h3>
@@ -351,7 +412,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontWeight: '600' }}>
                     <span>Subtotal:</span>
-                    <span>Rs. {totalAppointmentAmount + totalProcedureAmount}</span>
+                    <span>Rs. {totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
@@ -366,7 +427,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontWeight: '600' }}>
                     <span>Total Amount:</span>
-                    <span>Rs. {totalAppointmentAmount + totalProcedureAmount}</span>
+                    <span>Rs. {totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontWeight: '600' }}>

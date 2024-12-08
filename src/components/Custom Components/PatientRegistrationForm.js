@@ -110,7 +110,10 @@ const RegisterPatient = () => {
             Email: '',
             Cnic: '',
             BloodGroup: '',
-            MedicalHistory: ''
+            MedicalHistory: '',
+            username: '',
+            Address: '',
+            license_no: ''
         },
         appointment: {
             DoctorID: '',
@@ -770,6 +773,23 @@ const RegisterPatient = () => {
                         </Form.Control.Feedback>
                     </Form.Group>
 
+                    <Form.Group controlId="formCNIC">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">License No (optional)</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={appointmentData.patient.license_no}
+                            onChange={(e) => setAppointmentData(prev => ({
+                                ...prev,
+                                patient: { ...prev.patient, license_no: e.target.value }
+                            }))}
+                            className="!border-[#04394F]"
+                            isInvalid={!!validationErrors.license_no}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {validationErrors.license_no}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
                     {/* Gender (Radio buttons) */}
                     <Form.Group controlId="formGender">
                         <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Gender</Form.Label>
@@ -883,6 +903,20 @@ const RegisterPatient = () => {
                                 {validationErrors.DateOfBirth}
                             </div>
                         )}
+                    </Form.Group>
+
+                    <Form.Group controlId="formMedicalHistory">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Patient Address <span className='text-xs'>(optional)</span></Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={appointmentData.patient.Address}
+                            onChange={(e) => setAppointmentData(prev => ({
+                                ...prev,
+                                patient: { ...prev.patient, Address: e.target.value }
+                            }))}
+                            className="!border-[#04394F]"
+                        />
                     </Form.Group>
 
                     {/* Medical History */}

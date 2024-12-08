@@ -27,6 +27,8 @@ function AddDoctor() {
     const consultationFeeRef = useRef(null);
     const joinedDateRef = useRef(null);
     const username = useRef(null);
+    const doctorPercentage = useRef(null);
+
 
     // Add service to doctorServices state
     const addService = (newService) => {
@@ -353,6 +355,22 @@ function AddDoctor() {
                                         placeholder="Enter Doctor Username"
                                         ref={username}
                                         className="!border-[#04394F] rounded-md"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group >
+                                    <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Doctor Cut Percentage</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        placeholder="Enter Doctor Cut Percentage"
+                                        ref={doctorPercentage}
+                                        className="!border-[#04394F] rounded-md"
+                                        onChange={(e) => {
+                                            if (e.target.value > 100) {
+                                                e.target.value = 100; // Set value to 100 if it exceeds
+                                            }
+                                        }}
                                     />
                                 </Form.Group>
                             </Col>
