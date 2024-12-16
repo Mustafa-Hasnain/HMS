@@ -1,155 +1,254 @@
-import React, { useState, useEffect } from 'react';
-import { Tabs, Tab, Spinner, Row, Col, Card, Table } from 'react-bootstrap';
-import { Line } from 'react-chartjs-2';
-import 'chart.js/auto'; // Required for Chart.js to work
-import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { Tabs, Tab, Spinner, Table, Form, Button } from "react-bootstrap";
 
 const RevenueComponent = () => {
-    const [key, setKey] = useState('doctors');
-    const [clinicData, setClinicData] = useState([]);
-    const [doctorsData, setDoctorsData] = useState([]);
-    const [revenueRecords, setRevenueRecords] = useState([]);
-    const [loading, setLoading] = useState(true); // Loading state
-    const navigate = useNavigate();
+  const [key, setKey] = useState("doctor");
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [revenueData, setRevenueData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalDoctorAmount, setTotalDoctorAmount] = useState(0);
+  const [clinicTotals, setClinicTotals] = useState({
+    totalDoctorShare: 0,
+    totalClinicShare: 0,
+  });
+  const [clinicRevenueData, setClinicRevenueData] = useState([]);
 
-    // Fetch data from API
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Revenue/clinic-and-doctors-30days');
-                const data = await response.json();
 
-                setClinicData(data.clinicRevenues || []);
-                setDoctorsData(data.doctors || []);
-                setRevenueRecords(data.revenueRecords || []);
-                setLoading(false); // Set loading to false when data is fetched
-            } catch (error) {
-                console.error("Error fetching revenue data:", error);
-                setLoading(false); // Stop loading even if there's an error
-            }
-        };
 
-        fetchData();
-    }, []);
+  // Fetch all doctors from the API
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors");
+      if (!response.ok) throw new Error("Failed to fetch doctors.");
+      const data = await response.json();
+      setDoctors(data);
+    } catch (err) {
+      console.error("Error fetching doctor data:", err);
+      setError("Error fetching doctor data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-[450px]">
-                <Spinner animation="border" role="status">
-                    <span className="sr-only">Loading...</span>
-                </Spinner>
-            </div>
-        );
+  // Fetch revenue data based on doctorID, fromDate, and toDate
+  const fetchRevenueData = async () => {
+    if (!selectedDoctor || !fromDate || !toDate) {
+      setError("Please fill out all fields.");
+      return;
     }
 
-    // Extracting latest 10 entries for clinic
-    const latestClinicData = clinicData.slice(-10);
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/DoctorRevenue?doctorID=${selectedDoctor}&fromDate=${fromDate}&toDate=${toDate}`
+      );
+      if (!response.ok) throw new Error("No revenue data found.");
+      const data = await response.json();
+      setRevenueData(data);
 
-    // Prepare data for the Line Chart (Doctors Revenue)
-    const doctorCharts = doctorsData.map(doctor => {
-        const doctorChartData = {
-            labels: doctor.revenues.map(entry => new Date(entry.dateOfService).toLocaleDateString()),
-            datasets: [{
-                label: `Doctor: ${doctor.doctorName}`,
-                data: doctor.revenues.map(entry => entry.cumulativeDoctorRevenue),
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        };
-        return { doctor, doctorChartData };
-    });
+      // Calculate total doctor amount
+      const total = data.reduce((sum, record) => sum + record.doctorAmount, 0);
+      setTotalDoctorAmount(total);
+    } catch (err) {
+      console.error("Error fetching revenue data:", err);
+      setError("No revenue data found for the selected doctor and dates.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Prepare data for the Line Chart (Clinic Revenue)
-    const clinicChartData = {
-        labels: latestClinicData.map(entry => new Date(entry.dateOfService).toLocaleDateString()),
-        datasets: [{
-            label: 'Clinic Revenue',
-            data: latestClinicData.map(entry => entry.cumulativeClinicRevenue),
-            fill: false,
-            borderColor: 'rgb(255, 99, 132)',
-            tension: 0.1
-        }]
-    };
+   // Fetch clinic revenue data
+   const fetchClinicRevenueData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/ClinicRevenue");
+      if (!response.ok) throw new Error("Failed to fetch clinic revenue data.");
+      const data = await response.json();
+      setClinicRevenueData(data);
 
-    // Create a doctor ID to name mapping for revenue records
-    const doctorNameMap = Object.fromEntries(doctorsData.map(doctor => [doctor.doctorID, doctor.doctorName]));
+      // Calculate total doctor and clinic shares
+      const totals = data.reduce(
+        (totals, record) => {
+          totals.totalDoctorShare += record.totalDoctorShare;
+          totals.totalClinicShare += record.totalClinicShare;
+          return totals;
+        },
+        { totalDoctorShare: 0, totalClinicShare: 0 }
+      );
+      setClinicTotals(totals);
+    } catch (err) {
+      console.error("Error fetching clinic revenue data:", err);
+      setError("Error fetching clinic revenue data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="w-full p-5">
-            <div className="flex gap-3 items-center align-middle mb-4">
-                <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
-                    <FaArrowLeft size={20} />
-                </button>
-                <h2 className="font-bold text-2xl">Revenue Portal</h2>
+  useEffect(() => {
+    fetchDoctors();
+    if (key === "clinic") {
+      fetchClinicRevenueData();
+    }
+  }, [key]);
+
+  return (
+    <div className="w-full p-2">
+      <Tabs
+        id="revenue-tabs"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}
+        className="mb-3"
+      >
+        <Tab eventKey="doctor" title="Doctor Revenue">
+          <div className="max-w-5xl mx-auto mb-4">
+            <Form className="mb-4">
+              <Form.Group controlId="doctorSelect" className="mb-3">
+                <Form.Label>Select Doctor</Form.Label>
+                <Form.Select
+                  value={selectedDoctor}
+                  onChange={(e) => setSelectedDoctor(e.target.value)}
+                >
+                  <option value="">-- Select Doctor --</option>
+                  {doctors.map((doctor) => (
+                    <option key={doctor.doctorID} value={doctor.doctorID}>
+                      {doctor.firstName} {doctor.lastName} - {doctor.specialty}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+              <Form.Group controlId="fromDate" className="mb-3">
+                <Form.Label>From Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group controlId="toDate" className="mb-3">
+                <Form.Label>To Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </Form.Group>
+              <Button variant="primary" onClick={fetchRevenueData}>
+                Submit
+              </Button>
+            </Form>
+
+            {loading ? (
+              <div className="flex justify-center items-center">
+                <Spinner animation="border" role="status">
+                  <span className="sr-only">Loading...</span>
+                </Spinner>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500">{error}</div>
+            ) : revenueData.length > 0 ? (
+              <div>
+                <Table bordered striped hover className="mt-4">
+                  <thead>
+                    <tr>
+                      <th className="w-24">Date</th>
+                      <th>Client Name</th>
+                      <th>Amount</th>
+                      <th>Payment Method</th>
+                      <th>Deduction</th>
+                      <th>Gross After Tax</th>
+                      <th>Expense Deduction</th>
+                      <th>Procedure/Consultation</th>
+                      <th>Net Amount for Sharing</th>
+                      <th>Doctor Share (%)</th>
+                      <th>Clinic Share (%)</th>
+                      <th>Doctor Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {revenueData.map((record, index) => (
+                      <tr key={index}>
+                        <td>{record.date}</td>
+                        <td>{record.clientName}</td>
+                        <td>{record.amount.toFixed(2)}</td>
+                        <td>{record.paymentMethod}</td>
+                        <td>{record.deduction.toFixed(2)}</td>
+                        <td>{record.grossAfterTax.toFixed(2)}</td>
+                        <td>{record.expenseDeduction.toFixed(2)}</td>
+                        <td>{record.procedureConsultation}</td>
+                        <td>{record.netAmountForSharing.toFixed(2)}</td>
+                        <td>{record.doctorSharePercentage}%</td>
+                        <td>{record.clinicSharePercentage}%</td>
+                        <td>{record.doctorAmount.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    <tr className="font-bold">
+                      <td colSpan="11" className="text-right">
+                        Total Doctor Amount:
+                      </td>
+                      <td>{totalDoctorAmount.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">No data found.</div>
+            )}
+          </div>
+        </Tab>
+        <Tab eventKey="clinic" title="Clinic Revenue">
+          {loading ? (
+            <div className="flex justify-center items-center">
+              <Spinner animation="border" role="status">
+                <span className="sr-only">Loading...</span>
+              </Spinner>
             </div>
-            <Tabs
-                id="revenue-tabs"
-                activeKey={key}
-                onSelect={(k) => setKey(k)}
-                className="mb-3"
-            >
-                <Tab eventKey="doctors" title="Doctors Revenue">
-                    {doctorCharts.length > 0 ? (
-                        <Row>
-                            {doctorCharts.map(({ doctor, doctorChartData }) => (
-                                <Col key={doctor.doctorID} md={4} sm={6} xs={12} className="mb-4">
-                                    <Card>
-                                        <Card.Body>
-                                            <Card.Title>{doctor.doctorName}</Card.Title>
-                                            <Line data={doctorChartData} />
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    ) : (
-                        <div className="flex justify-center items-center h-52">
-                            <h5>No transactions occurred in the last 30 days.</h5>
-                        </div>
-                    )}
-                </Tab>
-                <Tab eventKey="clinic" title="Clinic Revenue">
-                    <div className="max-w-5xl mx-auto mb-4">
-                        {latestClinicData.length > 0 ? (
-                            <>
-                                <Line data={clinicChartData} />
-                                <div className="overflow-auto max-h-60 mt-4">
-                                    <Table className="table-auto w-full ">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Doctor Name</th>
-                                                <th>Doctor Revenue</th>
-                                                <th>Clinic Revenue</th>
-                                                <th>Total Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {revenueRecords.map((record) => (
-                                                <tr key={record.revenueRecordID}>
-                                                    <td>{new Date(record.dateOfService).toLocaleDateString()}</td>
-                                                    <td>{doctorNameMap[record.doctorID] || 'Unknown Doctor'}</td>
-                                                    <td>{record.doctorRevenue.toFixed(2)}</td>
-                                                    <td>{record.clinicRevenue.toFixed(2)}</td>
-                                                    <td>{record.amount.toFixed(2)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex justify-center items-center h-52">
-                                <h5>No transactions occurred in the last 30 days.</h5>
-                            </div>
-                        )}
-                    </div>
-                </Tab>
-            </Tabs>
-        </div>
-    );
+          ) : error ? (
+            <div className="text-center text-red-500">{error}</div>
+          ) : clinicRevenueData.length > 0 ? (
+            <Table bordered striped hover className="mt-4">
+              <thead>
+                <tr>
+                  <th>Doctor Name</th>
+                  <th>Specialty</th>
+                  <th>Total Revenue</th>
+                  <th>Total Doctor Share</th>
+                  <th>Total Clinic Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clinicRevenueData.map((record, index) => (
+                  <tr key={index}>
+                    <td>{record.doctorName}</td>
+                    <td>{record.specialty}</td>
+                    <td>{record.totalRevenue.toFixed(2)}</td>
+                    <td>{record.totalDoctorShare.toFixed(2)}</td>
+                    <td>{record.totalClinicShare.toFixed(2)}</td>
+                  </tr>
+                ))}
+                <tr className="font-bold">
+                  <td colSpan="3" className="text-right">
+                    Totals:
+                  </td>
+                  <td>{clinicTotals.totalDoctorShare.toFixed(2)}</td>
+                  <td>{clinicTotals.totalClinicShare.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </Table>
+          ) : (
+            <div className="text-center text-gray-500">No data available.</div>
+          )}
+        </Tab>
+      </Tabs>
+    </div>
+  );
 };
 
 export default RevenueComponent;

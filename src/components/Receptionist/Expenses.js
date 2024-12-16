@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Button, Form, Spinner, Tab, Nav } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import ClinicExpenses from "./ClinicExpenses";
+import { debounce } from "chart.js/helpers";
+import InvoiceDetailsModal from "../Custom Components/InvoiceModal";
 
 const ExpensesManager = () => {
+  const [appointment, setAppointment] = useState(null);
+  const [fetchingAppointment, setfetchingAppointment] = useState(false)
   const [doctors, setDoctors] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     productName: "",
     amount: "",
@@ -18,11 +23,37 @@ const ExpensesManager = () => {
     doctorID: "",
   });
 
+  const [showModal, setShowModal] = useState(false);
+
   // Fetch doctors and expenses on component mount
   useEffect(() => {
     fetchDoctors();
     fetchExpenses();
   }, []);
+
+  const fetchAppointmentDetails = async (appointment_id) => {
+    try {
+      setfetchingAppointment(true);
+      const response = await axios.get(
+        `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/invoice-appointment-details/${appointment_id}`
+      );
+      console.log("Invoice-Appointment Data: ", response.data);
+      setAppointment(response.data);
+      setError(null);
+    } catch (error) {
+      setError("Invalid Invoice ID");
+      setfetchingAppointment(false);
+      setAppointment(null);
+    }
+    finally {
+      setfetchingAppointment(false);
+    }
+  };
+
+  const debouncedFetchAppointmentDetails = useCallback(
+    debounce((id) => fetchAppointmentDetails(id), 500), // 500ms delay
+    []
+  );
 
   const fetchDoctors = async () => {
     try {
@@ -51,6 +82,10 @@ const ExpensesManager = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    if (name === "invoiceID") {
+      debouncedFetchAppointmentDetails(value);
+    }
   };
 
   const handleAddExpense = async () => {
@@ -72,6 +107,7 @@ const ExpensesManager = () => {
       toast.success("Expense added successfully!");
       setExpenses([...expenses, response.data]);
       setFormData({ productName: "", amount: "", invoiceID: "", doctorID: "" });
+      setAppointment(null);
     } catch (error) {
       toast.error("Failed to add expense.");
     } finally {
@@ -142,7 +178,9 @@ const ExpensesManager = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>Invoice ID</Form.Label>
+
+                    <Form.Label>Invoice ID<span>{fetchingAppointment && <Spinner size="sm"></Spinner>} {appointment && <Button variant="outline-info" size="sm" onClick={()=>(setShowModal(true))}>View Details</Button>}</span></Form.Label>
+
                     <Form.Control
                       type="number"
                       name="invoiceID"
@@ -150,7 +188,13 @@ const ExpensesManager = () => {
                       value={formData.invoiceID}
                       onChange={handleInputChange}
                     />
+                    <Form.Text className=" !text-red-600">
+                      {error && <span>{`${error}`}</span>}
+                    </Form.Text>
+
                   </Form.Group>
+
+
 
                   <Form.Group className="mb-3">
                     <Form.Label>Doctor</Form.Label>
@@ -246,10 +290,13 @@ const ExpensesManager = () => {
           </Tab.Pane>
 
           <Tab.Pane eventKey="clinic">
-            <ClinicExpenses></ClinicExpenses>            
+            <ClinicExpenses></ClinicExpenses>
           </Tab.Pane>
 
         </Tab.Content>
+        {appointment &&
+          <InvoiceDetailsModal patient={appointment.patient} invoices={appointment.invoices} show={showModal} onHide={() => { setShowModal(false) }}></InvoiceDetailsModal>
+        }
       </Tab.Container>
     </div>
   );

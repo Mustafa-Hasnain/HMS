@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Table, Row, Col, Card, Spinner, DropdownButton, Dropdown } from 'react-bootstrap';
 import patients_svg from "../../assets/patients.svg";
 import doctors_svg from "../../assets/doctors.svg";
@@ -11,6 +11,7 @@ import { FaEllipsisV } from 'react-icons/fa';
 import { Menu } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { useRefreshContext } from '../../contexts/RefreshContext';
+import { useReactToPrint } from 'react-to-print';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true); // Loading state for all cards
@@ -42,7 +43,7 @@ const Dashboard = () => {
         };
 
         fetchData();
-        
+
     }, [refreshKey]);
 
     const formatTime = (time24, duration) => {
@@ -61,15 +62,22 @@ const Dashboard = () => {
         };
     };
 
-    const handlePrint = () => {
-        const printContent = document.getElementById("appointmentsTable");
-        const newWindow = window.open("", "", "width=800,height=600");
-        newWindow.document.write("<html><head><title>Print Appointments</title></head><body>");
-        newWindow.document.write(printContent.innerHTML);
-        newWindow.document.write("</body></html>");
-        newWindow.document.close();
-        newWindow.print();
-    };
+    // const handlePrint = () => {
+    //     const printContent = document.getElementById("appointmentsTable");
+    //     const newWindow = window.open("", "", "width=800,height=600");
+    //     newWindow.document.write("<html><head><title>Print Appointments</title></head><body>");
+    //     newWindow.document.write(printContent.innerHTML);
+    //     newWindow.document.write("</body></html>");
+    //     newWindow.document.close();
+    //     newWindow.print();
+    // };
+
+    const printRef = useRef();
+
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        documentTitle: 'Invoice Details'
+    });
 
     const handleFilterByDoctor = (doctorName) => {
         setDoctorFilter(doctorName); // Update the dropdown title
@@ -244,6 +252,61 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </Card.Body>
+
+                        <div style={{ display: "none" }}>
+                            <Card.Body ref={printRef} className='p-3'>
+                                {appointmentsLoading ? (
+                                    <div className="d-flex justify-content-center">
+                                        <Spinner animation="border" />
+                                    </div>
+                                ) : filteredAppointments.length === 0 ? (
+                                    <p>No upcoming appointments</p>
+                                ) : (
+                                    <div id="appointmentsTable">
+                                        <h2 className='text-center mt-2 mb-4'>Today's Appointments</h2>
+                                        <Table responsive bordered hover>
+                                            <thead>
+                                                <tr>
+                                                    <th>Patient Name</th>
+                                                    <th>Doctor</th>
+                                                    <th>Appointment Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredAppointments.map(appointment => {
+                                                    const { start, end, day } = formatTime(appointment.appointmentTime, appointment.doctor.slotDuration);
+                                                    return (
+                                                        <tr key={appointment.appointmentID}>
+                                                            <td>{appointment.patient.firstName}</td>
+                                                            <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                                            <td>
+                                                                {!appointment.referredByDoctor ? (
+                                                                    <Button
+                                                                        onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                                        variant="outline-primary"
+                                                                        size="sm"
+                                                                    >
+                                                                        {start} - {end} {day}
+                                                                    </Button>
+                                                                ) : (
+                                                                    <Button
+                                                                        onClick={() => (navigate(`/receptionist/invoice-details/${appointment.appointmentID}`))}
+                                                                        variant="outline-primary"
+                                                                        size="sm"
+                                                                    >
+                                                                        Referred By Doctor
+                                                                    </Button>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </div>
                     </Card>
                 </Col>
 

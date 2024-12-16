@@ -108,16 +108,17 @@ const RegisterPatient = () => {
             Gender: '',
             DateOfBirth: null,
             Email: '',
+            Identification_Type: 'CNIC',
             Cnic: '',
             BloodGroup: '',
             MedicalHistory: '',
             username: '',
             Address: '',
-            country:'',
-            city:'',
-            state:'',
-            streetAddress:'',
-            postalCode:'',
+            country: '',
+            city: '',
+            state: '',
+            streetAddress: '',
+            postalCode: '',
             license_no: ''
         },
         appointment: {
@@ -466,10 +467,32 @@ const RegisterPatient = () => {
             errors.MobileNumber = 'Mobile Number must be exactly 11 digits';
         }
 
-        if (!appointmentData.patient.Cnic) {
-            errors.Cnic = 'CNIC is required';
-        } else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
-            errors.Cnic = 'CNIC must be exactly 13 digits';
+        // Validation for Identification based on type
+        const idType = appointmentData.patient.Identification_Type;
+        const idValue = appointmentData.patient.Cnic;
+
+        if (!idValue) {
+            errors.Cnic = `${idType} is required`;
+        } else {
+            switch (idType) {
+                case 'CNIC':
+                    if (!/^\d{13}$/.test(idValue)) {
+                        errors.Cnic = 'CNIC must be exactly 13 digits';
+                    }
+                    break;
+                case 'SSN':
+                    if (!/^\d{3}-\d{2}-\d{4}$/.test(idValue)) {
+                        errors.Cnic = 'SSN must follow the format XXX-XX-XXXX';
+                    }
+                    break;
+                case 'LicenseNo':
+                    if (!/^[a-zA-Z0-9]{5,20}$/.test(idValue)) {
+                        errors.Cnic = 'License No must be alphanumeric and between 5-20 characters';
+                    }
+                    break;
+                default:
+                    errors.Cnic = 'Invalid Identification Type';
+            }
         }
 
         if (!appointmentData.patient.Gender) errors.Gender = 'Please select the Gender';
@@ -817,14 +840,110 @@ const RegisterPatient = () => {
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Form.Group controlId="formCNIC">
-                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">CNIC</Form.Label>
+                    <Form.Group controlId="formGender">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Select Identification</Form.Label>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-4">
+
+                                <input
+                                    type="radio"
+                                    id="genderMale"
+                                    value="CNIC"
+                                    checked={appointmentData.patient.Identification_Type === "CNIC"}
+                                    onChange={(e) =>
+                                        setAppointmentData((prev) => ({
+                                            ...prev,
+                                            patient: { ...prev.patient, Identification_Type: e.target.value },
+                                        }))
+                                    }
+                                    className={`h-4 w-4 border-2 focus:ring-0 !border-[#04394F] '
+                                        }`}
+                                />
+                                <label htmlFor="genderMale" className="text-[16px] font-medium leading-[22px]">
+                                    CNIC
+                                </label>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                <input
+                                    type="radio"
+                                    id="genderFemale"
+                                    value="SSN"
+                                    checked={appointmentData.patient.Identification_Type === "SSN"}
+                                    onChange={(e) =>
+                                        setAppointmentData((prev) => ({
+                                            ...prev,
+                                            patient: { ...prev.patient, Identification_Type: e.target.value },
+                                        }))
+                                    }
+                                    className={`h-4 w-4 border-2 focus:ring-0 !border-[#04394F] '
+                                        }`}
+                                />
+                                <label htmlFor="genderFemale" className="text-[16px] font-medium leading-[22px]">
+                                    SSN
+                                </label>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                <input
+                                    type="radio"
+                                    id="genderFemale"
+                                    value="LicenseNo"
+                                    checked={appointmentData.patient.Identification_Type === "LicenseNo"}
+                                    onChange={(e) =>
+                                        setAppointmentData((prev) => ({
+                                            ...prev,
+                                            patient: { ...prev.patient, Identification_Type: e.target.value },
+                                        }))
+                                    }
+                                    className={`h-4 w-4 border-2 focus:ring-0 !border-[#04394F]'
+                                        }`}
+                                />
+                                <label htmlFor="genderFemale" className="text-[16px] font-medium leading-[22px]">
+                                    License No
+                                </label>
+                            </div>
+
+                        </div>
+                    </Form.Group>
+
+                    <Form.Control
+                        type="text"
+                        value={appointmentData.patient.Cnic}
+                        onChange={(e) => {
+                            const input = e.target.value;
+                            const filteredInput = (() => {
+                                switch (appointmentData.patient.Identification_Type) {
+                                    case 'CNIC':
+                                        return input.replace(/\D/g, ''); // Allow only digits
+                                    case 'SSN':
+                                        return input.replace(/[^0-9-]/g, ''); // Allow digits and hyphens
+                                    case 'LicenseNo':
+                                        return input.replace(/[^a-zA-Z0-9]/g, ''); // Alphanumeric only
+                                    default:
+                                        return input;
+                                }
+                            })();
+                            setAppointmentData((prev) => ({
+                                ...prev,
+                                patient: { ...prev.patient, Cnic: filteredInput },
+                            }));
+                        }}
+                        className="!border-[#04394F]"
+                        isInvalid={!!validationErrors.Cnic}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {validationErrors.Cnic}
+                    </Form.Control.Feedback>
+
+                    {/* <Form.Group controlId="formCNIC">
+                        <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Enter Identification No.</Form.Label>
                         <Form.Control
                             type="text"
                             value={appointmentData.patient.Cnic}
                             onChange={(e) => setAppointmentData(prev => ({
                                 ...prev,
-                                patient: { ...prev.patient, Cnic: e.target.value.replace(/\D/g, '') }
+                                patient: { ...prev.patient, Cnic: e.target.value }
                             }))}
                             className="!border-[#04394F]"
                             isInvalid={!!validationErrors.Cnic}
@@ -832,7 +951,7 @@ const RegisterPatient = () => {
                         <Form.Control.Feedback type="invalid">
                             {validationErrors.Cnic}
                         </Form.Control.Feedback>
-                    </Form.Group>
+                    </Form.Group> */}
 
                     {/* <Form.Group controlId="formCNIC">
                         <Form.Label className="text-[16px] font-medium leading-[22px] text-left">License No (optional)</Form.Label>
