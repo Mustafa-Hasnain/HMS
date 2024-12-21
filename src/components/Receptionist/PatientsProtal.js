@@ -4,6 +4,7 @@ import axios from 'axios';
 import "../../styles/table.css";
 import { FaArrowLeft, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { network_url } from '../Network/networkConfig';
 
 const PatientPortal = () => {
   const [patients, setPatients] = useState([]);
@@ -20,7 +21,7 @@ const PatientPortal = () => {
     // Fetch patients data from the API
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patients');
+        const response = await axios.get(`${network_url}/api/Receptionist/patients`);
         setPatients(response.data);
         setFilteredPatients(response.data); // Initialize filteredPatients
         setLoading(false);

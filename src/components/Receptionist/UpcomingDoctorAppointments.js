@@ -6,6 +6,7 @@ import { Menu } from '@headlessui/react';
 import { FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
 import PaymentModal from '../Custom Components/PaymentModal';
 import { toast, ToastContainer } from 'react-toastify';
+import { network_url } from '../Network/networkConfig';
 
 const UpcomingDoctorAppointments = () => {
     const [searchInput, setSearchInput] = useState('');
@@ -37,7 +38,7 @@ const UpcomingDoctorAppointments = () => {
     const fetchDoctors = async () => {
         try {
             setLoadingDoctors(true);
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
             setDoctors(response.data);
             setFilteredDoctors(response.data); // Initially, display all doctors
         } catch (error) {
@@ -50,7 +51,7 @@ const UpcomingDoctorAppointments = () => {
     const fetchUpcomingAppointments = async () => {
         try {
             setLoadingAppointments(true);
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments');
+            const response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments`);
             console.log(response.data);
             setAppointments(response.data);
             setFilteredRecords(response.data);
@@ -122,7 +123,7 @@ const UpcomingDoctorAppointments = () => {
     const markAsPaid = async (invoiceID) => {
         setUpdatingInvoiceID(invoiceID);
         try {
-            await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
+            await axios.post(`${network_url}/api/Prescription/invoice-pay`, { invoiceID });
             fetchUpcomingAppointments();
         } catch (error) {
             console.error('Error marking invoice as paid:', error);
@@ -135,7 +136,7 @@ const UpcomingDoctorAppointments = () => {
         if (fromDate && toDate) {
             try {
                 setLoadingAppointments(true);
-                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
+                const response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
                 const heading = fromDate && toDate ? `Appointments from ${fromDate} to ${toDate} (${response.data.length} records found)` : 'Upcoming Appointments'
                 setinfo(heading);
                 setFilteredRecords(response.data);

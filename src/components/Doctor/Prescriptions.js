@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Spinner } from 'react-bootstrap';
 import 'tailwindcss/tailwind.css';
 import PrescriptionModal from './PrescriptionModal';
+import { network_url } from '../Network/networkConfig';
 
 const Prescriptions = () => {
     const doctorId = JSON.parse(localStorage.getItem('doctor')).doctorID;
@@ -19,7 +20,7 @@ const Prescriptions = () => {
     useEffect(() => {
         const fetchPrescriptions = async () => {
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/doctor/${doctorId}`);
+                const response = await fetch(`${network_url}/api/Prescription/doctor/${doctorId}`);
                 const data = await response.json();
                 console.log("Prescription: ",data)
                 setPrescriptions(data);
@@ -33,7 +34,7 @@ const Prescriptions = () => {
 
         const fetchInventoryItems = async () => {
             try {
-                const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
+                const response = await fetch(`${network_url}/api/Inventory`);
                 const data = await response.json();
                 setInventoryItems(data.$values || []);
             } catch (error) {

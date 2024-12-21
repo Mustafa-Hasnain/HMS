@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, Button, Form, Spinner, Alert } from "react-bootstrap";
+import { network_url } from "../Network/networkConfig";
 
 const ClinicExpenses = () => {
     const [expenses, setExpenses] = useState([]);
@@ -20,7 +21,7 @@ const ClinicExpenses = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/GetAllClinicExpenses");
+            const response = await axios.get(`${network_url}/api/Receptionist/GetAllClinicExpenses`);
             setExpenses(response.data);
         } catch (err) {
             setError("Failed to fetch clinic expenses.");
@@ -44,7 +45,7 @@ const ClinicExpenses = () => {
         setAdding(true);
         setError(null);
         try {
-            const response = await axios.post("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/AddClinicExpense", formData);
+            const response = await axios.post(`${network_url}/api/Receptionist/AddClinicExpense`, formData);
             setExpenses((prev) => [
                 ...prev,
                 {
@@ -67,7 +68,7 @@ const ClinicExpenses = () => {
         setDeletingId(id);
         setError(null);
         try {
-            await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/DeleteClinicExpense/${id}`);
+            await axios.delete(`${network_url}/api/Receptionist/DeleteClinicExpense/${id}`);
             setExpenses((prev) => prev.filter((expense) => expense.clinicExpenseID !== id));
         } catch (err) {
             setError("Failed to delete clinic expense.");

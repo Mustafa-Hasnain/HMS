@@ -8,6 +8,7 @@ import doctors_svg from '../../assets/doctors.svg';
 import InfoCard from '../Custom Components/infoCard';
 import { useNavigate } from 'react-router-dom';
 import { useRefreshContext } from '../../contexts/RefreshContext';
+import { network_url } from '../Network/networkConfig';
 
 const DoctorDashboard = () => {
     const [data, setData] = useState(null); // Store the overview data
@@ -22,7 +23,7 @@ const DoctorDashboard = () => {
     // Fetch appointments for the doctor
     const fetchAppointments = async (doctorID) => {
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/dashbord-overview/${doctorID}`);
+            const response = await fetch(`${network_url}/api/Doctor/dashbord-overview/${doctorID}`);
             const result = await response.json();
             console.log("Data: ", result);
             setData(result);

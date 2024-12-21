@@ -4,6 +4,7 @@ import { Button, Form, Container, Row, Col, Spinner, Modal } from 'react-bootstr
 import axios from 'axios';
 import PrescriptionModal from './PrescriptionModal';
 import { toast, ToastContainer } from 'react-toastify';
+import { network_url } from '../Network/networkConfig';
 
 const PrescriptionPage = () => {
     const { patientId, appointmentId } = useParams();
@@ -28,8 +29,8 @@ const PrescriptionPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const inventoryResponse = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
-                const servicesResponse = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/Get-service/${doctorId}`);
+                const inventoryResponse = await axios.get(`${network_url}/api/Inventory`);
+                const servicesResponse = await axios.get(`${network_url}/api/Doctor/Get-service/${doctorId}`);
                 const patientResponse = await fetchPatientDetails(appointmentId, patientId);
                 setInventoryItems(inventoryResponse.data);
                 console.log("Inventory Items Data: ", inventoryResponse.data)
@@ -45,7 +46,7 @@ const PrescriptionPage = () => {
 
     const fetchPatientDetails = async (appointmentID, patientID) => {
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/patient-details/${patientID}`);
+            const response = await fetch(`${network_url}/api/Doctor/patient-details/${patientID}`);
             const data = await response.json();
             data.appointmentID = appointmentID;
             return data;
@@ -143,7 +144,7 @@ const PrescriptionPage = () => {
     //     console.log("Payload", payload);
 
     //     try {
-    //         const response = await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/create-prescription-invoice', payload);
+    //         const response = await axios.post(`${network_url}/api/Prescription/create-prescription-invoice`, payload);
     //         setPrescriptionDetails(response.data); // Set the prescription details
     //         // setShowModal(true); // Show modal on success
     //         navigate('/doctor/prescriptions')
@@ -165,7 +166,7 @@ const PrescriptionPage = () => {
         };
 
         try {
-            await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/save', payload);
+            await axios.post(`${network_url}/api/Prescription/save`, payload);
             toast.success('Prescription created successfully!');
 
             // Set the prescription details from state variables to display in the modal

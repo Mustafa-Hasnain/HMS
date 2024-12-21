@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { network_url } from '../Network/networkConfig';
 
 const EditScheduleModal = ({ show, onHide, schedule, fetchSchedules }) => {
     const [dayOfWeek, setDayOfWeek] = useState('');
@@ -27,7 +28,7 @@ const EditScheduleModal = ({ show, onHide, schedule, fetchSchedules }) => {
         }
         setLoading(true);
         try {
-            await axios.put(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${schedule.doctorScheduleId}`, {
+            await axios.put(`${network_url}/api/Doctor/schedules/${schedule.doctorScheduleId}`, {
                 doctorScheduleId: schedule.doctorScheduleId,
                 doctorID: schedule.doctorID,
                 dayOfWeek,

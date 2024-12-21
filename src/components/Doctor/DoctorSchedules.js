@@ -6,6 +6,7 @@ import EditScheduleModal from '../Custom Components/EditScheduleModal';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
+import { network_url } from '../Network/networkConfig';
 
 
 const DoctorSchedule = () => {
@@ -35,7 +36,7 @@ const DoctorSchedule = () => {
     const fetchSchedules = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${doctorID}`);
+            const response = await axios.get(`${network_url}/api/Doctor/schedules/${doctorID}`);
             setSchedules(response.data);
         } catch (error) {
             console.error("Error fetching schedules:", error);
@@ -47,7 +48,7 @@ const DoctorSchedule = () => {
 
     const handleDeleteSchedule = async (scheduleId) => {
         try {
-            await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/schedules/${scheduleId}`);
+            await axios.delete(`${network_url}/api/Doctor/schedules/${scheduleId}`);
             setSchedules(schedules.filter(schedule => schedule.doctorScheduleId !== scheduleId));
             // setToastMessage("Schedule deleted successfully.");
             // setToastVariant("success");

@@ -10,6 +10,7 @@ import DoctorScheduleModal from './DoctorScheduleModal';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddProcedureModal from './AddProcedureModal';
 import { toast, ToastContainer } from 'react-toastify';
+import { network_url } from '../Network/networkConfig';
 
 
 
@@ -173,7 +174,7 @@ const SetAppointment = () => {
         const fetchPatientData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/get-patient-details/${patient_id}`);
+                const response = await axios.get(`${network_url}/api/Receptionist/get-patient-details/${patient_id}`);
                 const patientData = response.data;
                 console.log("patientData: ", patientData);
                 if (patientData) {
@@ -205,7 +206,7 @@ const SetAppointment = () => {
     const fetchDoctorAppointments = async (doctorID) => {
         try {
             setfetchingAppointments(true)
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointmentDate}`);
+            const response = await fetch(`${network_url}/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointmentDate}`);
             const data = await response.json();
             console.log("Doctors Appointment: ", data);
             setAppointments(data);
@@ -222,7 +223,7 @@ const SetAppointment = () => {
 
     // const fetchDoctors = async () => {
     //     try {
-    //         const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+    //         const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
     //         console.log("Doctors: ",response.data)
     //         setDoctors(response.data);
     //     } catch (error) {
@@ -232,7 +233,7 @@ const SetAppointment = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
             console.log("Doctors: ", response.data);
             setDoctors(response.data);
 
@@ -260,7 +261,7 @@ const SetAppointment = () => {
         debounce((query) => {
             if (query.length >= 3) {
                 setLoading(true);
-                axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/search-patients/${query}`)
+                axios.post(`${network_url}/api/Receptionist/search-patients/${query}`)
                     .then(response => {
                         setPatients(response.data);
                         setNoData(response.data.length === 0);
@@ -389,10 +390,10 @@ const SetAppointment = () => {
         let url = "";
 
         if (patient_id && invoice_id) {
-            url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-secondary-appointment"
+            url = `${network_url}/api/Receptionist/schedule-secondary-appointment`
         }
         else {
-            url = "https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/schedule-appointment"
+            url = `${network_url}/api/Receptionist/schedule-appointment`
         }
 
         try {

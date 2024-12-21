@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddProcedureModal from './AddProcedureModal';
+import { network_url } from '../Network/networkConfig';
 
 
 const RegisterPatient = () => {
@@ -37,7 +38,7 @@ const RegisterPatient = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+            const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
             setDoctors(response.data);
 
             console.log("Doctors: ", response.data);
@@ -316,7 +317,7 @@ const RegisterPatient = () => {
     const fetchDoctorAppointments = async (doctorID) => {
         try {
             setfetchingAppointments(true)
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointment.AppointmentDate}`);
+            const response = await fetch(`${network_url}/api/Receptionist/Appointment/${doctorID}/?date=${appointmentData.appointment.AppointmentDate}`);
             const data = await response.json();
             console.log("Appointments: ", data)
             setAppointments(data);
@@ -529,7 +530,7 @@ const RegisterPatient = () => {
             const patientData = appointmentData.patient;
             console.log("Patient Data Payload: ", patientData);
 
-            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient', {
+            const response = await fetch(`${network_url}/api/Receptionist/register-patient`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -614,7 +615,7 @@ const RegisterPatient = () => {
                 }
             };
 
-            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-patient-and-schedule', {
+            const response = await fetch(`${network_url}/api/Receptionist/register-patient-and-schedule`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

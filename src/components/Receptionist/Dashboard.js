@@ -12,6 +12,7 @@ import { Menu } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { useRefreshContext } from '../../contexts/RefreshContext';
 import { useReactToPrint } from 'react-to-print';
+import { network_url } from '../Network/networkConfig';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true); // Loading state for all cards
@@ -29,7 +30,7 @@ const Dashboard = () => {
         // Fetch data from the backend
         const fetchData = async () => {
             try {
-                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/dashboard-overview');
+                const response = await axios.get(`${network_url}/api/Receptionist/dashboard-overview`);
                 console.log("Dashboard: ", response.data);
                 setData(response.data);
                 setAppointments(response.data.upcomingAppointments);

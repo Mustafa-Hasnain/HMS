@@ -7,6 +7,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import EditScheduleModal from './EditScheduleModal';
 import DoctorSchedule from '../Doctor/DoctorSchedules';
 import DoctorServices from './EditDoctorService';
+import { network_url } from '../Network/networkConfig';
 
 const EditDoctorForm = () => {
     const { doctor_id } = useParams();
@@ -39,7 +40,7 @@ const EditDoctorForm = () => {
     useEffect(() => {
         const fetchDoctorData = async () => {
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`);
+                const response = await fetch(`${network_url}/api/Doctor/${doctor_id}`);
                 if (!response.ok) throw new Error("Unable to fetch doctor data");
 
                 const data = await response.json();
@@ -72,7 +73,7 @@ const EditDoctorForm = () => {
         };
 
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/${doctor_id}`, {
+            const response = await fetch(`${network_url}/api/Doctor/${doctor_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedDoctor),

@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaArrowLeft } from 'react-icons/fa';
+import { network_url } from '../Network/networkConfig';
 
 const EditPatientDetails = () => {
     const { patient_id } = useParams();
@@ -34,7 +35,7 @@ const EditPatientDetails = () => {
         const fetchPatientData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/get-patient-details/${patient_id}`);
+                const response = await axios.get(`${network_url}/api/Receptionist/get-patient-details/${patient_id}`);
                 const patientData = response.data;
 
                 if (patientData) {
@@ -166,7 +167,7 @@ const EditPatientDetails = () => {
 
         try {
             setLoading(true);
-            await axios.put(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patient/${patient_id}`, updatedPatient);
+            await axios.put(`${network_url}/api/Receptionist/patient/${patient_id}`, updatedPatient);
             toast.success("Patient details updated successfully");
             navigate(`/receptionist/patients-details/${patient_id}/`);
         } catch (error) {

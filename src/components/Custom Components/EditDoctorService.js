@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import AddEditDoctorServiceModal from "./AddEditDoctorServicesModal";
+import { network_url } from "../Network/networkConfig";
 
 const DoctorServices = ({ doctorId }) => {
     const [services, setServices] = useState([]);
@@ -17,7 +18,7 @@ const DoctorServices = ({ doctorId }) => {
     const fetchServices = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/Get-service/${doctorId}`);
+            const response = await fetch(`${network_url}/api/Doctor/Get-service/${doctorId}`);
             if (!response.ok) throw new Error(await response.text());
             const data = await response.json();
             console.log("Fetch Services: ", data);
@@ -43,7 +44,7 @@ const DoctorServices = ({ doctorId }) => {
                 clinicCutPercentage: newService.clinicCutPercentage,
             };
 
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/add-service`, {
+            const response = await fetch(`${network_url}/api/Doctor/add-service`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -68,7 +69,7 @@ const DoctorServices = ({ doctorId }) => {
         console.log("Edit Servie: ", updatedService)
         setLoading(true);
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/doctor-service/${updatedService.doctorServiceID}`, {
+            const response = await fetch(`${network_url}/api/Doctor/doctor-service/${updatedService.doctorServiceID}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedService),
@@ -92,7 +93,7 @@ const DoctorServices = ({ doctorId }) => {
     const handleDeleteService = async (serviceId) => {
         setLoading(true);
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/doctor-service/${serviceId}`, { method: "DELETE" });
+            const response = await fetch(`${network_url}/api/Doctor/doctor-service/${serviceId}`, { method: "DELETE" });
             if (!response.ok) throw new Error(await response.text());
             setServices(services.filter((s) => s.doctorServiceID !== serviceId));
         } catch (err) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Container, Modal, InputGroup, Form, Spinner } from 'react-bootstrap';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa'; // Importing icons
 import { useNavigate } from 'react-router-dom';
+import { network_url } from '../Network/networkConfig';
 
 const AppointmentTable = () => {
     const [appointments, setAppointments] = useState([]);
@@ -25,7 +26,7 @@ const AppointmentTable = () => {
     const fetchAppointments = async (doctorID) => {
         setLoading(true); // Set loading state before data fetch
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/Appointment/${doctorID}`);
+            const response = await fetch(`${network_url}/api/Receptionist/Appointment/${doctorID}`);
             const data = await response.json();
             console.log("Appointments data: ", data);
             setAppointments(data);
@@ -40,7 +41,7 @@ const AppointmentTable = () => {
     const fetchPatientDetails = async (appointmentID, patientID) => {
         setPatientLoading(true); // Show loading state for patient details
         try {
-            const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/patient-details/${patientID}`);
+            const response = await fetch(`${network_url}/api/Doctor/patient-details/${patientID}`);
             const data = await response.json();
             data.appointmentID = appointmentID;
             console.log("patientDetails: ", data);

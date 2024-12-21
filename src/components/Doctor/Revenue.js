@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, Tab, Spinner, Card, Table } from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto'; // Required for Chart.js to work
+import { network_url } from '../Network/networkConfig';
 
 const DoctorRevenue = () => {
     const [key, setKey] = useState('doctor');
@@ -24,7 +25,7 @@ const DoctorRevenue = () => {
             }
 
             try {
-                const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Revenue/doctor/${doctorID}/revenue`);
+                const response = await fetch(`${network_url}/api/Revenue/doctor/${doctorID}/revenue`);
 
                 // Check if the response is OK (status code 200)
                 if (!response.ok) {

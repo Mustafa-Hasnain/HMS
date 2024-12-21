@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import ClinicExpenses from "./ClinicExpenses";
 import { debounce } from "chart.js/helpers";
 import InvoiceDetailsModal from "../Custom Components/InvoiceModal";
+import { network_url } from "../Network/networkConfig";
 
 const ExpensesManager = () => {
   const [appointment, setAppointment] = useState(null);
@@ -35,7 +36,7 @@ const ExpensesManager = () => {
     try {
       setfetchingAppointment(true);
       const response = await axios.get(
-        `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/invoice-appointment-details/${appointment_id}`
+        `${network_url}/api/Receptionist/invoice-appointment-details/${appointment_id}`
       );
       console.log("Invoice-Appointment Data: ", response.data);
       setAppointment(response.data);
@@ -58,7 +59,7 @@ const ExpensesManager = () => {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors");
+      const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
       setDoctors(response.data);
     } catch (error) {
       toast.error("Failed to fetch doctors.");
@@ -70,7 +71,7 @@ const ExpensesManager = () => {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/get-all-expenses");
+      const response = await axios.get(`${network_url}/api/Receptionist/get-all-expenses`);
       setExpenses(response.data);
     } catch (error) {
       toast.error("Failed to fetch expenses.");
@@ -97,7 +98,7 @@ const ExpensesManager = () => {
 
     try {
       setSubmitting(true);
-      const response = await axios.post("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/add-expense", {
+      const response = await axios.post(`${network_url}/api/Receptionist/add-expense`, {
         productName,
         amount: parseFloat(amount),
         invoiceID: parseInt(invoiceID),
@@ -118,7 +119,7 @@ const ExpensesManager = () => {
   const handleDeleteExpense = async (expenseID) => {
     try {
       setSubmitting(true);
-      await axios.delete(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/delete-expense/${expenseID}`);
+      await axios.delete(`${network_url}/api/Receptionist/delete-expense/${expenseID}`);
       toast.success("Expense deleted successfully!");
       setExpenses(expenses.filter((expense) => expense.expenseID !== expenseID));
     } catch (error) {

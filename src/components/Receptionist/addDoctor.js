@@ -6,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'tailwindcss/tailwind.css';
 import AdDoctorServiceModal from '../Custom Components/AddDoctorServicesModal';
+import { network_url } from '../Network/networkConfig';
 
 function AddDoctor() {
     const [schedules, setSchedules] = useState([{ dayOfWeek: '', startTime: '', endTime: '', slotDuration: '' }]);
@@ -174,7 +175,7 @@ function AddDoctor() {
         };
 
         try {
-            const response = await fetch('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/register-doctor', {
+            const response = await fetch(`${network_url}/api/Receptionist/register-doctor`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

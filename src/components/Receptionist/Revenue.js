@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, Tab, Spinner, Table, Form, Button } from "react-bootstrap";
+import { network_url } from "../Network/networkConfig";
 
 const RevenueComponent = () => {
   const [key, setKey] = useState("doctor");
@@ -24,7 +25,7 @@ const RevenueComponent = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors");
+      const response = await fetch(`${network_url}/api/Receptionist/doctors`);
       if (!response.ok) throw new Error("Failed to fetch doctors.");
       const data = await response.json();
       setDoctors(data);
@@ -47,7 +48,7 @@ const RevenueComponent = () => {
       setLoading(true);
       setError(null);
       const response = await fetch(
-        `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/DoctorRevenue?doctorID=${selectedDoctor}&fromDate=${fromDate}&toDate=${toDate}`
+        `${network_url}/api/Receptionist/DoctorRevenue?doctorID=${selectedDoctor}&fromDate=${fromDate}&toDate=${toDate}`
       );
       if (!response.ok) throw new Error("No revenue data found.");
       const data = await response.json();
@@ -69,7 +70,7 @@ const RevenueComponent = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/ClinicRevenue");
+      const response = await fetch(`${network_url}/api/Receptionist/ClinicRevenue`);
       if (!response.ok) throw new Error("Failed to fetch clinic revenue data.");
       const data = await response.json();
       setClinicRevenueData(data);

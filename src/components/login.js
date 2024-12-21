@@ -7,6 +7,7 @@ import Dots from "../assets/dots.png";
 import Dots_small from '../assets/dots small.png';
 import Logo from "../assets/Logo.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Icons for show/hide password
+import { network_url } from './Network/networkConfig';
 
 
 function Login() {
@@ -44,7 +45,7 @@ function Login() {
       navigate('/receptionist/upcoming-doctor-appointments');
     } else if (phone_no && password === 'doctor') {
       try {
-        const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Doctor/Doctor-Login", {
+        const response = await fetch(`${network_url}/api/Doctor/Doctor-Login`, {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

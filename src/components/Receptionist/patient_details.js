@@ -5,6 +5,7 @@ import { Button, Container, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
 import { FaArrowLeft } from "react-icons/fa";
+import { network_url } from "../Network/networkConfig";
 
 const PatientDetails = () => {
     const { patient_id } = useParams(); // Get patient ID from the route params
@@ -39,7 +40,7 @@ const PatientDetails = () => {
         const fetchPatientDetails = async () => {
             try {
                 const response = await axios.get(
-                    `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/patient-details/${patient_id}`
+                    `${network_url}/api/Receptionist/patient-details/${patient_id}`
                 );
                 setPatient(response.data);
                 setLoading(false);

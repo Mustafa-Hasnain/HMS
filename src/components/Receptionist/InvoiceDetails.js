@@ -11,6 +11,7 @@ import { useReactToPrint } from "react-to-print";
 import PrintableInvoiceView from "../Custom Components/PrintInvoiceView";
 import AddProcedureModal from "../Custom Components/AddProcedureModal";
 import InventoryModal from "../Custom Components/InventoryModal";
+import { network_url } from "../Network/networkConfig";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -82,7 +83,7 @@ const InvoiceDetails = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(
-                    `https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/invoice-appointment-details/${appointment_id}`
+                    `${network_url}/api/Receptionist/invoice-appointment-details/${appointment_id}`
                 );
                 console.log("Invoice-Appointment Data: ", response.data);
                 setAppointment(response.data);
@@ -98,7 +99,7 @@ const InvoiceDetails = () => {
         const fetchInventoryItems = async () => {
             try {
                 // setLoading(true);
-                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Inventory');
+                const response = await axios.get(`${network_url}/api/Inventory`);
                 console.log("Inventory Items: ", response.data);
                 setInventoryItems(response.data);
             } catch (error) {
@@ -110,7 +111,7 @@ const InvoiceDetails = () => {
 
         const fetchDoctors = async () => {
             try {
-                const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+                const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
                 console.log("Doctors: ", response.data);
                 setDoctors(response.data);
 
@@ -138,7 +139,7 @@ const InvoiceDetails = () => {
         try {
             setAddLoading(true);
             const response = await axios.post(
-                `https://mustafahasnain36-001-site1.gtempurl.com/add-procedure-item/${invoiceId}`,
+                `${network_url}/add-procedure-item/${invoiceId}`,
                 finalProcedure
             );
 
@@ -181,7 +182,7 @@ const InvoiceDetails = () => {
         setDeletingId(appointmentItemId); // Set the ID of the item being deleted
         setSubmitting(true);
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/remove-primary-appointment/${invoiceId}/${appointmentItemId}/delete`);
+            await axios.post(`${network_url}/api/Receptionist/remove-primary-appointment/${invoiceId}/${appointmentItemId}/delete`);
             toast.success("Appointment deleted successfully.");
             updateRefresh(Math.random() * 10);
         } catch (error) {
@@ -196,7 +197,7 @@ const InvoiceDetails = () => {
         setDeletingId(appointmentItemId); // Set the ID of the item being deleted
         setSubmitting(true);
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/remove-secondary-appointment/${invoiceId}/${appointmentItemId}`);
+            await axios.post(`${network_url}/api/Receptionist/remove-secondary-appointment/${invoiceId}/${appointmentItemId}`);
             toast.success("Appointment deleted successfully.");
 
             // Update the appointment state to remove the deleted procedure item
@@ -228,7 +229,7 @@ const InvoiceDetails = () => {
     const deleteProcedureItem = async (invoiceId, procedureItemId) => {
         setDeletingId(procedureItemId); // Set the ID of the item being deleted
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/remove-procedure-item/${invoiceId}/${procedureItemId}`);
+            await axios.post(`${network_url}/remove-procedure-item/${invoiceId}/${procedureItemId}`);
             toast.success("Procedure item deleted successfully.");
 
             // Update the appointment state to remove the deleted procedure item
@@ -283,7 +284,7 @@ const InvoiceDetails = () => {
     const markAsPaidProcedureItem = async (procedureItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/procedureitem-pay`, { procedureItemID });
+            await axios.post(`${network_url}/procedureitem-pay`, { procedureItemID });
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
@@ -323,7 +324,7 @@ const InvoiceDetails = () => {
         setSubmitting(true)
         setUpdatingInvoiceID(invoiceID);
         setLoading(true);
-        axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID }).then((value) => {
+        axios.post(`${network_url}/api/Prescription/invoice-pay`, { invoiceID }).then((value) => {
             updateRefresh(Math.random() * 10);
         }).catch((error) => {
             console.error('Error marking invoice as paid:', error);
@@ -346,7 +347,7 @@ const InvoiceDetails = () => {
         setSubmitting(true)
         setUpdatingAppointmentID(appointmentID);
         setLoading(true);
-        let url = isPrimaryAppointment ? 'https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/appointment-pay' : 'https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/secondary-appointment-pay';
+        let url = isPrimaryAppointment ? `${network_url}/api/Prescription/appointment-pay` : `${network_url}/api/Prescription/secondary-appointment-pay`;
         axios.post(`${url}`, { appointmentID }).then((value) => {
             updateRefresh(Math.random() * 10);
         }).catch((error) => {
@@ -366,7 +367,7 @@ const InvoiceDetails = () => {
     }
 
     const handleAddInventoryItem = async (data) => {
-        const response = await fetch("https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/AddInventoryItemInInvoice", {
+        const response = await fetch(`${network_url}/api/Receptionist/AddInventoryItemInInvoice`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -390,7 +391,7 @@ const InvoiceDetails = () => {
         });
 
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/RemoveInventoryItemInInvoice`,
+            await axios.post(`${network_url}/api/Receptionist/RemoveInventoryItemInInvoice`,
                 bodyData, // Send stringified data
                 {
                     headers: {
@@ -428,7 +429,7 @@ const InvoiceDetails = () => {
     const markAsPaidInventoryItem = async (InventoryItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/PayInventoryItem/${InventoryItemID}`);
+            await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`);
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data

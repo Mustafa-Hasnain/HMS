@@ -13,6 +13,7 @@ import {
   AccordionItemButton,
 } from 'react-accessible-accordion';
 import 'react-accessible-accordion/dist/fancy-example.css';
+import { network_url } from '../Network/networkConfig';
 
 const DoctorPortal = () => {
   const [doctors, setDoctors] = useState([]);
@@ -31,7 +32,7 @@ const DoctorPortal = () => {
     try {
       setLoading(true);
       setError(null); // Reset error before fetching
-      const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors');
+      const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
       setDoctors(response.data);
     } catch (error) {
       setError('Error fetching doctor data. Please try again.');
@@ -60,7 +61,7 @@ const DoctorPortal = () => {
   const setDoctorUnavailable = async (doctorId) => {
     setShowModal(false);
     try {
-      const response = await fetch(`https://mustafahasnain36-001-site1.gtempurl.com/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
+      const response = await fetch(`${network_url}/api/Receptionist/doctors/${doctorId}/set-unavailable`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

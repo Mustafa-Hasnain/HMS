@@ -4,6 +4,7 @@ import axios from 'axios';
 import PaymentModal from '../Custom Components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import { network_url } from '../Network/networkConfig';
 
 const InvoiceManagement = () => {
   const [key, setKey] = useState('unpaid');
@@ -19,7 +20,7 @@ const InvoiceManagement = () => {
     const fetchInvoices = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/GetInvoices');
+        const response = await axios.get(`${network_url}/api/Prescription/GetInvoices`);
         console.log("Fetch Invoices Data: ", response.data)
         setInvoices(response.data);
       } catch (error) {
@@ -36,7 +37,7 @@ const InvoiceManagement = () => {
   const markAsPaid = async (invoiceID) => {
     setUpdatingInvoiceID(invoiceID);
     try {
-      await axios.post('https://mustafahasnain36-001-site1.gtempurl.com/api/Prescription/invoice-pay', { invoiceID });
+      await axios.post(`${network_url}/api/Prescription/invoice-pay`, { invoiceID });
       setInvoices((prev) =>
         prev.map((invoice) =>
           invoice.invoiceID === invoiceID ? { ...invoice, status: 'Paid' } : invoice
