@@ -101,6 +101,7 @@ const AddProcedureModal = ({
             ProcedureName: service.serviceName,
             Amount: service.price,
             ProcedureDetail: service.description,
+            DoctorServiceID: service.doctorServiceID
         }));
     };
 

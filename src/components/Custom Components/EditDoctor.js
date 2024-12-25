@@ -26,6 +26,7 @@ const EditDoctorForm = () => {
     const availabilityRef = useRef();
     const consultationFeeRef = useRef();
     const joinedDateRef = useRef();
+    const doctorPercentageCut = useRef();
 
     const specialtyOptions = [
         "Podiatrist",
@@ -69,7 +70,8 @@ const EditDoctorForm = () => {
             emailID: emailRef.current.value,
             mobileNumber: mobileNumberRef.current.value,
             availability: availabilityRef.current.value,
-            consultationFee: parseFloat(consultationFeeRef.current.value)
+            consultationFee: parseFloat(consultationFeeRef.current.value),
+            doctorPercentageCut: doctorPercentageCut.current.value
         };
 
         try {
@@ -241,6 +243,23 @@ const EditDoctorForm = () => {
                                 />
                             </Form.Group>
                         </Col>
+                        <Col>
+                            <Form.Group >
+                                <Form.Label className="text-[16px] font-medium leading-[22px] text-left">Doctor Cut Percentage</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Enter Doctor Cut Percentage"
+                                    ref={doctorPercentageCut}
+                                    className="!border-[#04394F] rounded-md"
+                                    defaultValue={doctor?.doctorPercentageCut}
+                                    onChange={(e) => {
+                                        if (e.target.value > 100) {
+                                            e.target.value = 100; // Set value to 100 if it exceeds
+                                        }
+                                    }}
+                                />
+                            </Form.Group>
+                        </Col>
                     </Row>
 
                     <Button variant='outline-success' type="submit" disabled={submitting}>
@@ -249,9 +268,9 @@ const EditDoctorForm = () => {
                 </Form>
             )}
 
-                <DoctorSchedule></DoctorSchedule>
+            <DoctorSchedule></DoctorSchedule>
 
-                <DoctorServices doctorId={doctor_id}></DoctorServices>
+            <DoctorServices doctorId={doctor_id}></DoctorServices>
         </Container>
     );
 };

@@ -415,7 +415,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                     <span>Rs. {totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
+                {/* <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
                     <span>Discount:</span>
                     <span>Rs. 0.00</span>
                 </div>
@@ -423,7 +423,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
                     <span>Sales Tax:</span>
                     <span>Rs. 0.00</span>
-                </div>
+                </div> */}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontWeight: '600' }}>
                     <span>Total Amount:</span>

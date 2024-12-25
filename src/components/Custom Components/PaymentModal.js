@@ -4,7 +4,7 @@ import { Modal, Button } from 'react-bootstrap';
 const PaymentModal = ({ show, onHide, ID, markAsPaid }) => {
     const handlePayment = (paymentMethod) => {
         // Call the markAsPaid function with the invoiceID
-        markAsPaid(ID);
+        markAsPaid(paymentMethod,ID);
         // Close the modal after the action
         onHide();
     };

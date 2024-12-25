@@ -164,9 +164,8 @@ const InvoiceDetails = () => {
             //         invoices: updatedInvoices,
             //     };
             // });
-            updateRefresh(Math.random() * 3);
 
-            // Close modal and clear the form
+            updateRefresh(Math.random() * 3);
             setShowModal(false);
             setNewProcedure({ ProcedureName: "", ProcedureDetail: "", Amount: "" });
             toast.success("Procedure Item added Successfully.");
@@ -281,10 +280,10 @@ const InvoiceDetails = () => {
         setShowPaymentModal(true);
     }
 
-    const markAsPaidProcedureItem = async (procedureItemID) => {
+    const markAsPaidProcedureItem = async (paymentMethod,procedureItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`${network_url}/procedureitem-pay`, { procedureItemID });
+            await axios.post(`${network_url}/procedureitem-pay`, { procedureItemID,paymentMethod });
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
@@ -320,7 +319,7 @@ const InvoiceDetails = () => {
         documentTitle: 'Invoice Details'
     });
 
-    const markAsPaid = (invoiceID) => {
+    const markAsPaid = (paymentMethod,invoiceID) => {
         setSubmitting(true)
         setUpdatingInvoiceID(invoiceID);
         setLoading(true);
@@ -343,12 +342,12 @@ const InvoiceDetails = () => {
     }
 
 
-    const markAsPaidAppointment = (appointmentID) => {
+    const markAsPaidAppointment = (paymentMethod,appointmentID) => {
         setSubmitting(true)
         setUpdatingAppointmentID(appointmentID);
         setLoading(true);
         let url = isPrimaryAppointment ? `${network_url}/api/Prescription/appointment-pay` : `${network_url}/api/Prescription/secondary-appointment-pay`;
-        axios.post(`${url}`, { appointmentID }).then((value) => {
+        axios.post(`${url}`, { appointmentID, paymentMethod }).then((value) => {
             updateRefresh(Math.random() * 10);
         }).catch((error) => {
             console.error('Error marking invoice as paid:', error);
@@ -426,10 +425,10 @@ const InvoiceDetails = () => {
         }
     };
 
-    const markAsPaidInventoryItem = async (InventoryItemID) => {
+    const markAsPaidInventoryItem = async (paymentMethod,InventoryItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`);
+            await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`,{paymentMethod});
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
@@ -1050,14 +1049,14 @@ const InvoiceDetails = () => {
                     show={showPaymentModal}
                     onHide={() => setShowPaymentModal(false)}
                     ID={functionId}
-                    markAsPaid={procedurefunction ? () => markAsPaidProcedureItem(functionId) : () => markAsPaidAppointment(functionId)}
+                    markAsPaid={procedurefunction ? (paymentMethod) => markAsPaidProcedureItem(paymentMethod,functionId) : (paymentMethod) => markAsPaidAppointment(paymentMethod,functionId)}
                 />
 
                 <PaymentModal
                     show={showInventoryPaymentModal}
                     onHide={() => setShowInventoryPaymentModal(false)}
                     ID={functionId}
-                    markAsPaid={() => markAsPaidInventoryItem(functionId)}
+                    markAsPaid={(paymentMethod) => markAsPaidInventoryItem(paymentMethod,functionId)}
                 />
 
                 <InventoryModal

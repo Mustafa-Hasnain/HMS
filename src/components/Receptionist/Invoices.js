@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Tab, Table, Button, Spinner } from 'react-bootstrap';
+import { Tabs, Tab, Table, Button, Spinner, Col, Form, Row } from 'react-bootstrap';
 import axios from 'axios';
 import PaymentModal from '../Custom Components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,10 @@ const InvoiceManagement = () => {
   const [key, setKey] = useState('unpaid');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
@@ -50,6 +54,27 @@ const InvoiceManagement = () => {
     }
   };
 
+
+  // Filter invoices by search criteria
+  const handleSearch = async () => {
+    setSearchLoading(true);
+    try {
+      const params = {};
+      if (searchText) params.searched_text = searchText;
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+
+      const response = await axios.get(`${network_url}/api/Prescription/GetInvoices`, {
+        params,
+      });
+      setInvoices(response.data);
+    } catch (error) {
+      console.error('Error searching invoices:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   // Filter invoices by status
   const unpaidInvoices = invoices.filter((invoice) => invoice.status !== 'Paid');
   const paidInvoices = invoices.filter((invoice) => invoice.status === 'Paid');
@@ -63,30 +88,64 @@ const InvoiceManagement = () => {
         <h2 className="font-bold text-2xl">Invoice Management</h2>
       </div>
 
-      {/* Tabs for switching between unpaid and paid invoices */}
-      <Tabs
-        id="invoice-tabs"
-        activeKey={key}
-        onSelect={(k) => setKey(k)}
-        className="mb-3"
-      >
-        <Tab eventKey="unpaid" title="Invoices">
-          {loading ? (
-            <div className="text-center">
-              <Spinner animation="border" />
-            </div>
-          ) : (
-            <InvoiceTable
-              invoices={unpaidInvoices}
-              showPayButton={true}
-              markAsPaid={markAsPaid}
-              updatingInvoiceID={updatingInvoiceID}
-              noInvoicesMessage="No unpaid invoices left."
-              setUpdatingInvoiceID={setUpdatingInvoiceID}
-              setShowPaymentModal={setShowPaymentModal}
+      <Form className="mb-4">
+        <Row className="align-items-center">
+          <Col md={4}>
+            <Form.Label>
+              Search
+            </Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Search by text..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
             />
-          )}
-        </Tab>
+          </Col>
+          <Col md={3}>
+            <Form.Label>
+              From Date
+            </Form.Label>
+            <Form.Control
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+            />
+          </Col>
+          <Col md={3}>
+            <Form.Label>
+              To Date
+            </Form.Label>
+            <Form.Control
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+            />
+          </Col>
+          <Col className='pt-[30px]' md={2}>
+            <Button variant="primary" onClick={handleSearch} disabled={searchLoading}>
+              {searchLoading ? <Spinner as="span" animation="border" size="sm" /> : 'Search'}
+            </Button>
+          </Col>
+        </Row>
+      </Form>
+
+      {/* Tabs for switching between unpaid and paid invoices */}
+      
+        {loading ? (
+          <div className="text-center">
+            <Spinner animation="border" />
+          </div>
+        ) : (
+          <InvoiceTable
+            invoices={unpaidInvoices}
+            showPayButton={true}
+            markAsPaid={markAsPaid}
+            updatingInvoiceID={updatingInvoiceID}
+            noInvoicesMessage="No unpaid invoices left."
+            setUpdatingInvoiceID={setUpdatingInvoiceID}
+            setShowPaymentModal={setShowPaymentModal}
+          />
+        )}
 
         {/* <Tab eventKey="paid" title="Paid Invoices">
           {loading ? (
@@ -103,7 +162,6 @@ const InvoiceManagement = () => {
             />
           )}
         </Tab> */}
-      </Tabs>
       <PaymentModal
         show={showPaymentModal}
         onHide={() => { setShowPaymentModal(false); setUpdatingInvoiceID(null) }}
@@ -130,7 +188,7 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
           <th>Patient Phone</th>
           <th>Doctor Name</th>
           <th>Total Amount</th>
-          {/* <th>Status</th> */}
+          <th>Date</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -144,7 +202,12 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
             <td>{invoice.appointment.patient.mobileNumber}</td>
             <td>{invoice.appointment.doctor.firstName}</td>
             <td>{invoice.amount}</td>
-            {/* <td>{invoice.status}</td> */}
+            <td>{invoice.appointment.appointmentDate ? new Date(invoice.appointment.appointmentDate).toLocaleDateString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }) : 'N/A'}</td>
 
             <td>
               <div className='flex gap-3'>

@@ -52,7 +52,6 @@ const SetAppointment = () => {
 
 
     const [deletingId, setDeletingId] = useState(null);
-
     const [doctors, setDoctors] = useState([]);
     const [toastMessage, setToastMessage] = useState('');
     const [toastVariant, setToastVariant] = useState('success');
@@ -887,8 +886,9 @@ const SetAppointment = () => {
                                                     checked={isProcedureSelected}
                                                     onChange={handleCheckboxChange}
                                                     className="custom-checkbox-input"
+                                                    disabled={!!patient_id}
                                                 />
-                                                <label htmlFor="procedure" className="custom-checkbox-label">Procedure</label>
+                                                <label htmlFor="procedure" className={`custom-checkbox-label ${!!patient_id ? "!opacity-60" : "!opacity-100"}`}>Procedure</label>
                                             </div>
                                         </div>
 
