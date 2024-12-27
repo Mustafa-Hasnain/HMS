@@ -46,7 +46,9 @@ const SetAppointment = () => {
     const [newProcedure, setNewProcedure] = useState({
         ProcedureName: '',
         ProcedureDetail: '',
-        Amount: 0
+        Amount: 0,
+        DoctorServiceID: '',
+        DoctorID: ''
     });
 
 
@@ -129,17 +131,23 @@ const SetAppointment = () => {
 
 
     const addProcedureItem = () => {
-        const newItem = { ...newProcedure, procedureItemID: Date.now() };
+        const newItem = { ...newProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID};
 
         setAppointmentData(prev => ({
             ...prev,
             ProcedureItems: [...prev.ProcedureItems, newItem],
-            Amount: prev.Amount + Number(newProcedure.Amount) // Ensure Amount is treated as a number
+            Amount: prev.Amount + Number(newProcedure.Amount),
         }));
 
-        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0 });
+
+        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0, DoctorServiceID: null, DoctorID: '' });
         setShowModal(false);
     };
+
+    useEffect(()=>{
+        console.log("Appointment Data Payload: ", appointmentData);
+
+    },[appointmentData])
 
     const deleteProcedureItem = (procedureItemID) => {
         setDeletingId(procedureItemID);
@@ -462,10 +470,23 @@ const SetAppointment = () => {
     const handleDoctorChange = (doctor) => {
         console.log("Doctor Change: ", doctor);
         const selectedDoctorID = parseInt(doctor.doctorID, 10); // Convert doctorID to an integer
-        setAppointmentData(prev => ({
-            ...prev,
-            doctorID: selectedDoctorID
-        }));
+        // setAppointmentData(prev => ({
+        //     ...prev,
+        //     doctorID: selectedDoctorID
+        // }));
+        setAppointmentData({
+            invoice_id: invoice_id,
+            doctorID: selectedDoctorID,
+            patientID: patient_id,
+            appointmentDate: '',
+            appointmentTime: '',
+            Amount: 0,
+            ConsultationAmount: 0,
+            ReferredByDoctor: false,
+            ReferredDoctorName: referredDoctor,
+            isConsultation: false,
+            ProcedureItems: []
+        });
         setSelectedDate('');
         setSelectedDoctor(doctor); // Set the entire doctor object
     };
@@ -906,7 +927,6 @@ const SetAppointment = () => {
                                                 <Table striped bordered hover responsive className="mt-3">
                                                     <thead>
                                                         <tr>
-                                                            <th>Procedure ID</th>
                                                             <th>Procedure Name</th>
                                                             <th>Procedure Detail</th>
                                                             <th>Amount</th>
@@ -915,8 +935,7 @@ const SetAppointment = () => {
                                                     </thead>
                                                     <tbody>
                                                         {appointmentData.ProcedureItems.map(item => (
-                                                            <tr>
-                                                                <td>{item.procedureItemID}</td>
+                                                            <tr key={item.procedureItemID}>
                                                                 <td>{item.ProcedureName}</td>
                                                                 <td>{item.ProcedureDetail || 'N/A'}</td>
                                                                 <td>{item.Amount}</td>

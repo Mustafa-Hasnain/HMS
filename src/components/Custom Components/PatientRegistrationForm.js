@@ -82,10 +82,18 @@ const RegisterPatient = () => {
             setAppointmentData(prev => ({
                 ...prev,
                 appointment: {
-                    ...prev.appointment,
-                    DoctorID: selectedDoctorID // Update the DoctorID here
+                    DoctorID: selectedDoctorID,
+                    AppointmentDate: '',
+                    AppointmentTime: '',
+                    Amount: 0,
+                    ConsultationAmount: 0,
+                    referredByDoctor: false,
+                    ReferredDoctorName: referredDoctor,
+                    isConsultation: isConsultationSelected,
+                    ProcedureItems: []
                 }
             }));
+
             setSelectedDoctor(doctor); // Set the entire doctor object
         } else {
             setAppointmentData(prev => ({
@@ -138,8 +146,11 @@ const RegisterPatient = () => {
     const [newProcedure, setNewProcedure] = useState({
         ProcedureName: '',
         ProcedureDetail: '',
-        Amount: 0
+        Amount: 0,
+        DoctorServiceID: '',
+        DoctorID: ''
     });
+
 
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
@@ -273,7 +284,7 @@ const RegisterPatient = () => {
 
 
     const addProcedureItem = () => {
-        const newItem = { ...newProcedure, procedureItemID: Date.now() };
+        const newItem = { ...newProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID };
 
         setAppointmentData(prev => ({
             ...prev,
@@ -285,7 +296,7 @@ const RegisterPatient = () => {
         }));
 
 
-        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0 });
+        setNewProcedure({ ProcedureName: '', ProcedureDetail: '', Amount: 0, DoctorServiceID: null, DoctorID: '' });
         setShowModal(false);
     };
 
