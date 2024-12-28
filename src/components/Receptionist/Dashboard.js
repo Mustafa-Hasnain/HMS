@@ -171,7 +171,7 @@ const Dashboard = () => {
                         <Card.Header className="d-flex justify-content-between align-items-center !bg-white">
                             <h5 className="font-semibold text-lg">Appointment</h5>
                             <div className="d-flex gap-2">
-                                <Button variant="outline-success" onClick={() => {/* Add new appointment logic */ }}>
+                                <Button variant="outline-success" onClick={() => {navigate('/receptionist/set-appointment')}}>
                                     Add New Appointment
                                 </Button>
                                 <DropdownButton
@@ -312,20 +312,18 @@ const Dashboard = () => {
                 </Col>
 
 
-                {/* Earnings Chart */}
-                <Col md={4} className="mb-4">
+                {/* <Col md={4} className="mb-4">
                     <Card>
                         <Card.Header className='!bg-white'>
                             <h5 className='font-semibold text-lg'>Earnings From Appointments</h5>
                         </Card.Header>
                         <Card.Body>
-                            {/* Placeholder for chart */}
                             <div className="text-center">
                                 <LineGraph />
                             </div>
                         </Card.Body>
                     </Card>
-                </Col>
+                </Col> */}
             </Row>
         </div>
     );

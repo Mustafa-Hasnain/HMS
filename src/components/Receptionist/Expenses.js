@@ -16,6 +16,7 @@ const ExpensesManager = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [refresh, updateRefresh] = useState(0);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     productName: "",
@@ -30,7 +31,11 @@ const ExpensesManager = () => {
   useEffect(() => {
     fetchDoctors();
     fetchExpenses();
-  }, []);
+  }, [refresh]);
+
+  useEffect(()=>{
+    updateRefresh(Math.random() * 2);
+  },[])
 
   const fetchAppointmentDetails = async (appointment_id) => {
     try {
@@ -106,7 +111,8 @@ const ExpensesManager = () => {
       });
 
       toast.success("Expense added successfully!");
-      setExpenses([...expenses, response.data]);
+      // setExpenses([...expenses, response.data]);
+      updateRefresh(Math.random() * 10);
       setFormData({ productName: "", amount: "", invoiceID: "", doctorID: "" });
       setAppointment(null);
     } catch (error) {
