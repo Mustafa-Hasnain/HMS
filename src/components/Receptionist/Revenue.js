@@ -21,6 +21,12 @@ const RevenueComponent = () => {
   const [totalGrossAfterTax, setTotalGrossAfterTax] = useState(0);
   const [totalNetAmountForSharing, setTotalNetAmountForSharing] = useState(0);
   const [clinicRevenueData, setClinicRevenueData] = useState([]);
+  const [ClinicExpensesData, setClinicExpensesData] = useState([]);
+  const [InventoryItemsData, setInventoryItemsData] = useState([]);
+  const [totalInventoryAmount, setTotalInventoryAmount] = useState(0);
+  const [totalClinicExpenses, setTotalClinicExpenses] = useState(0);
+  const [totalClinicProfit, setTotalClinicProfit] = useState(0);
+
 
 
 
@@ -86,19 +92,35 @@ const RevenueComponent = () => {
       const response = await fetch(`${network_url}/api/Receptionist/ClinicRevenue?fromDate=${fromDate}&toDate=${toDate}`);
       if (!response.ok) throw new Error("Failed to fetch clinic revenue data.");
       const data = await response.json();
-      setClinicRevenueData(data);
-
+      if(data){
+      console.log("Clinic Revenue Data: ", data);
+      setClinicRevenueData(data.ClinicRevenueData);
+      setClinicExpensesData(data.ClinicExpensesData.clinicExpensesList);
+      setInventoryItemsData(data.InventoryItemsData.totalInventoryItems);
       // Calculate total doctor and clinic shares
-      const totals = data.reduce(
+      const totals = (data.ClinicRevenueData || []).reduce(
         (totals, record) => {
-          totals.totalDoctorShare += record.totalDoctorShare;
-          totals.totalClinicShare += record.totalClinicShare;
-          totals.totalExpensesAmount += record.totalExpenses
+          totals.totalDoctorShare += record.totalDoctorShare || 0;
+          totals.totalClinicShare += record.totalClinicShare || 0;
+          totals.totalExpensesAmount += record.totalExpenses || 0;
           return totals;
         },
         { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0 }
       );
+
+      const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
+
+      const clinicExpenses = data.ClinicExpensesData.totalClinicAmount || 0;
+
       setClinicTotals(totals);
+      setTotalInventoryAmount(totalInventory);
+      setTotalClinicExpenses(clinicExpenses);
+
+
+      const profit = totals.totalClinicShare - (totalInventory + clinicExpenses);
+      setTotalClinicProfit(profit);
+    }
+
     } catch (err) {
       console.error("Error fetching clinic revenue data:", err);
       setError("Error fetching clinic revenue data. Please try again.");
@@ -259,40 +281,118 @@ const RevenueComponent = () => {
           ) : error ? (
             <div className="text-center text-red-500">{error}</div>
           ) : clinicRevenueData.length > 0 ? (
-            <Table bordered striped hover className="mt-4">
-              <thead>
-                <tr>
-                  <th>Doctor Name</th>
-                  <th>Specialty</th>
-                  <th>Total Revenue</th>
-                  <th>No. of Expenses</th>
-                  <th>Total Expenses Amount</th>
-                  <th>Total Doctor Share</th>
-                  <th>Total Clinic Share</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clinicRevenueData.map((record, index) => (
-                  <tr key={index}>
-                    <td>{record.doctorName}</td>
-                    <td>{record.specialty}</td>
-                    <td>{record.totalRevenue.toFixed(2)}</td>
-                    <td>{record.totalExpensesCount}</td>
-                    <td>{record.totalExpenses}</td>
-                    <td>{record.totalDoctorShare.toFixed(2)}</td>
-                    <td>{record.totalClinicShare.toFixed(2)}</td>
+            <>
+              <Table bordered striped hover className="mt-4">
+                <thead>
+                  <tr>
+                    <th>Doctor Name</th>
+                    <th>Specialty</th>
+                    <th>Total Revenue</th>
+                    <th>No. of Expenses</th>
+                    <th>Total Expenses Amount</th>
+                    <th>Total Doctor Share</th>
+                    <th>Total Clinic Share</th>
                   </tr>
-                ))}
-                <tr className="font-bold">
-                  <td colSpan="4" className="text-right">
-                    Totals:
-                  </td>
-                  <td>{clinicTotals.totalExpensesAmount.toFixed(2)}</td>
-                  <td>{clinicTotals.totalDoctorShare.toFixed(2)}</td>
-                  <td>{clinicTotals.totalClinicShare.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {clinicRevenueData.map((record, index) => (
+                    <tr key={index}>
+                      <td>{record.doctorName}</td>
+                      <td>{record.specialty}</td>
+                      <td>{record.totalRevenue.toFixed(2)}</td>
+                      <td>{record.totalExpensesCount}</td>
+                      <td>{record.totalExpenses}</td>
+                      <td>{record.totalDoctorShare.toFixed(2)}</td>
+                      <td>{record.totalClinicShare.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  <tr className="font-bold">
+                    <td colSpan="4" className="text-right">
+                      Totals:
+                    </td>
+                    <td>{clinicTotals.totalExpensesAmount.toFixed(2)}</td>
+                    <td>{clinicTotals.totalDoctorShare.toFixed(2)}</td>
+                    <td>{clinicTotals.totalClinicShare.toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </Table>
+
+              {InventoryItemsData.length > 0 ? (
+                <>
+                  {/* Invoice Inventory Items Table */}
+                  <Table bordered striped hover className="mt-4">
+                    <thead>
+                      <tr>
+                        <th>Invoice ID</th>
+                        <th>Inventory Item ID</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {InventoryItemsData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.invoiceID}</td>
+                          <td>{item.inventoryItemID}</td>
+                          <td>{item.inventoryItem.name}</td>
+                          <td>{item.quantity}</td>
+                          <td>{item.amount}</td>
+                        </tr>
+                      ))}
+                      <tr className="font-bold">
+                        <td colSpan="4" className="text-right">Total Inventory Amount:</td>
+                        <td>{totalInventoryAmount.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </>
+              ) : (
+                <div>No Inventory Items</div>
+              )}
+
+              {ClinicExpensesData.length > 0 ? (
+                <>
+                  {/* Clinic Expenses Table */}
+                  <Table bordered striped hover className="mt-4">
+                    <thead>
+                      <tr>
+                        <th>Expense ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ClinicExpensesData.map((expense, index) => (
+                        <tr key={index}>
+                          <td>{expense.clinicExpenseID}</td>
+                          <td>{expense.name}</td>
+                          <td>{expense.description}</td>
+                          <td>{expense.amount}</td>
+                          <td>{new Date(expense.date).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                      <tr className="font-bold">
+                        <td colSpan="3" className="text-right">Total Clinic Expenses:</td>
+                        <td>{totalClinicExpenses.toFixed(2)}</td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </>
+              ) : (
+                <div>No Clinic Expenses</div>
+              )}
+
+              {/* Clinic Profit Calculation */}
+              <div className="mt-4">
+                <h4>
+                  Total Clinic Profit: {totalClinicProfit.toFixed(2)}
+                </h4>
+              </div>
+            </>
           ) : (
             <div className="text-center text-gray-500">No data available.</div>
           )}
