@@ -283,15 +283,15 @@ const RegisterPatient = () => {
 
 
 
-    const addProcedureItem = () => {
-        const newItem = { ...newProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID };
+    const addProcedureItem = (finalProcedure) => {
+        const newItem = { ...finalProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID };
 
         setAppointmentData(prev => ({
             ...prev,
             appointment: {
                 ...prev.appointment,
                 ProcedureItems: [...prev.appointment.ProcedureItems, newItem],
-                Amount: prev.appointment.Amount + Number(newProcedure.Amount) // Ensure Amount is treated as a number
+                Amount: prev.appointment.Amount + Number(finalProcedure.Amount) // Ensure Amount is treated as a number
             }
         }));
 

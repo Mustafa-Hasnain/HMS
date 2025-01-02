@@ -20,7 +20,7 @@ const InvoiceDetails = () => {
     const [addloading, setAddLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const [newProcedure, setNewProcedure] = useState({ ProcedureName: "", ProcedureDetail: "", Amount: "", DoctorID: null });
+    const [newProcedure, setNewProcedure] = useState({ ProcedureName: "", ProcedureDetail: "", Amount: "", DoctorID: null, discountPercentage: 0 });
     const [showModal, setShowModal] = useState(false);
     const [showInventoryModal, setShowInventoryModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -128,7 +128,7 @@ const InvoiceDetails = () => {
             catch (error) {
                 console.error("Error fetching doctors:", error);
             }
-        };
+        };  
 
         fetchAppointmentDetails();
         fetchDoctors();
@@ -167,7 +167,7 @@ const InvoiceDetails = () => {
 
             updateRefresh(Math.random() * 3);
             setShowModal(false);
-            setNewProcedure({ ProcedureName: "", ProcedureDetail: "", Amount: "" });
+            setNewProcedure({ ProcedureName: "", ProcedureDetail: "", Amount: "", discountPercentage: 0 });
             toast.success("Procedure Item added Successfully.");
         } catch (error) {
             toast.error("Unable to add procedure item");

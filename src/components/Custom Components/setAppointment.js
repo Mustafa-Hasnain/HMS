@@ -130,13 +130,14 @@ const SetAppointment = () => {
 
 
 
-    const addProcedureItem = () => {
-        const newItem = { ...newProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID};
+    const addProcedureItem = (finalProcedure) => {
+        const newItem = { ...finalProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID};
+        console.log("New Item: ",finalProcedure)
 
         setAppointmentData(prev => ({
             ...prev,
             ProcedureItems: [...prev.ProcedureItems, newItem],
-            Amount: prev.Amount + Number(newProcedure.Amount),
+            Amount: prev.Amount + Number(finalProcedure.Amount),
         }));
 
 
@@ -1086,7 +1087,7 @@ const SetAppointment = () => {
                     handleClose={() => setShowModal(false)}
                     newProcedure={newProcedure}
                     setNewProcedure={setNewProcedure}
-                    onAddProcedure={addProcedureItem}
+                    onAddProcedure={(finalProcedure) => addProcedureItem(finalProcedure)}
                     doctors={doctors}
                     selectedDoctor={selectedDoctor}
                     setSelectedDoctor={setSelectedDoctor}

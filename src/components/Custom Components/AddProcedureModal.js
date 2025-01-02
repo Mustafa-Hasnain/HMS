@@ -20,14 +20,14 @@ const AddProcedureModal = ({
     const [isValid, setIsValid] = useState(false);
     const [selectedService, setSelectedService] = useState(null); // For Doctors Tab
 
-        // Initial state values
-        const initialProcedureState = {
-            ProcedureName: "",
-            Amount: "",
-            ProcedureDetail: "",
-            DoctorID: null,
-        };
-    
+    // Initial state values
+    const initialProcedureState = {
+        ProcedureName: "",
+        Amount: "",
+        ProcedureDetail: "",
+        DoctorID: null,
+    };
+
 
     const resetState = () => {
         setNewProcedure(initialProcedureState);
@@ -69,11 +69,25 @@ const AddProcedureModal = ({
         setNewProcedure(prev => ({ ...prev, DoctorID: null }));
     };
 
+    const handleDiscountedAmountChange = (e) => {
+        let value = parseFloat(e.target.value) || 0;
+
+        // Ensure discountedAmount does not exceed the original amount
+        value = Math.min(value, newProcedure.Amount).toFixed(0);
+        setDiscountedAmount(value);
+
+        // Recalculate discount percentage
+        if (newProcedure.Amount) {
+            const percentage = ((newProcedure.Amount - value) / newProcedure.Amount) * 100;
+            setDiscountPercentage(percentage.toFixed(2));
+        }
+    };
+
     useEffect(() => {
         if (isDiscounted && discountPercentage > 0 && newProcedure.Amount) {
             const discount = (newProcedure.Amount * discountPercentage) / 100;
             const newAmount = newProcedure.Amount - discount;
-            setDiscountedAmount(newAmount);
+            setDiscountedAmount(newAmount.toFixed(0));
         } else {
             setDiscountedAmount(newProcedure.Amount);
         }
@@ -84,8 +98,10 @@ const AddProcedureModal = ({
         const procedurePayload = {
             ...newProcedure,
             Amount: finalAmount,
-            DoctorID: selectedDoctor ? selectedDoctor?.doctorID : null
+            DoctorID: selectedDoctor ? selectedDoctor?.doctorID : null,
+            discountPercentage: discountPercentage || 0
         };
+        
         console.log("Procedure Payload: ", procedurePayload);
         onAddProcedure(procedurePayload);
         resetState();
@@ -179,6 +195,7 @@ const AddProcedureModal = ({
                                                 onChange={handleChange}
                                                 placeholder="Procedure Name"
                                                 disabled={!selectedService}
+                                                readOnly
                                                 required
                                             />
                                         </Form.Group>
@@ -193,6 +210,7 @@ const AddProcedureModal = ({
                                                 onChange={handleChange}
                                                 placeholder="Enter amount"
                                                 disabled={!selectedService}
+                                                readOnly
                                                 required
                                             />
                                         </Form.Group>
@@ -208,6 +226,7 @@ const AddProcedureModal = ({
                                         onChange={handleChange}
                                         placeholder="Procedure detail"
                                         disabled={!selectedService}
+                                        readOnly
                                     />
                                 </Form.Group>
 
@@ -241,7 +260,8 @@ const AddProcedureModal = ({
                                                 <Form.Control
                                                     type="number"
                                                     value={discountedAmount}
-                                                    readOnly
+                                                    onChange={handleDiscountedAmountChange}
+                                                    placeholder="Enter discounted amount"
                                                 />
                                             </Form.Group>
                                         </Col>
