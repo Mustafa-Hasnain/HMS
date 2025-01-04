@@ -862,6 +862,7 @@ const InvoiceDetails = () => {
                                 <th>Procedure Detail</th>
                                 <th>Doctor</th>
                                 <th>Amount</th>
+                                <th>Discount (%)</th>
                                 <th>Paid</th>
                             </tr>
                         </thead>
@@ -874,6 +875,7 @@ const InvoiceDetails = () => {
                                         <td>{item.procedureDetail || 'N/A'}</td>
                                         <td className="text-center">{item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
                                         <td>{item.amount}</td>
+                                        <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
                                         <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : "Paid"}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => deleteProcedureItem(invoice.invoiceID, item.procedureItemID)}

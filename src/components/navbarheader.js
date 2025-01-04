@@ -37,7 +37,7 @@ function NavbarHeader() {
   };
 
   return (
-    <div className="bg-white text-white p-4 flex items-center justify-between fixed top-0 left-64 right-0 z-40 border-b border-[rgba(4, 57, 79, 0.3)]">
+    <div className="bg-white text-white p-4 flex items-center justify-between fixed top-0 left-48 right-0 z-40 border-b border-[rgba(4, 57, 79, 0.3)]">
       <div className='flex flex-row w-[100%] justify-end '>
 
         {/* <Form  className="d-none d-md-flex mx-4 w-[40%]">

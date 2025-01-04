@@ -73,12 +73,12 @@ const Dashboard = () => {
     //     newWindow.print();
     // };
 
-    const printRef = useRef();
+        const printRef = useRef();
 
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current,
-        documentTitle: 'Invoice Details'
-    });
+        const handlePrint = useReactToPrint({
+            content: () => printRef.current,
+            documentTitle: 'Invoice Details'
+        });
 
     const handleFilterByDoctor = (doctorName) => {
         setDoctorFilter(doctorName); // Update the dropdown title

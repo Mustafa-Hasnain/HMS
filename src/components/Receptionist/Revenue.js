@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Tabs, Tab, Spinner, Table, Form, Button } from "react-bootstrap";
 import { network_url } from "../Network/networkConfig";
+import { useReactToPrint } from "react-to-print";
+import "../../styles/revenue.css";
 
 const RevenueComponent = () => {
   const [key, setKey] = useState("doctor");
   const [doctors, setDoctors] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [revenueData, setRevenueData] = useState([]);
@@ -26,6 +28,9 @@ const RevenueComponent = () => {
   const [totalInventoryAmount, setTotalInventoryAmount] = useState(0);
   const [totalClinicExpenses, setTotalClinicExpenses] = useState(0);
   const [totalClinicProfit, setTotalClinicProfit] = useState(0);
+  const [printSelectedDoctor, setSelectedPrintDoctor] = useState(null);
+  const [selectedPrintFromDate, setSelectedPrintFromDate] = useState(null);
+  const [selectedPrintToDate, setSelectedPrintToDate] = useState(null);
 
 
 
@@ -57,8 +62,11 @@ const RevenueComponent = () => {
     try {
       setLoading(true);
       setError(null);
+      setSelectedPrintDoctor(selectedDoctor);
+      setSelectedPrintFromDate(fromDate);
+      setSelectedPrintToDate(toDate);
       const response = await fetch(
-        `${network_url}/api/Receptionist/DoctorRevenue?doctorID=${selectedDoctor}&fromDate=${fromDate}&toDate=${toDate}`
+        `${network_url}/api/Receptionist/DoctorRevenue?doctorID=${selectedDoctor?.doctorID}&fromDate=${fromDate}&toDate=${toDate}`
       );
       if (!response.ok) throw new Error("No revenue data found.");
       const data = await response.json();
@@ -89,37 +97,39 @@ const RevenueComponent = () => {
     try {
       setLoading(true);
       setError(null);
+      setSelectedPrintFromDate(fromDate);
+      setSelectedPrintToDate(toDate);
       const response = await fetch(`${network_url}/api/Receptionist/ClinicRevenue?fromDate=${fromDate}&toDate=${toDate}`);
       if (!response.ok) throw new Error("Failed to fetch clinic revenue data.");
       const data = await response.json();
-      if(data){
-      console.log("Clinic Revenue Data: ", data);
-      setClinicRevenueData(data.ClinicRevenueData);
-      setClinicExpensesData(data.ClinicExpensesData.clinicExpensesList);
-      setInventoryItemsData(data.InventoryItemsData.totalInventoryItems);
-      // Calculate total doctor and clinic shares
-      const totals = (data.ClinicRevenueData || []).reduce(
-        (totals, record) => {
-          totals.totalDoctorShare += record.totalDoctorShare || 0;
-          totals.totalClinicShare += record.totalClinicShare || 0;
-          totals.totalExpensesAmount += record.totalExpenses || 0;
-          return totals;
-        },
-        { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0 }
-      );
+      if (data) {
+        console.log("Clinic Revenue Data: ", data);
+        setClinicRevenueData(data.ClinicRevenueData);
+        setClinicExpensesData(data.ClinicExpensesData.clinicExpensesList);
+        setInventoryItemsData(data.InventoryItemsData.totalInventoryItems);
+        // Calculate total doctor and clinic shares
+        const totals = (data.ClinicRevenueData || []).reduce(
+          (totals, record) => {
+            totals.totalDoctorShare += record.totalDoctorShare || 0;
+            totals.totalClinicShare += record.totalClinicShare || 0;
+            totals.totalExpensesAmount += record.totalExpenses || 0;
+            return totals;
+          },
+          { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0 }
+        );
 
-      const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
+        const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
 
-      const clinicExpenses = data.ClinicExpensesData.totalClinicAmount || 0;
+        const clinicExpenses = data.ClinicExpensesData.totalClinicAmount || 0;
 
-      setClinicTotals(totals);
-      setTotalInventoryAmount(totalInventory);
-      setTotalClinicExpenses(clinicExpenses);
+        setClinicTotals(totals);
+        setTotalInventoryAmount(totalInventory);
+        setTotalClinicExpenses(clinicExpenses);
 
 
-      const profit = totals.totalClinicShare - (totalInventory + clinicExpenses);
-      setTotalClinicProfit(profit);
-    }
+        const profit = totals.totalClinicShare - (totalInventory + clinicExpenses);
+        setTotalClinicProfit(profit);
+      }
 
     } catch (err) {
       console.error("Error fetching clinic revenue data:", err);
@@ -136,8 +146,23 @@ const RevenueComponent = () => {
     // }
   }, []);
 
+  const printDoctorRevenueRef = useRef();
+
+  const handlePrintDoctorRevenue = useReactToPrint({
+    content: () => printDoctorRevenueRef.current,
+    documentTitle: 'Doctor Revenue Details',
+  });
+
+
+  const printClinicRevenueRef = useRef();
+
+  const handlePrintClinicRevenue = useReactToPrint({
+    content: () => printClinicRevenueRef.current,
+    documentTitle: 'Clinic Revenue Details',
+  });
+
   return (
-    <div className="w-full p-2">
+    <div>
       <Tabs
         id="revenue-tabs"
         activeKey={key}
@@ -145,13 +170,13 @@ const RevenueComponent = () => {
         className="mb-3"
       >
         <Tab eventKey="doctor" title="Doctor Revenue">
-          <div className="mx-auto mb-4">
+          <div className="mb-4 max-w-[175vh]">
             <Form className="mb-4">
               <Form.Group controlId="doctorSelect" className="mb-3">
                 <Form.Label>Select Doctor</Form.Label>
                 <Form.Select
-                  value={selectedDoctor}
-                  onChange={(e) => setSelectedDoctor(e.target.value)}
+                  value={selectedDoctor?.doctorID}
+                  onChange={(e) => setSelectedDoctor(doctors.find(doc => doc.doctorID === parseInt(e.target.value)))}
                 >
                   <option value="">-- Select Doctor --</option>
                   {doctors.map((doctor) => (
@@ -177,9 +202,14 @@ const RevenueComponent = () => {
                   onChange={(e) => setToDate(e.target.value)}
                 />
               </Form.Group>
-              <Button variant="primary" onClick={fetchRevenueData}>
-                Submit
-              </Button>
+              <div className="flex justify-between align-middle">
+                <Button variant="primary" onClick={fetchRevenueData}>
+                  Submit
+                </Button>
+                <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handlePrintDoctorRevenue}>
+                  Print
+                </Button>
+              </div>
             </Form>
 
             {loading ? (
@@ -191,14 +221,25 @@ const RevenueComponent = () => {
             ) : error ? (
               <div className="text-center text-red-500">{error}</div>
             ) : revenueData.length > 0 ? (
-              <div>
-                <Table bordered striped hover className="mt-4">
+
+              <div ref={printDoctorRevenueRef}>
+                {revenueData.length > 0 && (
+                  <div className="print-header text-center mb-4">
+                    <h2>{`Doctor '${printSelectedDoctor?.firstName} ${printSelectedDoctor?.lastName}' Revenue Report`}</h2>
+                    <p>
+                      Revenue data from{' '}
+                      <strong>{selectedPrintFromDate}</strong> to <strong>{selectedPrintToDate}</strong>
+                    </p>
+                  </div>
+                )}
+                <Table bordered striped hover responsive className="mt-4">
                   <thead>
                     <tr>
                       <th>Dated</th>
                       <th>Invoice ID</th>
                       <th>Client Name</th>
                       <th>Amount</th>
+                      <th>Discount(%)</th>
                       <th>Payment Method</th>
                       <th>Deduction</th>
                       <th>Gross After Tax</th>
@@ -217,6 +258,7 @@ const RevenueComponent = () => {
                         <td>{record?.invoice_id}</td>
                         <td>{record.clientName}</td>
                         <td>{record.amount.toFixed(2)}</td>
+                        <td>{record?.discountedPercentage ?? "N/A"}</td>
                         <td>{record.paymentMethod}</td>
                         <td>{record.deduction.toFixed(2)}</td>
                         <td>{record.grossAfterTax.toFixed(2)}</td>
@@ -235,6 +277,7 @@ const RevenueComponent = () => {
                       <td>{totalAmount.toFixed(2)}</td>
                       <td colSpan="2"></td>
                       <td>{totalGrossAfterTax.toFixed(2)}</td>
+                      <td></td>
                       <td></td>
                       <td></td>
                       <td>{totalNetAmountForSharing.toFixed(2)}</td>
@@ -267,9 +310,14 @@ const RevenueComponent = () => {
                 onChange={(e) => setToDate(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" onClick={fetchClinicRevenueData}>
-              Submit
-            </Button>
+            <div className="flex justify-between align-middle">
+              <Button variant="primary" onClick={fetchClinicRevenueData}>
+                Submit
+              </Button>
+              <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handlePrintClinicRevenue}>
+                Print
+              </Button>
+            </div>
           </Form>
 
           {loading ? (
@@ -281,7 +329,16 @@ const RevenueComponent = () => {
           ) : error ? (
             <div className="text-center text-red-500">{error}</div>
           ) : clinicRevenueData.length > 0 ? (
-            <>
+            <div ref={printClinicRevenueRef}>
+              {clinicRevenueData.length > 0 && (
+                <div className="print-header text-center mb-4">
+                  <h2>Clinic Revenue Report</h2>
+                  <p>
+                    Clinic Revenue data from{' '}
+                    <strong>{selectedPrintFromDate}</strong> to <strong>{selectedPrintToDate}</strong>
+                  </p>
+                </div>
+              )}
               <Table bordered striped hover className="mt-4">
                 <thead>
                   <tr>
@@ -392,7 +449,7 @@ const RevenueComponent = () => {
                   Total Clinic Profit: {totalClinicProfit.toFixed(2)}
                 </h4>
               </div>
-            </>
+            </div>
           ) : (
             <div className="text-center text-gray-500">No data available.</div>
           )}

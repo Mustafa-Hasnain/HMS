@@ -48,7 +48,7 @@ function Sidebar() {
   // );
 
   return (
-    <div className="fixed top-0 left-0 h-full bg-[#FFFFFF] text-black w-64 flex flex-col border-[1px] border-solid border-[rgba(4, 57, 79, 0.3)]">
+    <div className="fixed top-0 left-0 h-full bg-[#FFFFFF] text-black w-48 flex flex-col border-[1px] border-solid border-[rgba(4, 57, 79, 0.3)]">
       {/* Main Logo Section */}
       <div className="p-4 border-b border-[rgba(4, 57, 79, 0.3)] flex items-center justify-center">
         <img src={Logo} alt='Logo' className='opacity-100' />

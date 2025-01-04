@@ -8,9 +8,9 @@ function ReceptionistDashboardLayout() {
   return (
     <div className="dashboard-container flex">
       <Sidebar />
-      <div className="main-content flex-1 ml-64 mt-16">
+      <div className="main-content flex-1 ml-48 mt-16">
         <NavbarHeader />
-        <div className="p-4">
+        <div className="p-6">
           <Outlet /> {/* This is where the receptionist-specific routes will be rendered */}
         </div>
       </div>
