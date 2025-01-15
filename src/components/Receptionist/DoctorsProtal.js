@@ -130,7 +130,7 @@ const DoctorPortal = () => {
             </button>
             <div className="flex gap-3">
               <h1 className="text-2xl font-bold">Doctors</h1>
-              <h1 className="text-2xl font-bold">({currentDoctors.length})</h1>
+              <h1 className="text-2xl font-bold">({doctors?.length})</h1>
             </div>
           </div>
           <Button onClick={() => navigate('/receptionist/add-doctor')} variant="success">

@@ -16,7 +16,7 @@ function Sidebar_Doctor() {
   };
 
   return (
-    <div className="fixed top-0 left-0 h-full bg-[#FFFFFF] w-64 flex flex-col border-[1px] border-solid border-[rgba(4, 57, 79, 0.3)]">
+    <div className="fixed top-0 left-0 h-full bg-[#FFFFFF] text-black w-48 flex flex-col border-[1px] border-solid border-[rgba(4, 57, 79, 0.3)]">
       <div className="p-4 border-b border-[rgba(4, 57, 79, 0.3)] flex items-center justify-center">
         <img src={Logo} alt='Logo' className=' opacity-100' />
       </div>
@@ -27,7 +27,9 @@ function Sidebar_Doctor() {
           { label: 'Prescriptions', path: '/doctor/prescriptions', icon: <FaFileMedical /> },
           // { label: 'Set Appointment', path: '/doctor/set-appointment', icon: <FaClipboardList /> },
           { label: 'Schedules', path: '/doctor/schedules', icon: <FaClock /> },
+          { label: 'Services', path: '/doctor/services', icon: <FaClock /> },
           { label: 'Revenue', path: '/doctor/revenue', icon: <FaDollarSign /> },
+          { label: 'Profile', path: '/doctor/profile', icon: <FaDollarSign /> },
         ].map((item) => (
           <button
             key={item.path}

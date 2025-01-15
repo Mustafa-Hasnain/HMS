@@ -77,7 +77,7 @@ const Dashboard = () => {
 
         const handlePrint = useReactToPrint({
             content: () => printRef.current,
-            documentTitle: 'Invoice Details'
+            documentTitle: 'Todays Appointments'
         });
 
     const handleFilterByDoctor = (doctorName) => {

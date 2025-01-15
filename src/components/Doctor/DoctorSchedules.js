@@ -77,7 +77,6 @@ const DoctorSchedule = () => {
 
     return (
         <div className="pt-4">
-            <ToastContainer />
             <div className="flex gap-3 mb-4">
                 {/* <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />

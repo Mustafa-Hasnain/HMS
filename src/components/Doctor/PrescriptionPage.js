@@ -5,6 +5,7 @@ import axios from 'axios';
 import PrescriptionModal from './PrescriptionModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
+import "../../styles/custom_checkbox.css";
 
 const PrescriptionPage = () => {
     const { patientId, appointmentId } = useParams();
@@ -18,23 +19,31 @@ const PrescriptionPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [prescriptionDetails, setPrescriptionDetails] = useState(null);
     const navigate = useNavigate();
-    const doctorId = JSON.parse(localStorage.getItem('doctor')).doctorID;
     const [patientDetails, setPatientDetails] = useState(null);
-    const consultationFee = JSON.parse(localStorage.getItem('doctor')).consultationFee;
-    const [examination, setExamination] = useState('');
     const [medication, setMedication] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [isConsultation, setIsConsultation] = useState(false);
+    const [isProcedure, setIsProcedure] = useState(false);
+    const [examination, setExamination] = useState("");
+    const [labExam, setLabExam] = useState("");
+    const [followUp, setFollowUp] = useState("");
+    const [prescriptionNotes, setPrescriptionNotes] = useState("");
+    const [procedureDetails, setProcedureDetails] = useState("");
+
+    const doctor = JSON.parse(localStorage.getItem('doctor'));
+    const doctorId = doctor.doctorID;
+    const consultationFee = doctor.consultationFee;
 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const inventoryResponse = await axios.get(`${network_url}/api/Inventory`);
-                const servicesResponse = await axios.get(`${network_url}/api/Doctor/Get-service/${doctorId}`);
+                // const inventoryResponse = await axios.get(`${network_url}/api/Inventory`);
+                // const servicesResponse = await axios.get(`${network_url}/api/Doctor/Get-service/${doctorId}`);
                 const patientResponse = await fetchPatientDetails(appointmentId, patientId);
-                setInventoryItems(inventoryResponse.data);
-                console.log("Inventory Items Data: ", inventoryResponse.data)
-                setDoctorServices(servicesResponse.data);
+                // setInventoryItems(inventoryResponse.data);
+                // setDoctorServices(servicesResponse.data);
                 setPatientDetails(patientResponse);
                 setIsLoading(false);
             } catch (error) {
@@ -153,20 +162,33 @@ const PrescriptionPage = () => {
     //     }
     // };
 
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!isConsultation && !isProcedure) {
+            toast.error("Please select at least one option: Consultation or Procedure.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         const payload = {
             patientID: parseInt(patientId),
             doctorID: doctorId,
-            appointmentID: parseInt(appointmentId),
-            examination: examination,
-            medication: medication,
+            invoiceID: parseInt(appointmentId),
+            isForConsultation: isConsultation,
+            isForProcedure: isProcedure,
+            examination,
+            labExam: isConsultation || isProcedure ? labExam : '',
+            prescriptionNotes: isConsultation ? prescriptionNotes : '',
+            procedureDetails: isProcedure ? procedureDetails : '',
+            followUp: isProcedure ? followUp : ''
         };
 
         try {
-            await axios.post(`${network_url}/api/Prescription/save`, payload);
+            await axios.post(`${network_url}/api/Prescription/create-prescription`, payload);
             toast.success('Prescription created successfully!');
 
             // Set the prescription details from state variables to display in the modal
@@ -185,31 +207,34 @@ const PrescriptionPage = () => {
                     gender: patientDetails.patientDetails.gender,
                     medicalHistory: patientDetails.patientDetails.medicalHistory,
                 },
-                examination: examination,
-                medication: medication,
+                examination,
+                isForConsultation: isConsultation,
+                isForProcedure: isProcedure,
+                labExam: isConsultation || isProcedure ? labExam : '',
+                prescriptionNotes: isConsultation ? prescriptionNotes : '',
+                procedureDetails: isProcedure ? procedureDetails : ''
             };
 
-            setPrescriptionDetails(prescriptionDetails); // Use the constructed prescription details
+            setPrescriptionDetails(prescriptionDetails);
             console.log("Prescription Details: ", prescriptionDetails)
             setShowModal(true); // Show the modal after successful submission
 
-            // Optionally, you can navigate to another page if needed
-            // navigate('/doctor/prescriptions');
         } catch (error) {
-            toast.error('Error submitting prescription!');
+            console.error("Error submitting prescription:", error);
+            toast.error("Error submitting prescription!");
         } finally {
             setIsSubmitting(false);
         }
     };
 
 
-    if (isLoading) return <Spinner animation="border" />;
+    if (isLoading) return <Spinner className='mt-4' animation="border" />;
 
     return (
         <Container>
             <ToastContainer />
 
-            <h2 className="text-2xl font-bold mb-4">Create Prescription</h2>
+            <h2 className="text-2xl font-bold mb-4 pt-2">Create Prescription</h2>
             {patientDetails && (
                 <div className="bg-[#F8F8F8] grid grid-cols-1 md:grid-cols-3 gap-4 p-6 mt-4 rounded-md">
                     <div className="patientDetails">
@@ -403,8 +428,29 @@ const PrescriptionPage = () => {
                 <Button variant="primary" type="submit" className="mt-4">Submit Prescription</Button>
             </Form> */}
 
-            <Form onSubmit={handleSubmit} className='mt-4'>
-                {/* Examination TextArea */}
+            <Form onSubmit={handleSubmit} className="mt-4">
+                <div className="mb-4 flex justify-center gap-10">
+                    <Form.Check
+                        type="checkbox"
+                        id="isConsultation"
+                        label="Consultation"
+                        checked={isConsultation}
+                        onChange={() => setIsConsultation(!isConsultation)}
+                        className="custom-checkbox"
+
+                    />
+                    <Form.Check
+                        type="checkbox"
+                        id="isProcedure"
+                        label="Procedure"
+                        checked={isProcedure}
+                        onChange={() => setIsProcedure(!isProcedure)}
+                        className="custom-checkbox"
+
+                    />
+                </div>
+
+                {/* Common Examination TextArea */}
                 <Form.Group controlId="examination" className="mb-4">
                     <Form.Label>Examination</Form.Label>
                     <Form.Control
@@ -417,20 +463,70 @@ const PrescriptionPage = () => {
                     />
                 </Form.Group>
 
-                {/* Medication TextArea */}
-                <Form.Group controlId="medication" className="mb-4">
-                    <Form.Label>Medication</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        value={medication}
-                        onChange={(e) => setMedication(e.target.value)}
-                        placeholder="Enter medication details..."
-                        className="border rounded-md"
-                    />
-                </Form.Group>
+                {/* Conditional Rendering Based on Selection */}
+                {isConsultation && (
+                    <>
+                        <Form.Group controlId="labExam" className="mb-4">
+                            <Form.Label>Lab Exam</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={labExam}
+                                onChange={(e) => setLabExam(e.target.value)}
+                                placeholder="Enter lab exam details..."
+                                className="border rounded-md"
+                            />
+                        </Form.Group>
 
-                <Button variant="outline-success" className="mt-2 border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white" type="submit" disabled={isSubmitting}>
+                        <Form.Group controlId="prescriptionNotes" className="mb-4">
+                            <Form.Label>Prescription Notes</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={prescriptionNotes}
+                                onChange={(e) => setPrescriptionNotes(e.target.value)}
+                                placeholder="Enter prescription notes..."
+                                className="border rounded-md"
+                            />
+                        </Form.Group>
+                    </>
+                )}
+
+                {isProcedure && (
+                    <>
+
+                        <Form.Group controlId="procedureDetails" className="mb-4">
+                            <Form.Label>Procedure Details</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={procedureDetails}
+                                onChange={(e) => setProcedureDetails(e.target.value)}
+                                placeholder="Enter procedure details..."
+                                className="border rounded-md"
+                            />
+                        </Form.Group>
+
+                        <Form.Group controlId="procedureLabExam" className="mb-4">
+                            <Form.Label>Follow Up</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={followUp}
+                                onChange={(e) => setFollowUp(e.target.value)}
+                                placeholder="Enter Follow up details..."
+                                className="border rounded-md"
+                            />
+                        </Form.Group>
+                    </>
+                )}
+
+                <Button
+                    variant="outline-success"
+                    className="mt-2 border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white"
+                    type="submit"
+                    disabled={isSubmitting || !isConsultation & !isProcedure}
+                >
                     {isSubmitting ? (
                         <>
                             <Spinner animation="border" size="sm" /> Submitting...

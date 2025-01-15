@@ -1,0 +1,20 @@
+.custom-checkbox .form-check-input {
+    width: 24px; /* Adjust size as needed */
+    height: 24px; /* Adjust size as needed */
+    border: 2px solid black; /* Black border */
+    border-radius: 4px; /* Optional: Rounded corners */
+    cursor: pointer;
+    outline: none;
+    margin-right: 8px; /* Space between checkbox and label */
+}
+
+.custom-checkbox .form-check-input:checked {
+    background-color: black; /* Black fill when checked */
+    border-color: black;
+}
+
+.custom-checkbox .form-check-label {
+    font-size: 1.2rem; /* Adjust label size */
+    font-weight: bold;
+    cursor: pointer;
+}

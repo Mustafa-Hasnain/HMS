@@ -1,6 +1,7 @@
 import React from 'react';
 import Logo from "../../assets/Logo Green.png";
 import { Col, Row } from 'react-bootstrap';
+import "../../styles/print_table.css"
 
 // Function to calculate the patient's age
 const calculateAge = (dob) => {

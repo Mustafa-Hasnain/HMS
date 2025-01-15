@@ -89,7 +89,7 @@ const DoctorDashboard = () => {
                 <Col md={4} className="mb-3">
                     <InfoCard
                         count={loading ? <Spinner animation="border" /> : data?.totalUpcomingAppointments}
-                        title="Upcoming Appointments"
+                        title="Today's Appointments"
                         textColor="#04394F"
                         svgIcon={docs_svg}
                         svgBgColor="#4B70F5"
@@ -133,7 +133,8 @@ const DoctorDashboard = () => {
                                     </thead>
                                     <tbody>
                                         {appointments.map(appointment => {
-                                            const { start, end, day } = formatTime(appointment.appointmentTime, appointment.doctor.slotDuration);
+                                            const slotDuration = appointment.doctor.schedules.find(schedule => schedule.dayOfWeek === new Date(appointment.appointmentDate).toLocaleString('en-US', { weekday: 'long' }))?.slotDuration || 30;
+                                            const { start, end, day } = formatTime(appointment.appointmentTime, slotDuration);
                                             return (
                                                 <tr key={appointment.appointmentID}>
                                                     <td>{appointment.patient.firstName}</td>
@@ -144,27 +145,7 @@ const DoctorDashboard = () => {
                                                         </Button>
                                                     </td>
                                                     <td>
-                                                        <Menu as="div" className="relative inline-block text-left">
-                                                            <Menu.Button>
-                                                                <FaEllipsisV />
-                                                            </Menu.Button>
-
-                                                            <Menu.Items className="origin-top-right absolute right-3 bottom-[-10px] mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                                                <div className="py-1 Barlow">
-                                                                    <Menu.Item>
-                                                                        {({ active }) => (
-                                                                            <a
-                                                                                href="#"
-                                                                                onClick={()=>(navigate("/doctor/appointments"))}
-                                                                                className={`block px-4 py-2 !no-underline text-xs ${active ? 'bg-gray-100' : ''}`}
-                                                                            >
-                                                                                View Details
-                                                                            </a>
-                                                                        )}
-                                                                    </Menu.Item>
-                                                                </div>
-                                                            </Menu.Items>
-                                                        </Menu>
+                                                        <Button onClick={()=>(navigate(`/doctor/invoice-details/${appointment.appointmentID}`))} variant="outline-success">View Details</Button>
                                                     </td>
                                                 </tr>
                                             );

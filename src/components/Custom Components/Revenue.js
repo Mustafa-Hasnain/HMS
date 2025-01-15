@@ -3,6 +3,7 @@ import { Tabs, Tab, Spinner, Table, Form, Button } from "react-bootstrap";
 import { network_url } from "../Network/networkConfig";
 import { useReactToPrint } from "react-to-print";
 import "../../styles/revenue.css";
+import { useLocation } from "react-router-dom";
 
 const RevenueComponent = () => {
   const [key, setKey] = useState("doctor");
@@ -31,6 +32,23 @@ const RevenueComponent = () => {
   const [printSelectedDoctor, setSelectedPrintDoctor] = useState(null);
   const [selectedPrintFromDate, setSelectedPrintFromDate] = useState(null);
   const [selectedPrintToDate, setSelectedPrintToDate] = useState(null);
+
+  const location = useLocation();
+  const [isDoctor, setIsDoctor] = useState(false);
+  const [isReceptionist, setIsReceptionist] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname.includes('/doctor/')) {
+      setIsDoctor(true);
+      const doctorData = JSON.parse(localStorage.getItem('doctor'));
+      setSelectedDoctor(doctors.find(doc => doc.doctorID === doctorData.doctorID))
+    } else if (location.pathname.includes('/receptionist/')) {
+      setIsReceptionist(true);
+    } else {
+      setIsDoctor(false)
+      setIsReceptionist(false);
+    }
+  }, [location.pathname, doctors]);
 
 
 
@@ -177,6 +195,7 @@ const RevenueComponent = () => {
                 <Form.Select
                   value={selectedDoctor?.doctorID}
                   onChange={(e) => setSelectedDoctor(doctors.find(doc => doc.doctorID === parseInt(e.target.value)))}
+                  disabled={isDoctor}
                 >
                   <option value="">-- Select Doctor --</option>
                   {doctors.map((doctor) => (
@@ -292,7 +311,8 @@ const RevenueComponent = () => {
             )}
           </div>
         </Tab>
-        <Tab eventKey="clinic" title="Clinic Revenue">
+
+        {isReceptionist && <Tab eventKey="clinic" title="Clinic Revenue">
           <Form>
             <Form.Group controlId="fromDate" className="mb-3">
               <Form.Label>From Date</Form.Label>
@@ -453,7 +473,7 @@ const RevenueComponent = () => {
           ) : (
             <div className="text-center text-gray-500">No data available.</div>
           )}
-        </Tab>
+        </Tab>}
       </Tabs>
     </div>
   );

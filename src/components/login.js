@@ -11,7 +11,7 @@ import { network_url } from './Network/networkConfig';
 
 
 function Login() {
-  const [phone_no, setPhone] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -26,11 +26,11 @@ function Login() {
     setErrors({});
     setGlobalError('');
 
-    const payload = { mobileNumber: phone_no };
+    const payload = { username: username, password: password };
 
     // Simple validation
     let validationErrors = {};
-    if (!phone_no) validationErrors.phone_no = 'Phone number is required';
+    if (!username) validationErrors.username = 'Phone number is required';
     if (!password) validationErrors.password = 'Password is required';
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -39,11 +39,11 @@ function Login() {
     }
 
     // Hardcoded login logic for now
-    if (phone_no === 'admin' && password === 'admin') {
+    if (username === 'admin' && password === 'admin') {
       const userData = { role: 'receptionist', token: 'fake-token' };
       login(userData);
       navigate('/receptionist/upcoming-doctor-appointments');
-    } else if (phone_no && password === 'doctor') {
+    } else if (username && password) {
       try {
         const response = await fetch(`${network_url}/api/Doctor/Doctor-Login`, {
           method: "POST",
@@ -103,15 +103,15 @@ function Login() {
 
             {/* Phone Number Input */}
             <Form.Group className="mt-2" controlId="formPhoneNumber">
-              <Form.Label>Phone Number</Form.Label>
+              <Form.Label>User Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter phone number"
-                value={phone_no}
-                onChange={(e) => setPhone(e.target.value)}
-                isInvalid={!!errors.phone_no}
+                placeholder="Enter Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                isInvalid={!!errors.username}
               />
-              {errors.phone_no && <Form.Control.Feedback type="invalid">{errors.phone_no}</Form.Control.Feedback>}
+              {errors.username && <Form.Control.Feedback type="invalid">{errors.username}</Form.Control.Feedback>}
             </Form.Group>
 
             {/* Password Input with Visibility Toggle */}
@@ -129,7 +129,7 @@ function Login() {
                 />
                 <InputGroup.Text
                   onClick={() => setShowPassword(!showPassword)}
-                  className="cursor-pointer absolute !bg-transparent !border-0 right-0 top-2 z-50"
+                  className="cursor-pointer absolute !bg-transparent !border-0 right-0 top-1 z-50"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </InputGroup.Text>

@@ -8,7 +8,7 @@ function DoctorDashboardLayout() {
   return (
     <div className="flex">
       <Sidebar_Doctor />
-      <div className="flex-1 ml-64 mt-16">
+      <div className="main-content flex-1 ml-48 mt-16">
         <NavbarHeader />
         <div className="p-4">
           <Outlet /> {/* This is where the doctor-specific routes will be rendered */}

@@ -479,33 +479,32 @@ const RegisterPatient = () => {
             errors.MobileNumber = 'Mobile Number must be exactly 11 digits';
         }
 
-        // Validation for Identification based on type
-        const idType = appointmentData.patient.Identification_Type;
-        const idValue = appointmentData.patient.Cnic;
+        // const idType = appointmentData.patient.Identification_Type;
+        // const idValue = appointmentData.patient.Cnic;
 
-        if (!idValue) {
-            errors.Cnic = `${idType} is required`;
-        } else {
-            switch (idType) {
-                case 'CNIC':
-                    if (!/^\d{13}$/.test(idValue)) {
-                        errors.Cnic = 'CNIC must be exactly 13 digits';
-                    }
-                    break;
-                case 'SSN':
-                    if (!/^\d{3}-\d{2}-\d{4}$/.test(idValue)) {
-                        errors.Cnic = 'SSN must follow the format XXX-XX-XXXX';
-                    }
-                    break;
-                case 'LicenseNo':
-                    if (!/^[a-zA-Z0-9]{5,20}$/.test(idValue)) {
-                        errors.Cnic = 'License No must be alphanumeric and between 5-20 characters';
-                    }
-                    break;
-                default:
-                    errors.Cnic = 'Invalid Identification Type';
-            }
-        }
+        // if (!idValue) {
+        //     errors.Cnic = `${idType} is required`;
+        // } else {
+        //     switch (idType) {
+        //         case 'CNIC':
+        //             if (!/^\d{13}$/.test(idValue)) {
+        //                 errors.Cnic = 'CNIC must be exactly 13 digits';
+        //             }
+        //             break;
+        //         case 'SSN':
+        //             if (!/^\d{3}-\d{2}-\d{4}$/.test(idValue)) {
+        //                 errors.Cnic = 'SSN must follow the format XXX-XX-XXXX';
+        //             }
+        //             break;
+        //         case 'LicenseNo':
+        //             if (!/^[a-zA-Z0-9]{5,20}$/.test(idValue)) {
+        //                 errors.Cnic = 'License No must be alphanumeric and between 5-20 characters';
+        //             }
+        //             break;
+        //         default:
+        //             errors.Cnic = 'Invalid Identification Type';
+        //     }
+        // }
 
         if (!appointmentData.patient.Gender) errors.Gender = 'Please select the Gender';
         if (!appointmentData.patient.DateOfBirth) errors.DateOfBirth = 'Date of Birth is required';

@@ -27,7 +27,7 @@ function AddDoctor() {
     const availabilityRef = useRef(null);
     const consultationFeeRef = useRef(null);
     const joinedDateRef = useRef(null);
-    const username = useRef(null);
+    const usernameRef = useRef(null);
     const doctorPercentage = useRef(null);
 
 
@@ -158,6 +158,7 @@ function AddDoctor() {
             EmailID: emailRef.current.value.trim(),
             MobileNumber: mobileNumberRef.current.value.trim(),
             Availability: availabilityRef.current.value.trim(),
+            Username: usernameRef.current.value.trim(),
             ConsultationFee: parseFloat(consultationFeeRef.current.value),
             JoinedDate: new Date(joinedDateRef.current.value).toISOString(),
             Schedules: schedules.map(schedule => ({
@@ -354,7 +355,7 @@ function AddDoctor() {
                                     <Form.Control
                                         type="text"
                                         placeholder="Enter Doctor Username"
-                                        ref={username}
+                                        ref={usernameRef}
                                         className="!border-[#04394F] rounded-md"
                                     />
                                 </Form.Group>

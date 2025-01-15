@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button, Container, Table, Spinner, Alert, Modal, Form, Col, Row, Badge, Card } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
 import { toast, ToastContainer } from "react-toastify";
-import { FaArrowLeft, FaPrint } from "react-icons/fa";
-import PaymentModal from "../Custom Components/PaymentModal";
+import { FaArrowLeft, FaFileMedical, FaPrint } from "react-icons/fa";
+import PaymentModal from "./PaymentModal";
 import { useReactToPrint } from "react-to-print";
-import PrintableInvoiceView from "../Custom Components/PrintInvoiceView";
-import AddProcedureModal from "../Custom Components/AddProcedureModal";
-import InventoryModal from "../Custom Components/InventoryModal";
+import PrintableInvoiceView from "./PrintInvoiceView";
+import AddProcedureModal from "./AddProcedureModal";
+import InventoryModal from "./InventoryModal";
 import { network_url } from "../Network/networkConfig";
+import PrescriptionTableModal from "../Doctor/PrescriptionTableModal";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -37,6 +38,22 @@ const InvoiceDetails = () => {
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [doctors, setDoctors] = useState([]);
     const [inventoryItems, setInventoryItems] = useState([])
+
+
+    const location = useLocation();
+    const [isDoctor, setIsDoctor] = useState(false);
+    const [isReceptionist, setIsReceptionist] = useState(false);
+
+    useEffect(() => {
+        if (location.pathname.includes('/doctor/')) {
+            setIsDoctor(true);
+        } else if (location.pathname.includes('/receptionist/')) {
+            setIsReceptionist(true);
+        } else {
+            setIsDoctor(false)
+            setIsReceptionist(false);
+        }
+    }, [location.pathname]);
 
 
     const formatTime = (time) => {
@@ -91,7 +108,7 @@ const InvoiceDetails = () => {
                 setError("Unable to fetch appointment details");
                 setLoading(false);
             }
-            finally{
+            finally {
                 setLoading(false);
             }
         };
@@ -128,7 +145,7 @@ const InvoiceDetails = () => {
             catch (error) {
                 console.error("Error fetching doctors:", error);
             }
-        };  
+        };
 
         fetchAppointmentDetails();
         fetchDoctors();
@@ -280,10 +297,10 @@ const InvoiceDetails = () => {
         setShowPaymentModal(true);
     }
 
-    const markAsPaidProcedureItem = async (paymentMethod,procedureItemID) => {
+    const markAsPaidProcedureItem = async (paymentMethod, procedureItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`${network_url}/procedureitem-pay`, { procedureItemID,paymentMethod });
+            await axios.post(`${network_url}/procedureitem-pay`, { procedureItemID, paymentMethod });
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
@@ -319,7 +336,7 @@ const InvoiceDetails = () => {
         documentTitle: 'Invoice Details'
     });
 
-    const markAsPaid = (paymentMethod,invoiceID) => {
+    const markAsPaid = (paymentMethod, invoiceID) => {
         setSubmitting(true)
         setUpdatingInvoiceID(invoiceID);
         setLoading(true);
@@ -342,7 +359,7 @@ const InvoiceDetails = () => {
     }
 
 
-    const markAsPaidAppointment = (paymentMethod,appointmentID) => {
+    const markAsPaidAppointment = (paymentMethod, appointmentID) => {
         setSubmitting(true)
         setUpdatingAppointmentID(appointmentID);
         setLoading(true);
@@ -425,10 +442,10 @@ const InvoiceDetails = () => {
         }
     };
 
-    const markAsPaidInventoryItem = async (paymentMethod,InventoryItemID) => {
+    const markAsPaidInventoryItem = async (paymentMethod, InventoryItemID) => {
         setSubmitting(true);
         try {
-            await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`,{paymentMethod});
+            await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`, { paymentMethod });
             toast.success("Procedure Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
@@ -455,6 +472,76 @@ const InvoiceDetails = () => {
             setfunctionId(null)
         }
     };
+
+    const [showPrescriptionTableModal, setShowPrescriptionTableModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [prescriptions, setPrescriptions] = useState([]);
+    const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
+
+    const [showInvoicePrescriptionTableModal, setShowInvoicePrescriptionTableModal] = useState(false);
+    const [searchQueryInvoice, setSearchQueryInvoice] = useState('');
+    const [InvoicePrescriptions, setInvoicePrescriptions] = useState([]);
+    const [filteredInvoicePrescriptions, setFilteredInvoicePrescriptions] = useState([]);
+
+
+
+
+    const handleSearch = (e) => {
+        const query = e.target.value.toLowerCase();
+        setSearchQuery(query);
+        const filtered = prescriptions.filter((prescription) =>
+            prescription.patient.firstName.toLowerCase().includes(query) ||
+            prescription.patient.mobileNumber.includes(query)
+        );
+        setFilteredPrescriptions(filtered);
+    };
+
+    const handleInvoiceSearch = (e) => {
+        const query = e.target.value.toLowerCase();
+        setSearchQueryInvoice(query);
+        const filtered = InvoicePrescriptions.filter((prescription) =>
+            prescription.patient.firstName.toLowerCase().includes(query) ||
+            prescription.patient.mobileNumber.includes(query)
+        );
+        setFilteredInvoicePrescriptions(filtered);
+    };
+
+    const doctorId = JSON.parse(localStorage.getItem('doctor'))?.doctorID;
+    const doctor_data = JSON.parse(localStorage.getItem('doctor'));
+
+    useEffect(() => {
+        if (appointment && isDoctor) {
+            const { patient, doctor, invoices } = appointment;
+
+            const fetchPrescriptions = async () => {
+                try {
+                    const response = await fetch(`${network_url}/api/Prescription/doctor/${doctorId}?patientId=${patient?.patientID}`);
+                    const data = await response.json();
+                    console.log("Prescription: ", data)
+                    setPrescriptions(data);
+                    setFilteredPrescriptions(data);
+                } catch (error) {
+                    console.error('Error fetching prescriptions:', error);
+                }
+            };
+
+            const fetchInvoicePrescriptions = async () => {
+                try {
+                    const response = await fetch(`${network_url}/api/Prescription/doctor/${doctorId}?invoiceId=${invoices[0].invoiceID}`);
+                    const data = await response.json();
+                    console.log("Prescription: ", data)
+                    setInvoicePrescriptions(data);
+                    setFilteredInvoicePrescriptions(data);
+                } catch (error) {
+                    console.error('Error fetching prescriptions:', error);
+                }
+            };
+
+            fetchPrescriptions();
+            fetchInvoicePrescriptions();
+        }
+
+    }, [appointment]);
 
 
 
@@ -576,11 +663,22 @@ const InvoiceDetails = () => {
                                 </Button>
                             </>
                         )} */}
-                        <Button variant="outline-primary" onClick={handlePrint} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                        {isReceptionist && <Button variant="outline-primary" onClick={handlePrint} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
                             <FaPrint /> Print
-                        </Button>
-
-
+                        </Button>}
+                        {isDoctor &&
+                            <div className="flex gap-2">
+                                <Button variant="outline-success" onClick={() => navigate(`/prescriptions/${patient.patientID}/${invoices[0].invoiceID}`)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                    <FaFileMedical /> Create WorkBook
+                                </Button>
+                                <Button variant="outline-primary" onClick={() => setShowPrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                    <FaFileMedical /> Patient Prescriptions
+                                </Button>
+                                <Button variant="outline-primary" onClick={() => setShowInvoicePrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                    <FaFileMedical /> Invoice Prescriptions
+                                </Button>
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -651,7 +749,7 @@ const InvoiceDetails = () => {
                     <div>
                         <div className="flex justify-between mt-4">
                             <h3 className="font-semibold text-xl">Appointments/Consultation</h3>
-                            <Button variant="outline-primary" onClick={() => (navigate(`/receptionist/set-appointment/${patient.patientID}/${invoices[0].invoiceID}`))}>Add Consultation</Button>
+                            <Button variant="outline-primary" onClick={() => (navigate(isDoctor ? `/doctor/set-appointment/${patient.patientID}/${invoices[0].invoiceID}` : `/receptionist/set-appointment/${patient.patientID}/${invoices[0].invoiceID}`))}>Add Consultation</Button>
                         </div>
 
                         {invoices.some(invoice => invoice.secondaryAppointments.length > 0) || (appointment.isConsultation && !appointment.isDeleted) ? (
@@ -663,9 +761,9 @@ const InvoiceDetails = () => {
                                         <th>Doctor Name</th>
                                         <th>Appointment Time</th>
                                         <th>Amount</th>
-                                        <th>Invoice Status</th>
                                         <th>Appointment Status</th>
-                                        <th>Action</th>
+                                        <th>Payment Status</th>
+                                        {isReceptionist && <th>Action</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -682,13 +780,13 @@ const InvoiceDetails = () => {
                                             <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
                                             <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
                                             <td>{appointment.amount}</td>
-                                            <td>
-                                                <Badge bg={!appointment.paid ? 'danger' : 'success'}>
-                                                    {!appointment.paid ? 'Unpaid' : 'Paid'}
+                                            <td>{appointment.status}</td>
+                                            <td className="text-center">
+                                                <Badge className="text-xl p-2" bg={!appointment.paid ? 'danger' : 'success'}>
+                                                    {!appointment.paid ? 'Un-Paid' : 'Paid'}
                                                 </Badge>
                                             </td>
-                                            <td>{appointment.status}</td>
-                                            <td>
+                                            {isReceptionist && <td>
                                                 <div>
                                                     {!appointment.paid ?
                                                         <div className="flex gap-2">
@@ -713,7 +811,7 @@ const InvoiceDetails = () => {
                                                         "Paid"
                                                     }
                                                 </div>
-                                            </td>
+                                            </td>}
                                         </tr>
 
                                     }
@@ -732,13 +830,13 @@ const InvoiceDetails = () => {
                                                 <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
                                                 <td>{!appt.referredByDoctor ? getMeetingTime(appt) : 'Referred By Doctor'}</td>
                                                 <td>{appt.amount}</td>
-                                                <td>
-                                                    <Badge bg={appt.paid ? 'success' : 'danger'}>
-                                                        {appt.paid ? 'Paid' : 'Unpaid'}
+                                                <td>{appt.status}</td>
+                                                <td className="text-center">
+                                                    <Badge className="text-xl p-2" bg={appt.paid ? 'success' : 'danger'}>
+                                                        {appt.paid ? 'Paid' : 'Un-Paid'}
                                                     </Badge>
                                                 </td>
-                                                <td>{appt.status}</td>
-                                                <td>
+                                                {isReceptionist && <td>
                                                     {!appt.paid ? (
                                                         <div className="flex gap-2">
                                                             <Button
@@ -762,7 +860,7 @@ const InvoiceDetails = () => {
                                                     ) : (
                                                         "Paid"
                                                     )}
-                                                </td>
+                                                </td>}
                                             </tr>
                                         ))
                                     )}
@@ -863,7 +961,7 @@ const InvoiceDetails = () => {
                                 <th>Doctor</th>
                                 <th>Amount</th>
                                 <th>Discount (%)</th>
-                                <th>Paid</th>
+                                <th>Payment Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -876,11 +974,18 @@ const InvoiceDetails = () => {
                                         <td className="text-center">{item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
                                         <td>{item.amount}</td>
                                         <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
-                                        <td className="flex gap-3">
+                                        {isReceptionist && <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : "Paid"}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => deleteProcedureItem(invoice.invoiceID, item.procedureItemID)}
                                                 disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Procedure"}</Button>}
-                                        </td>
+                                        </td>}
+                                        {isDoctor &&
+                                            <td className="text-center">
+                                                <Badge className="text-xl p-2" bg={!item.paid ? 'danger' : 'success'}>
+                                                    {!item.paid ? 'Un-Paid' : 'Paid'}
+                                                </Badge>
+                                            </td>
+                                        }
                                     </tr>
                                 ))
                             )}
@@ -905,7 +1010,7 @@ const InvoiceDetails = () => {
                                 <th>Price</th>
                                 <th>Quantity</th>
                                 <th>Total Price</th>
-                                <th>Paid</th>
+                                <th>Payment Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -917,11 +1022,18 @@ const InvoiceDetails = () => {
                                         <td>{item.inventoryItem.price}</td>
                                         <td>{item.quantity || 0}</td>
                                         <td>{item.amount}</td>
-                                        <td className="flex gap-3">
+                                        {isReceptionist && <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Paid</Button> : "Paid"}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => handleDeleteInventoryItem(invoice.invoiceID, item.invoiceInventoryItemID)}
                                                 disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Item"}</Button>}
-                                        </td>
+                                        </td>}
+                                        {isDoctor &&
+                                            <td className="text-center">
+                                                <Badge className="text-xl p-2" bg={!item.paid ? 'danger' : 'success'}>
+                                                    {!item.paid ? 'Un-Paid' : 'Paid'}
+                                                </Badge>
+                                            </td>
+                                        }
                                     </tr>
                                 ))
                             )}
@@ -954,7 +1066,7 @@ const InvoiceDetails = () => {
                     </tbody>
                 </Table> */}
 
-                <Card className="border-[1px] shadow-md rounded-md p-4 mb-3 mt-4">
+                {isReceptionist && <Card className="border-[1px] shadow-md rounded-md p-4 mb-3 mt-4">
                     <h5 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b">Invoice Summary</h5>
 
                     {/* Row for Appointments */}
@@ -1023,7 +1135,7 @@ const InvoiceDetails = () => {
                         </Col>
                     </Row>
                 </Card>
-
+                }
 
                 {/* <AddProcedureModal
                     show={showModal}
@@ -1051,14 +1163,14 @@ const InvoiceDetails = () => {
                     show={showPaymentModal}
                     onHide={() => setShowPaymentModal(false)}
                     ID={functionId}
-                    markAsPaid={procedurefunction ? (paymentMethod) => markAsPaidProcedureItem(paymentMethod,functionId) : (paymentMethod) => markAsPaidAppointment(paymentMethod,functionId)}
+                    markAsPaid={procedurefunction ? (paymentMethod) => markAsPaidProcedureItem(paymentMethod, functionId) : (paymentMethod) => markAsPaidAppointment(paymentMethod, functionId)}
                 />
 
                 <PaymentModal
                     show={showInventoryPaymentModal}
                     onHide={() => setShowInventoryPaymentModal(false)}
                     ID={functionId}
-                    markAsPaid={(paymentMethod) => markAsPaidInventoryItem(paymentMethod,functionId)}
+                    markAsPaid={(paymentMethod) => markAsPaidInventoryItem(paymentMethod, functionId)}
                 />
 
                 <InventoryModal
@@ -1067,6 +1179,22 @@ const InvoiceDetails = () => {
                     invoiceID={appointment_id} // Example Invoice ID
                     inventoryItems={inventoryItems}
                     onAddInventoryItem={handleAddInventoryItem}
+                />
+
+                <PrescriptionTableModal
+                    showModal={showPrescriptionTableModal}
+                    setShowModal={setShowPrescriptionTableModal}
+                    prescriptions={filteredPrescriptions}
+                    handleSearch={handleSearch}
+                    searchQuery={searchQuery}
+                />
+
+                <PrescriptionTableModal
+                    showModal={showInvoicePrescriptionTableModal}
+                    setShowModal={setShowInvoicePrescriptionTableModal}
+                    prescriptions={filteredInvoicePrescriptions}
+                    handleSearch={handleInvoiceSearch}
+                    searchQuery={searchQueryInvoice}
                 />
 
             </Container>

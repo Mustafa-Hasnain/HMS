@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, InputGroup, Spinner, ListGroup, Card, Table, Badge, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from '@headlessui/react';
 import { FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
-import PaymentModal from '../Custom Components/PaymentModal';
+import PaymentModal from './PaymentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
 
@@ -23,22 +23,48 @@ const UpcomingDoctorAppointments = () => {
     const [invoices, setInvoices] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [info, setinfo] = useState("Today's Appointment")
-
-
-
-
-
     const navigate = useNavigate();
 
+    const location = useLocation();
+    const [isDoctor, setIsDoctor] = useState(false);
+    const [isReceptionist, setIsReceptionist] = useState(false);
+
+
     useEffect(() => {
-        fetchDoctors();
-        fetchUpcomingAppointments(); // Fetch upcoming appointments on component load
-    }, []);
+        const determineRole = () => {
+            if (location.pathname.includes('/doctor/')) {
+                setIsDoctor(true);
+                setIsReceptionist(false);
+            } else if (location.pathname.includes('/receptionist/')) {
+                setIsReceptionist(true);
+                setIsDoctor(false);
+            } else {
+                setIsDoctor(false);
+                setIsReceptionist(false);
+            }
+        };
+
+        determineRole();
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (isDoctor || isReceptionist) {
+            fetchUpcomingAppointments();
+        }
+    }, [isDoctor, isReceptionist]);
+
 
     const fetchDoctors = async () => {
         try {
             setLoadingDoctors(true);
-            const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
+            let response = null;
+            if (isDoctor) {
+                const doctorData = JSON.parse(localStorage.getItem('doctor'));
+                response = await axios.get(`${network_url}/api/Receptionist/doctors?doctorId=${doctorData.doctorID}`);
+            }
+            else {
+                response = await axios.get(`${network_url}/api/Receptionist/doctors`);
+            }
             setDoctors(response.data);
             setFilteredDoctors(response.data); // Initially, display all doctors
         } catch (error) {
@@ -51,7 +77,14 @@ const UpcomingDoctorAppointments = () => {
     const fetchUpcomingAppointments = async () => {
         try {
             setLoadingAppointments(true);
-            const response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments`);
+            let response = null;
+            if (isDoctor) {
+                const doctorData = JSON.parse(localStorage.getItem('doctor'));
+                response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments?doctorId=${doctorData.doctorID}`);
+            }
+            else {
+                response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments`);
+            }
             console.log(response.data);
             setAppointments(response.data);
             setFilteredRecords(response.data);
@@ -66,10 +99,10 @@ const UpcomingDoctorAppointments = () => {
     const handleSearchChange = (e) => {
         const searchValue = e.target.value.toLowerCase();
         setSearchInput(searchValue);
-    
+
         // Check if searchValue is a numeric string with less than 3 digits
         const isShortNumeric = /^\d{1,2}$/.test(searchValue);
-    
+
         const filtered = (fromDate && toDate ? filteredRecords : appointments).filter(appt => {
             const {
                 patient: { firstName: patientName, patientID, mobileNumber: patientMobile },
@@ -78,7 +111,7 @@ const UpcomingDoctorAppointments = () => {
                 referredByDoctor,
                 invoices
             } = appt;
-    
+
             if (isShortNumeric) {
                 // Only filter by patientID when searchValue is a short numeric string
                 return String(patientID).includes(searchValue);
@@ -100,7 +133,7 @@ const UpcomingDoctorAppointments = () => {
                 );
             }
         });
-    
+
         setFilteredRecords(filtered);
     };
 
@@ -136,7 +169,14 @@ const UpcomingDoctorAppointments = () => {
         if (fromDate && toDate) {
             try {
                 setLoadingAppointments(true);
-                const response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
+                let response = null
+                if (isDoctor) {
+                    const doctorData = JSON.parse(localStorage.getItem('doctor'));
+                    response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}?doctorId=${doctorData.doctorID}`);
+                }
+                else {
+                    response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
+                }
                 const heading = fromDate && toDate ? `Appointments from ${fromDate} to ${toDate} (${response.data.length} records found)` : 'Upcoming Appointments'
                 setinfo(heading);
                 setFilteredRecords(response.data);
@@ -164,7 +204,7 @@ const UpcomingDoctorAppointments = () => {
                     <h2 className="font-bold text-2xl">Appointments</h2>
                 </div>
                 {/* {loadingDoctors && <Spinner animation="border" variant="primary" />} */}
-                <Button onClick={() => (navigate('/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
+                <Button onClick={() => (navigate(isDoctor ? '/doctor/set-appointment' : '/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
 
             </div>
             <InputGroup className="mb-3 relative">
@@ -256,7 +296,7 @@ const UpcomingDoctorAppointments = () => {
                                                         <Button
                                                             variant="outline-success"
                                                             className=' !text-xs'
-                                                            onClick={() => navigate(`/receptionist/invoice-details/${appt.appointmentID}`)}
+                                                            onClick={() => navigate(isDoctor ? `/doctor/invoice-details/${appt.appointmentID}` : `/receptionist/invoice-details/${appt.appointmentID}`)}
                                                         >
                                                             Details
                                                         </Button>

@@ -3,6 +3,7 @@ import { Table, Button, Form, Spinner } from 'react-bootstrap';
 import 'tailwindcss/tailwind.css';
 import PrescriptionModal from './PrescriptionModal';
 import { network_url } from '../Network/networkConfig';
+import { useNavigate } from 'react-router-dom';
 
 const Prescriptions = () => {
     const doctorId = JSON.parse(localStorage.getItem('doctor')).doctorID;
@@ -15,14 +16,16 @@ const Prescriptions = () => {
     const [inventoryItems, setInventoryItems] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
-    const [isInventoryLoading, setIsInventoryLoading] = useState(true);
+    const [isInventoryLoading, setIsInventoryLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPrescriptions = async () => {
             try {
                 const response = await fetch(`${network_url}/api/Prescription/doctor/${doctorId}`);
                 const data = await response.json();
-                console.log("Prescription: ",data)
+                console.log("Prescription: ", data)
                 setPrescriptions(data);
                 setFilteredPrescriptions(data);
             } catch (error) {
@@ -45,7 +48,7 @@ const Prescriptions = () => {
         };
 
         fetchPrescriptions();
-        fetchInventoryItems();
+        // fetchInventoryItems();
     }, [doctorId]);
 
     const handleSearch = (e) => {
@@ -59,7 +62,7 @@ const Prescriptions = () => {
     };
 
     const handleViewPrescription = (prescription) => {
-        console.log("Prescription: ",prescription)
+        console.log("Prescription: ", prescription)
         setSelectedPrescription(prescription);
         // calculateTotalAmount(prescription);
         setShowModal(true);
@@ -98,14 +101,14 @@ const Prescriptions = () => {
                 {filteredPrescriptions.length === 0 ? (
                     <p>No prescriptions available.</p>
                 ) : (
-                    <Table striped bordered hover responsive className="table-auto w-full">
+                    <Table bordered hover responsive className="table-auto w-full">
                         <thead className="thead-dark">
                             <tr>
                                 <th>#</th>
                                 <th>Patient Name</th>
                                 <th>Phone Number</th>
                                 <th>Date Issued</th>
-                                <th>Consultation Fee</th>
+                                <th>Invoice ID</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -116,14 +119,22 @@ const Prescriptions = () => {
                                     <td>{prescription.patient.firstName} {prescription.patient.lastName}</td>
                                     <td>{prescription.patient.mobileNumber}</td>
                                     <td>{new Date(prescription.dateIssued).toLocaleDateString()}</td>
-                                    <td>Rs. {doctor_data.consultationFee}</td>
+                                    <td>{prescription.invoiceID}</td>
                                     <td>
-                                        <Button
-                                            variant="primary"
-                                            onClick={() => handleViewPrescription(prescription)}
-                                        >
-                                            View Prescription
-                                        </Button>
+                                        <div className='flex gap-3'>
+                                            <Button
+                                                variant="outline-primary"
+                                                onClick={() => handleViewPrescription(prescription)}
+                                            >
+                                                View Prescription
+                                            </Button>
+                                            <Button
+                                                variant="outline-success"
+                                                onClick={() => navigate(`/doctor/invoice-details/${prescription.invoiceID}`)}
+                                            >
+                                                View Details
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

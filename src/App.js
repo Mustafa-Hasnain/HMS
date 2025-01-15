@@ -8,13 +8,11 @@ import Login from './components/login';
 import Unauthorized from './components/unauthorized';
 import AddDoctor from './components/Receptionist/addDoctor';
 import SetAppointment from './components/Custom Components/setAppointment';
-import DoctorAppointments from './components/Doctor/Today_Appointments';
 import PatientPortal from './components/Receptionist/PatientsProtal';
 import DoctorPortal from './components/Receptionist/DoctorsProtal';
-import UpcomingDoctorAppointments from './components/Receptionist/UpcomingDoctorAppointments';
 import InventoryManager from './components/Receptionist/Inventory';
 import InvoiceManagement from './components/Receptionist/Invoices';
-import RevenueComponent from './components/Receptionist/Revenue';
+import RevenueComponent from './components/Custom Components/Revenue';
 import PrescriptionPage from './components/Doctor/PrescriptionPage';
 import Prescriptions from './components/Doctor/Prescriptions';
 import 'tailwindcss/tailwind.css';
@@ -28,9 +26,11 @@ import DoctorSchedule from './components/Doctor/DoctorSchedules';
 import DoctorRevenue from './components/Doctor/Revenue';
 import EditDoctorForm from './components/Custom Components/EditDoctor';
 import EditPatientDetails from './components/Custom Components/EditPatientDetails';
-import InvoiceDetails from './components/Receptionist/InvoiceDetails';
+import InvoiceDetails from './components/Custom Components/InvoiceDetails';
 import { RefreshProvider } from './contexts/RefreshContext';
 import ExpensesManager from './components/Receptionist/Expenses';
+import UpcomingDoctorAppointments from './components/Custom Components/UpcomingDoctorAppointments';
+import DoctorServices from './components/Custom Components/EditDoctorService';
 
 
 
@@ -96,12 +96,16 @@ function App() {
               {/* Add nested routes for the doctor */}
               <Route path="dashboard" element={<DoctorDashboardLayout />} />
               <Route path="overview" element={<DoctorDashboard />} />
-              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="appointments" element={<UpcomingDoctorAppointments />} />
+              <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
               <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
               <Route path='prescriptions' element={<Prescriptions />}></Route>
               <Route path='set-appointment' element={<SetAppointment />}></Route>
+              <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
               <Route path='schedules' element={<DoctorSchedule />}></Route>
-              <Route path='revenue' element={<DoctorRevenue />}></Route>
+              <Route path='services' element={<DoctorServices doctorId={null} />}></Route>
+              <Route path='revenue' element={<RevenueComponent />}></Route>
+              <Route path='profile' element={<EditDoctorForm />}></Route>
 
             </Route>
 

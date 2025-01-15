@@ -4,11 +4,15 @@ import AddEditDoctorServiceModal from "./AddEditDoctorServicesModal";
 import { network_url } from "../Network/networkConfig";
 
 const DoctorServices = ({ doctorId }) => {
+    if(!doctorId){
+        doctorId = JSON.parse(localStorage.getItem('doctor'))?.doctorID;
+    }
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
+
 
     // Fetch services when component mounts or doctorId changes
     useEffect(() => {
