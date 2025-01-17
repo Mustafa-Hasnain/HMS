@@ -971,7 +971,7 @@ const SetAppointment = () => {
                                         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
                                         <Button variant="outline-success" className="mt-4 border border-success text-success bg-white hover:!bg-[#00743C] hover:!text-white" onClick={handleFormSubmit} disabled={loading}>
-                                            {loading ? 'Setting...' : 'Set Appointment'}
+                                            {loading ? 'Creating...' : 'Set Appointment'}
                                         </Button>
                                     </>
                                 )}

@@ -99,9 +99,19 @@ const InvoiceDetails = () => {
         const fetchAppointmentDetails = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(
-                    `${network_url}/api/Receptionist/invoice-appointment-details/${appointment_id}`
-                );
+                let doctorData = null;
+                let response = null;
+                if (location.pathname.includes('/doctor/')) {
+                    doctorData = JSON.parse(localStorage.getItem('doctor'));
+                    response = await axios.get(
+                        `${network_url}/api/Receptionist/invoice-appointment-details/${appointment_id}?doctorId=${doctorData.doctorID}`
+                    );
+                }
+                else {
+                    response = await axios.get(
+                        `${network_url}/api/Receptionist/invoice-appointment-details/${appointment_id}`
+                    );
+                }
                 console.log("Invoice-Appointment Data: ", response.data);
                 setAppointment(response.data);
             } catch (error) {
@@ -150,7 +160,7 @@ const InvoiceDetails = () => {
         fetchAppointmentDetails();
         fetchDoctors();
         fetchInventoryItems();
-    }, [appointment_id, refresh]);
+    }, [appointment_id, refresh, isDoctor]);
 
     const addProcedureItem = async (invoiceId, finalProcedure) => {
         try {
@@ -668,7 +678,7 @@ const InvoiceDetails = () => {
                         </Button>}
                         {isDoctor &&
                             <div className="flex gap-2">
-                                <Button variant="outline-success" onClick={() => navigate(`/prescriptions/${patient.patientID}/${invoices[0].invoiceID}`)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                <Button variant="outline-success" onClick={() => navigate(`/doctor/prescriptions/${patient.patientID}/${invoices[0].invoiceID}`)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
                                     <FaFileMedical /> Create WorkBook
                                 </Button>
                                 <Button variant="outline-primary" onClick={() => setShowPrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">

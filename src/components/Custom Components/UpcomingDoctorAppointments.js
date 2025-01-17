@@ -204,7 +204,7 @@ const UpcomingDoctorAppointments = () => {
                     <h2 className="font-bold text-2xl">Appointments</h2>
                 </div>
                 {/* {loadingDoctors && <Spinner animation="border" variant="primary" />} */}
-                <Button onClick={() => (navigate(isDoctor ? '/doctor/set-appointment' : '/receptionist/set-appointment'))} variant="success">Set a Appointment</Button>
+                <Button onClick={() => (navigate(isDoctor ? '/doctor/set-appointment' : '/receptionist/set-appointment'))} variant="success">Create Appointment</Button>
 
             </div>
             <InputGroup className="mb-3 relative">

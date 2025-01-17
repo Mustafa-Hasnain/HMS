@@ -3,6 +3,9 @@ import { Modal, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Printer } from 'react-bootstrap-icons'; // For print icon
 import { useReactToPrint } from 'react-to-print';
+import html2pdf from 'html2pdf.js';
+import { FaDownload, FaEnvelope } from 'react-icons/fa';
+
 
 const PrescriptionModal = ({
     showModal,
@@ -29,12 +32,40 @@ const PrescriptionModal = ({
         documentTitle: 'Prescription'
     });
 
+    const handleDownloadPDF = () => {
+        const element = printRef.current;
+        const options = {
+            margin: 1,
+            filename: 'Prescription.pdf',
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        };
+        html2pdf().from(element).set(options).save();
+    };
+
     const handleClose = () => {
         setShowModal(false);
         if (openFromPrescriptions === false) {
             navigate('/doctor/prescriptions');
         }
     };
+
+    const calculateAge = (dateString) => {
+        const birthDate = new Date(dateString);
+        const today = new Date();
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+
+        // Adjust if the current month and day are before the birth month and day
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            age--;
+        }
+
+        return age;
+    };
+
 
     return (
         <Modal
@@ -45,15 +76,14 @@ const PrescriptionModal = ({
             backdrop="static" // Prevent closing by clicking the backdrop
         >
             <Modal.Header closeButton>
-                <Modal.Title>Prescription Details</Modal.Title>
+                <Modal.Title>{openFromPrescriptions ? "Prescription Actions" : "Prescription Details"}</Modal.Title>
             </Modal.Header>
+            {openFromPrescriptions && 
             <Modal.Body ref={printRef}>
                 <div id="prescription-content" className="p-4">
                     {prescriptionDetails ? (
                         <>
-                            {/* Doctor and Patient Details */}
-                            <div className="flex gap-[2%] mb-6">
-                                {/* Doctor Details */}
+                            {/* <div className="flex gap-[2%] mb-6">
                                 <div className="flex-1 bg-white shadow-md rounded-lg p-4 border border-gray-200">
                                     <h4 className="text-lg font-bold mb-2 text-green-700">Doctor Information</h4>
                                     <p><span className="font-semibold text-gray-700">Name:</span> {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}</p>
@@ -61,13 +91,61 @@ const PrescriptionModal = ({
                                     <p><span className="font-semibold text-gray-700">Specialty:</span> {prescriptionDetails.doctor.specialty}</p>
                                 </div>
 
-                                {/* Patient Details */}
                                 <div className="flex-1 bg-white shadow-md rounded-lg p-4 border border-gray-200">
                                     <h4 className="text-lg font-bold mb-2 text-blue-700">Patient Information</h4>
                                     <p><span className="font-semibold text-gray-700">Name:</span> {prescriptionDetails.patient.firstName}</p>
                                     <p><span className="font-semibold text-gray-700">Contact:</span> {prescriptionDetails.patient.mobileNumber}</p>
                                     <p><span className="font-semibold text-gray-700">Gender:</span> {prescriptionDetails.patient.gender}</p>
                                     <p><span className="font-semibold text-gray-700">Medical History:</span> {prescriptionDetails.patient.medicalHistory}</p>
+                                </div>
+                            </div> */}
+
+                            <div className="bg-[#F8F8F8] grid grid-cols-3 md:grid-cols-3 gap-4 p-6 mt-2 rounded-md">
+                                <div className="patientDetails">
+                                    <p>MR. No.</p>
+                                    <h2>{prescriptionDetails.patientID}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Invoice. No.</p>
+                                    <h2>{prescriptionDetails.invoiceID}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Patient Name</p>
+                                    <h2>{prescriptionDetails.patient.firstName}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Contact No</p>
+                                    <h2>{prescriptionDetails.patient.mobileNumber}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>CNIC</p>
+                                    <h2>{prescriptionDetails.patient.cnic}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Date of Birth</p>
+                                    <h2>{prescriptionDetails.patient.dateOfBirth ? new Date(prescriptionDetails.patient.dateOfBirth).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    }) : 'N/A'}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Age</p>
+                                    <h2>{prescriptionDetails.patient.dateOfBirth ? calculateAge(prescriptionDetails.patient.dateOfBirth) : 'N/A'} Years</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Blood Group</p>
+                                    <h2>{prescriptionDetails.patient.bloodGroup || 'N/A'}</h2>
+                                </div>
+                                <div className="patientDetails">
+                                    <p>Invoice Date</p>
+                                    <h2>{prescriptionDetails.dateIssued ? new Date(prescriptionDetails.dateIssued).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    }) : 'N/A'}</h2>
                                 </div>
                             </div>
 
@@ -77,10 +155,17 @@ const PrescriptionModal = ({
                             {/* Prescription Type */}
                             <div className="text-lg">
                                 <h4 className="font-semibold">Prescription Type</h4>
-                                <p className="text-green-600 font-semibold">
-                                    {prescriptionDetails.isForConsultation ? "Consultation" : ""}
-                                    {prescriptionDetails.isForProcedure ? "Procedure" : ""}
-                                </p>
+                                <div className='flex gap-1'>
+                                    <p className="text-green-600 font-semibold">
+                                        {prescriptionDetails.isForConsultation ? "Consultation" : ""}
+                                    </p>
+                                    <p className="text-green-600 font-semibold">
+                                        {prescriptionDetails.isForConsultation & prescriptionDetails.isForProcedure ? "|" : ""}
+                                    </p>
+                                    <p className="text-green-600 font-semibold">
+                                          {prescriptionDetails.isForProcedure ? " Procedure" : ""}
+                                    </p>
+                                </div>
                             </div>
 
                             <hr className="my-4" />
@@ -127,8 +212,11 @@ const PrescriptionModal = ({
                     ) : (
                         <p>Loading prescription details...</p>
                     )}
+                    <div className="mt-[14%] text-lg text-right">
+                        <p>Signed By Dr.  ____________________________</p>
+                    </div>
                 </div>
-            </Modal.Body>
+            </Modal.Body>}
             <Modal.Footer className="bg-gray-100">
                 <Button variant="secondary" onClick={handleClose} className="py-2 px-4 border border-gray-400 text-gray-600 hover:bg-gray-200">
                     Close
@@ -139,6 +227,19 @@ const PrescriptionModal = ({
                     className="!flex items-center justify-center bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-300 ease-in-out"
                 >
                     <Printer className="mr-2 w-5 h-5" /> Print
+                </Button>
+                <Button
+                    variant="info"
+                    onClick={handleDownloadPDF}
+                    className="!flex items-center justify-center bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-300 ease-in-out"
+                >
+                    <FaDownload className="mr-2 w-5 h-5" /> Download PDF
+                </Button>
+                <Button
+                    variant="success"
+                    className="!flex items-center justify-center bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-300 ease-in-out"
+                >
+                    <FaEnvelope className="mr-2 w-5 h-5" /> Email Patient
                 </Button>
 
             </Modal.Footer>
