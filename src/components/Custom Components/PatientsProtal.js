@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Table, Pagination, Card, Accordion, Spinner, Alert, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import "../../styles/table.css";
 import { FaArrowLeft, FaEdit } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { network_url } from '../Network/networkConfig';
 
 const PatientPortal = () => {
@@ -17,11 +17,37 @@ const PatientPortal = () => {
 
   const navigate = useNavigate();
 
+  const location = useLocation();
+  const [isDoctor, setIsDoctor] = useState(false);
+  const [isReceptionist, setIsReceptionist] = useState(false);
+
+  // useEffect(() => {
+  //   if (location.pathname.includes('/doctor/')) {
+  //     setIsDoctor(true);
+  //   } else if (location.pathname.includes('/receptionist/')) {
+  //     setIsReceptionist(true);
+  //   } else {
+  //     setIsDoctor(false)
+  //     setIsReceptionist(false);
+  //   }
+  // }, [location.pathname]);
+
   useEffect(() => {
     // Fetch patients data from the API
     const fetchPatients = async () => {
       try {
-        const response = await axios.get(`${network_url}/api/Receptionist/patients`);
+        let response = null;
+        let doctorData = null;
+        if (location.pathname.includes('/doctor/')) {
+          doctorData = JSON.parse(localStorage.getItem('doctor'));
+          response = await axios.get(`${network_url}/api/Receptionist/patients?doctorID=${doctorData.doctorID}`);
+          setIsDoctor(true);
+        }
+        else {
+          response = await axios.get(`${network_url}/api/Receptionist/patients`);
+          setIsReceptionist(true);
+        }
+
         setPatients(response.data);
         setFilteredPatients(response.data); // Initialize filteredPatients
         setLoading(false);
@@ -95,16 +121,17 @@ const PatientPortal = () => {
       <div className="flex items-center justify-between align-middle mb-4">
         <div className="flex gap-[4%]">
           <div className="flex gap-3 items-center align-middle">
-            <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+            <button onClick={() => navigate(isReceptionist ? '/receptionist/overview' : '/doctor/overview' )} className="text-success -mt-2">
               <FaArrowLeft size={20} />
             </button>
             <h1 className="text-2xl font-bold">Patients</h1>
             <h1 className="text-2xl font-bold">({filteredPatients.length})</h1>
           </div>
         </div>
-        <Button onClick={() => navigate('/receptionist/set-appointment')} variant="success">
-          Add New Patient
-        </Button>
+        {isReceptionist &&
+          <Button onClick={() => navigate('/receptionist/set-appointment')} variant="success">
+            Add New Patient
+          </Button>}
       </div>
 
       {/* Search Bar */}
@@ -130,7 +157,7 @@ const PatientPortal = () => {
         </thead>
         <tbody>
           {currentPatients.map((patient) => (
-            <tr key={patient.patientID} onClick={() => navigate(`/receptionist/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
+            <tr key={patient.patientID} onClick={() => navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
               <td>{patient.patientID}</td>
               <td>{patient.firstName}</td>
               <td>{patient.mobileNumber}</td>
@@ -138,23 +165,24 @@ const PatientPortal = () => {
               <td>{new Date(patient.registrationDate).toLocaleDateString()}</td>
               <td>
                 <div className='flex gap-3'>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent row click from firing
-                      navigate(`/receptionist/edit-patient/${patient.patientID}`);
-                    }}
-                  >
-                    <FaEdit />
-                  </Button>
+                  {isReceptionist &&
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click from firing
+                        navigate(`/receptionist/edit-patient/${patient.patientID}`);
+                      }}
+                    >
+                      <FaEdit />
+                    </Button>}
                   <Button
                     variant="outline-success"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       localStorage.setItem('patient', JSON.stringify(patient));
-                      navigate(`/receptionist/set-appointment`);
+                      navigate(isReceptionist ? `/receptionist/set-appointment` : `/doctor/set-appointment`);
                     }}
                   >
                     Set Appointment

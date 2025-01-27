@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Form, Container, Row, Col, Spinner, Modal } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Spinner, Modal, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
-import PrescriptionModal from './PrescriptionModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
 import "../../styles/custom_checkbox.css";
+import PrescriptionModal from '../Custom Components/PrescriptionModal';
+
+const labelOptions = [
+    "Problem",
+    "History",
+    "Examination",
+    "Family History",
+    "Social",
+    "Comment",
+    "Medication",
+    "Follow Up",
+    "Procedure",
+    "Allergy",
+];
 
 const PrescriptionPage = () => {
-    const { patientId, appointmentId } = useParams();
+    const { patientId, appointmentId, prescriptionId } = useParams();
+    const isEditing = Boolean(prescriptionId); // Flag to determine editing or creating
     const [inventoryItems, setInventoryItems] = useState([]);
     const [medicines, setMedicines] = useState([]);
     const [doctorServices, setDoctorServices] = useState([]);
@@ -35,6 +49,64 @@ const PrescriptionPage = () => {
     const doctorId = doctor.doctorID;
     const consultationFee = doctor.consultationFee;
 
+    const [activeFields, setActiveFields] = useState([]);
+    const [fieldValues, setFieldValues] = useState({});
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                if (isEditing) {
+                    const { data: prescription } = await axios.get(
+                        `${network_url}/api/Prescription/${prescriptionId}`
+                    );
+                    setPatientDetails(prescription.patient);
+                    initializeFieldsFromPrescription(prescription);
+                }
+                const patientResponse = await fetchPatientDetails(appointmentId, patientId);
+                setPatientDetails(patientResponse);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+            finally {
+                setIsLoading(false);
+
+            }
+        };
+        fetchData();
+    }, [isEditing, prescriptionId, patientId, appointmentId]);
+
+    const initializeFieldsFromPrescription = (prescription) => {
+        const initializedFields = [];
+        const initializedValues = {};
+        labelOptions.forEach((label) => {
+            const fieldKey = label.toLowerCase().replace(/\s+/g, '');
+            const hasFieldKey = `has${label.replace(/\s+/g, '')}`;
+            if (prescription[hasFieldKey]) {
+                initializedFields.push(label);
+                initializedValues[label] = prescription[fieldKey] || '';
+            }
+        });
+        setActiveFields(initializedFields);
+        setFieldValues(initializedValues);
+    };
+
+
+    const handleAddField = (label) => {
+        setActiveFields([...activeFields, label]);
+        setFieldValues({ ...fieldValues, [label]: "" });
+    };
+
+    const handleRemoveField = (label) => {
+        setActiveFields(activeFields.filter((field) => field !== label));
+        const updatedValues = { ...fieldValues };
+        delete updatedValues[label];
+        setFieldValues(updatedValues);
+    };
+
+    const handleFieldChange = (label, value) => {
+        setFieldValues({ ...fieldValues, [label]: value });
+    };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -50,7 +122,7 @@ const PrescriptionPage = () => {
                 console.error('Error fetching data:', error);
             }
         };
-        fetchData();
+        // fetchData();
     }, [doctorId, patientId, appointmentId]);
 
     const fetchPatientDetails = async (appointmentID, patientID) => {
@@ -164,60 +236,212 @@ const PrescriptionPage = () => {
 
 
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+
+    //     if (!isConsultation && !isProcedure) {
+    //         toast.error("Please select at least one option: Consultation or Procedure.");
+    //         return;
+    //     }
+
+    //     setIsSubmitting(true);
+
+    //     const payload = {
+    //         patientID: parseInt(patientId),
+    //         doctorID: doctorId,
+    //         invoiceID: parseInt(appointmentId),
+    //         isForConsultation: isConsultation,
+    //         isForProcedure: isProcedure,
+    //         examination,
+    //         labExam: isConsultation || isProcedure ? labExam : '',
+    //         prescriptionNotes: isConsultation ? prescriptionNotes : '',
+    //         procedureDetails: isProcedure ? procedureDetails : '',
+    //         followUp: isProcedure ? followUp : ''
+    //     };
+
+    //     try {
+    //         await axios.post(`${network_url}/api/Prescription/create-prescription`, payload);
+    //         toast.success('Prescription created successfully!');
+
+    //         // Set the prescription details from state variables to display in the modal
+    //         const prescriptionDetails = {
+    //             doctor: {
+    //                 firstName: JSON.parse(localStorage.getItem('doctor')).firstName,
+    //                 lastName: JSON.parse(localStorage.getItem('doctor')).lastName,
+    //                 mobileNumber: JSON.parse(localStorage.getItem('doctor')).mobileNumber,
+    //                 specialty: JSON.parse(localStorage.getItem('doctor')).specialty,
+    //                 // Add any other doctor details as needed
+    //             },
+    //             patient: {
+    //                 firstName: patientDetails.patientDetails.firstName,
+    //                 lastName: patientDetails.patientDetails.lastName,
+    //                 mobileNumber: patientDetails.patientDetails.mobileNumber,
+    //                 gender: patientDetails.patientDetails.gender,
+    //                 medicalHistory: patientDetails.patientDetails.medicalHistory,
+    //             },
+    //             examination,
+    //             isForConsultation: isConsultation,
+    //             isForProcedure: isProcedure,
+    //             labExam: isConsultation || isProcedure ? labExam : '',
+    //             prescriptionNotes: isConsultation ? prescriptionNotes : '',
+    //             procedureDetails: isProcedure ? procedureDetails : ''
+    //         };
+
+    //         setPrescriptionDetails(prescriptionDetails);
+    //         console.log("Prescription Details: ", prescriptionDetails)
+    //         setShowModal(true); // Show the modal after successful submission
+
+    //     } catch (error) {
+    //         console.error("Error submitting prescription:", error);
+    //         toast.error("Error submitting prescription!");
+    //     } finally {
+    //         setIsSubmitting(false);
+    //     }
+    // };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!isConsultation && !isProcedure) {
-            toast.error("Please select at least one option: Consultation or Procedure.");
+        const invalidFields = activeFields.filter(
+            (label) => !fieldValues[label] || fieldValues[label].trim().length < 1
+        );
+
+        if (invalidFields.length > 0) {
+            toast.error("All active fields must have a value of at least 1 character.");
             return;
         }
 
-        setIsSubmitting(true);
-
         const payload = {
             patientID: parseInt(patientId),
-            doctorID: doctorId,
+            doctorID: JSON.parse(localStorage.getItem("doctor")).doctorID,
             invoiceID: parseInt(appointmentId),
-            isForConsultation: isConsultation,
-            isForProcedure: isProcedure,
-            examination,
-            labExam: isConsultation || isProcedure ? labExam : '',
-            prescriptionNotes: isConsultation ? prescriptionNotes : '',
-            procedureDetails: isProcedure ? procedureDetails : '',
-            followUp: isProcedure ? followUp : ''
+
+            // NHS fields with conditional "Has" flags
+            hasProblem: !!fieldValues.Problem,
+            problem: fieldValues.Problem || "",
+
+            hasHistory: !!fieldValues.History,
+            history: fieldValues.History || "",
+
+            hasExamination: !!fieldValues.Examination,
+            examination: fieldValues.Examination || "",
+
+            hasFamilyHistory: !!fieldValues.FamilyHistory,
+            familyHistory: fieldValues.FamilyHistory || "",
+
+            hasSocial: !!fieldValues.Social,
+            social: fieldValues.Social || "",
+
+            hasComment: !!fieldValues.Comment,
+            comment: fieldValues.Comment || "",
+
+            hasMedication: !!fieldValues.Medication,
+            medication: fieldValues.Medication || "",
+
+            hasFollowUp: !!fieldValues.FollowUp,
+            followUp: fieldValues.FollowUp || "",
+
+            hasProcedure: !!fieldValues.ProcedureDetails,
+            procedureDetails: fieldValues.ProcedureDetails || "",
+
+            hasAllergy: !!fieldValues.Allergy,
+            allergy: fieldValues.Allergy || "",
         };
 
+        console.log("PAyload: ", payload);
+
         try {
-            await axios.post(`${network_url}/api/Prescription/create-prescription`, payload);
-            toast.success('Prescription created successfully!');
+            let response = null;
+            setIsSubmitting(true);
+            if (isEditing) {
+                response = await fetch(`${network_url}/api/Prescription/${prescriptionId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
 
-            // Set the prescription details from state variables to display in the modal
-            const prescriptionDetails = {
-                doctor: {
-                    firstName: JSON.parse(localStorage.getItem('doctor')).firstName,
-                    lastName: JSON.parse(localStorage.getItem('doctor')).lastName,
-                    mobileNumber: JSON.parse(localStorage.getItem('doctor')).mobileNumber,
-                    specialty: JSON.parse(localStorage.getItem('doctor')).specialty,
-                    // Add any other doctor details as needed
-                },
-                patient: {
-                    firstName: patientDetails.patientDetails.firstName,
-                    lastName: patientDetails.patientDetails.lastName,
-                    mobileNumber: patientDetails.patientDetails.mobileNumber,
-                    gender: patientDetails.patientDetails.gender,
-                    medicalHistory: patientDetails.patientDetails.medicalHistory,
-                },
-                examination,
-                isForConsultation: isConsultation,
-                isForProcedure: isProcedure,
-                labExam: isConsultation || isProcedure ? labExam : '',
-                prescriptionNotes: isConsultation ? prescriptionNotes : '',
-                procedureDetails: isProcedure ? procedureDetails : ''
-            };
+                if (response.ok) {
+                    toast.success("Prescription updated successfully!");
+                    setActiveFields([]);
+                    setFieldValues({});
+                }
+                else {
+                    toast.danger("Error in updating Prescription!");
+                }
+                // navigate('/doctor/prescriptions');
+            }
+            else {
+                response = await fetch(`${network_url}/api/Prescription/create-prescription`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
 
-            setPrescriptionDetails(prescriptionDetails);
-            console.log("Prescription Details: ", prescriptionDetails)
-            setShowModal(true); // Show the modal after successful submission
+                if (response.ok) {
+                    toast.success("Prescription created successfully!");
+                    setActiveFields([]);
+                    setFieldValues({});
+                }
+                else {
+                    toast.success("Prescription created successfully!");
+                }
+            }
+
+            if (response.ok) {
+                const prescriptionDetails = {
+                    doctor: {
+                        firstName: JSON.parse(localStorage.getItem('doctor')).firstName,
+                        lastName: JSON.parse(localStorage.getItem('doctor')).lastName,
+                        mobileNumber: JSON.parse(localStorage.getItem('doctor')).mobileNumber,
+                        specialty: JSON.parse(localStorage.getItem('doctor')).specialty,
+                        // Add any other doctor details as needed
+                    },
+                    patient: {
+                        firstName: patientDetails.patientDetails.firstName,
+                        lastName: patientDetails.patientDetails.lastName,
+                        mobileNumber: patientDetails.patientDetails.mobileNumber,
+                        gender: patientDetails.patientDetails.gender,
+                        medicalHistory: patientDetails.patientDetails.medicalHistory,
+                    },
+                    hasProblem: !!fieldValues.Problem,
+                    problem: fieldValues.Problem || "",
+
+                    hasHistory: !!fieldValues.History,
+                    history: fieldValues.History || "",
+
+                    hasExamination: !!fieldValues.Examination,
+                    examination: fieldValues.Examination || "",
+
+                    hasFamilyHistory: !!fieldValues.FamilyHistory,
+                    familyHistory: fieldValues.FamilyHistory || "",
+
+                    hasSocial: !!fieldValues.Social,
+                    social: fieldValues.Social || "",
+
+                    hasComment: !!fieldValues.Comment,
+                    comment: fieldValues.Comment || "",
+
+                    hasMedication: !!fieldValues.Medication,
+                    medication: fieldValues.Medication || "",
+
+                    hasFollowUp: !!fieldValues.FollowUp,
+                    followUp: fieldValues.FollowUp || "",
+
+                    hasProcedure: !!fieldValues.ProcedureDetails,
+                    procedureDetails: fieldValues.ProcedureDetails || "",
+
+                    hasAllergy: !!fieldValues.Allergy,
+                    allergy: fieldValues.Allergy || "",
+                };
+
+                setPrescriptionDetails(prescriptionDetails);
+                console.log("Prescription Details: ", prescriptionDetails)
+                setShowModal(true);
+            }
 
         } catch (error) {
             console.error("Error submitting prescription:", error);
@@ -226,6 +450,10 @@ const PrescriptionPage = () => {
             setIsSubmitting(false);
         }
     };
+
+    const remainingLabels = labelOptions.filter(
+        (label) => !activeFields.includes(label)
+    );
 
 
     if (isLoading) return <Spinner className='mt-4' animation="border" />;
@@ -428,7 +656,7 @@ const PrescriptionPage = () => {
                 <Button variant="primary" type="submit" className="mt-4">Submit Prescription</Button>
             </Form> */}
 
-            <Form onSubmit={handleSubmit} className="mt-4">
+            {/* <Form onSubmit={handleSubmit} className="mt-4">
                 <div className="mb-4 flex justify-center gap-10">
                     <Form.Check
                         type="checkbox"
@@ -450,7 +678,6 @@ const PrescriptionPage = () => {
                     />
                 </div>
 
-                {/* Common Examination TextArea */}
                 <Form.Group controlId="examination" className="mb-4">
                     <Form.Label>Examination</Form.Label>
                     <Form.Control
@@ -463,7 +690,6 @@ const PrescriptionPage = () => {
                     />
                 </Form.Group>
 
-                {/* Conditional Rendering Based on Selection */}
                 {isConsultation && (
                     <>
                         <Form.Group controlId="labExam" className="mb-4">
@@ -534,6 +760,70 @@ const PrescriptionPage = () => {
                     ) : (
                         'Submit Prescription'
                     )}
+                </Button>
+            </Form> */}
+
+            <Form onSubmit={handleSubmit}>
+                {activeFields.map((label) => (
+                    <div
+                        key={label}
+                        className="my-3 flex items-center justify-between bg-gray-100 p-3 rounded-md"
+                    >
+                        <Form.Group controlId={`field-${label}`} className="flex-grow">
+                            <Form.Label className="font-semibold">{label}</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                type="text"
+                                value={fieldValues[label]}
+                                onChange={(e) => handleFieldChange(label, e.target.value)}
+                                placeholder={`Enter ${label.toLowerCase()}...`}
+                                className="border rounded-md"
+                            />
+                        </Form.Group>
+                        <Button
+                            variant="danger"
+                            onClick={() => handleRemoveField(label)}
+                            className="ml-3 mt-4"
+                        >
+                            Remove
+                        </Button>
+                    </div>
+                ))}
+
+                <Dropdown className="my-4 !w-full">
+                    <Dropdown.Toggle variant="success">
+                        Add Field
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        {remainingLabels.length > 0 ? (
+                            remainingLabels.map((label) => (
+                                <Dropdown.Item
+                                    key={label}
+                                    onClick={() => handleAddField(label)}
+                                >
+                                    {label}
+                                </Dropdown.Item>
+                            ))
+                        ) : (
+                            <Dropdown.Item disabled>No fields available</Dropdown.Item>
+                        )}
+                    </Dropdown.Menu>
+                </Dropdown>
+
+                <Button
+                    type="submit"
+                    variant="outline-success"
+                    className="mt-4 w-full"
+                    disabled={isSubmitting || activeFields.length === 0}
+                >
+                    {isSubmitting
+                        ? isEditing
+                            ? "Updating..."
+                            : "Submitting..."
+                        : isEditing
+                            ? "Update Prescription"
+                            : "Submit Prescription"}
                 </Button>
             </Form>
 

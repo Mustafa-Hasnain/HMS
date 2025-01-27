@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from "../assets/Logo Green.png";
 import "../styles/sidebar.css";
-import { FaTachometerAlt, FaCalendarAlt, FaFileMedical, FaClipboardList, FaClock, FaDollarSign, FaUser } from 'react-icons/fa'; // Importing icons
+import { FaTachometerAlt, FaCalendarAlt, FaFileMedical, FaClipboardList, FaClock, FaDollarSign, FaUser, FaUserFriends } from 'react-icons/fa'; // Importing icons
 
 
 function Sidebar_Doctor() {
@@ -25,10 +25,11 @@ function Sidebar_Doctor() {
           { label: 'Dashboard', path: '/doctor/overview', icon: <FaTachometerAlt /> },
           { label: 'Appointments', path: '/doctor/appointments', icon: <FaCalendarAlt /> },
           { label: 'Prescriptions', path: '/doctor/prescriptions', icon: <FaFileMedical /> },
+          { label: 'Patients', path: '/doctor/patients', icon: <FaUserFriends /> },
           // { label: 'Set Appointment', path: '/doctor/set-appointment', icon: <FaClipboardList /> },
           { label: 'Schedules', path: '/doctor/schedules', icon: <FaClock /> },
           { label: 'Services', path: '/doctor/services', icon: <FaClipboardList /> },
-          { label: 'Revenue', path: '/doctor/revenue', icon: <FaDollarSign /> },
+          // { label: 'Revenue', path: '/doctor/revenue', icon: <FaDollarSign /> },
           { label: 'Profile', path: '/doctor/profile', icon: <FaUser /> },
         ].map((item) => (
           <button

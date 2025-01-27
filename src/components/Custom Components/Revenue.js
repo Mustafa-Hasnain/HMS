@@ -294,9 +294,8 @@ const RevenueComponent = () => {
                         Totals:
                       </td>
                       <td>{totalAmount.toFixed(2)}</td>
-                      <td colSpan="2"></td>
+                      <td colSpan="3"></td>
                       <td>{totalGrossAfterTax.toFixed(2)}</td>
-                      <td></td>
                       <td></td>
                       <td></td>
                       <td>{totalNetAmountForSharing.toFixed(2)}</td>

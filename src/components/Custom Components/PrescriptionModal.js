@@ -78,12 +78,12 @@ const PrescriptionModal = ({
             <Modal.Header closeButton>
                 <Modal.Title>{openFromPrescriptions ? "Prescription Actions" : "Prescription Details"}</Modal.Title>
             </Modal.Header>
-            {openFromPrescriptions && 
-            <Modal.Body ref={printRef}>
-                <div id="prescription-content" className="p-4">
-                    {prescriptionDetails ? (
-                        <>
-                            {/* <div className="flex gap-[2%] mb-6">
+            {openFromPrescriptions &&
+                <Modal.Body ref={printRef}>
+                    <div id="prescription-content" className="p-4">
+                        {prescriptionDetails ? (
+                            <>
+                                {/* <div className="flex gap-[2%] mb-6">
                                 <div className="flex-1 bg-white shadow-md rounded-lg p-4 border border-gray-200">
                                     <h4 className="text-lg font-bold mb-2 text-green-700">Doctor Information</h4>
                                     <p><span className="font-semibold text-gray-700">Name:</span> {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}</p>
@@ -100,60 +100,59 @@ const PrescriptionModal = ({
                                 </div>
                             </div> */}
 
-                            <div className="bg-[#F8F8F8] grid grid-cols-3 md:grid-cols-3 gap-4 p-6 mt-2 rounded-md">
-                                <div className="patientDetails">
-                                    <p>MR. No.</p>
-                                    <h2>{prescriptionDetails.patientID}</h2>
+                                <div className="bg-[#F8F8F8] grid grid-cols-3 md:grid-cols-3 gap-4 p-6 mt-2 rounded-md">
+                                    <div className="patientDetails">
+                                        <p>MR. No.</p>
+                                        <h2>{prescriptionDetails.patientID}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Invoice. No.</p>
+                                        <h2>{prescriptionDetails.invoiceID}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Patient Name</p>
+                                        <h2>{prescriptionDetails.patient.firstName}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Contact No</p>
+                                        <h2>{prescriptionDetails.patient.mobileNumber}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>CNIC</p>
+                                        <h2>{prescriptionDetails.patient.cnic}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Date of Birth</p>
+                                        <h2>{prescriptionDetails.patient.dateOfBirth ? new Date(prescriptionDetails.patient.dateOfBirth).toLocaleDateString('en-US', {
+                                            weekday: 'short',
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        }) : 'N/A'}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Age</p>
+                                        <h2>{prescriptionDetails.patient.dateOfBirth ? calculateAge(prescriptionDetails.patient.dateOfBirth) : 'N/A'} Years</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Blood Group</p>
+                                        <h2>{prescriptionDetails.patient.bloodGroup || 'N/A'}</h2>
+                                    </div>
+                                    <div className="patientDetails">
+                                        <p>Invoice Date</p>
+                                        <h2>{prescriptionDetails.dateIssued ? new Date(prescriptionDetails.dateIssued).toLocaleDateString('en-US', {
+                                            weekday: 'short',
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        }) : 'N/A'}</h2>
+                                    </div>
                                 </div>
-                                <div className="patientDetails">
-                                    <p>Invoice. No.</p>
-                                    <h2>{prescriptionDetails.invoiceID}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Patient Name</p>
-                                    <h2>{prescriptionDetails.patient.firstName}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Contact No</p>
-                                    <h2>{prescriptionDetails.patient.mobileNumber}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>CNIC</p>
-                                    <h2>{prescriptionDetails.patient.cnic}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Date of Birth</p>
-                                    <h2>{prescriptionDetails.patient.dateOfBirth ? new Date(prescriptionDetails.patient.dateOfBirth).toLocaleDateString('en-US', {
-                                        weekday: 'short',
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    }) : 'N/A'}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Age</p>
-                                    <h2>{prescriptionDetails.patient.dateOfBirth ? calculateAge(prescriptionDetails.patient.dateOfBirth) : 'N/A'} Years</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Blood Group</p>
-                                    <h2>{prescriptionDetails.patient.bloodGroup || 'N/A'}</h2>
-                                </div>
-                                <div className="patientDetails">
-                                    <p>Invoice Date</p>
-                                    <h2>{prescriptionDetails.dateIssued ? new Date(prescriptionDetails.dateIssued).toLocaleDateString('en-US', {
-                                        weekday: 'short',
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    }) : 'N/A'}</h2>
-                                </div>
-                            </div>
 
 
-                            <hr className="my-4" />
+                                <hr className="my-4" />
 
-                            {/* Prescription Type */}
-                            <div className="text-lg">
+                                {/* <div className="text-lg">
                                 <h4 className="font-semibold">Prescription Type</h4>
                                 <div className='flex gap-1'>
                                     <p className="text-green-600 font-semibold">
@@ -170,13 +169,11 @@ const PrescriptionModal = ({
 
                             <hr className="my-4" />
 
-                            {/* Examination */}
                             <div className="text-lg">
                                 <h4 className="font-semibold">Examination</h4>
                                 <p>{prescriptionDetails.examination || "No examination details provided."}</p>
                             </div>
 
-                            {/* Conditional Rendering */}
                             {prescriptionDetails.isForConsultation && (
                                 <>
                                     <hr className="my-4" />
@@ -207,16 +204,100 @@ const PrescriptionModal = ({
                                         <p>{prescriptionDetails.followUp || "No follow-up details provided."}</p>
                                     </div>
                                 </>
-                            )}
-                        </>
-                    ) : (
-                        <p>Loading prescription details...</p>
-                    )}
-                    <div className="mt-[14%] text-lg text-right">
-                        <p>Signed By Dr.  ____________________________</p>
+                            )} */}
+
+                                <div className="text-lg">
+                                    {prescriptionDetails.hasProblem && (
+                                        <>
+                                            <h4 className="font-semibold">Problem</h4>
+                                            <p>{prescriptionDetails.problem}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasHistory && (
+                                        <>
+                                            <h4 className="font-semibold">History</h4>
+                                            <p>{prescriptionDetails.history}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasExamination && (
+                                        <>
+                                            <h4 className="font-semibold">Examination</h4>
+                                            <p>{prescriptionDetails.examination}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasFamilyHistory && (
+                                        <>
+                                            <h4 className="font-semibold">Family History</h4>
+                                            <p>{prescriptionDetails.familyHistory}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasSocial && (
+                                        <>
+                                            <h4 className="font-semibold">Social History</h4>
+                                            <p>{prescriptionDetails.social}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasComment && (
+                                        <>
+                                            <h4 className="font-semibold">Comment</h4>
+                                            <p>{prescriptionDetails.comment}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasMedication && (
+                                        <>
+                                            <h4 className="font-semibold">Medication</h4>
+                                            <p>{prescriptionDetails.medication}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasFollowUp && (
+                                        <>
+                                            <h4 className="font-semibold">Follow-Up</h4>
+                                            <p>{prescriptionDetails.followUp}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasProcedure && (
+                                        <>
+                                            <h4 className="font-semibold">Procedure Details</h4>
+                                            <p>{prescriptionDetails.procedureDetails}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasAllergy && (
+                                        <>
+                                            <h4 className="font-semibold">Allergy</h4>
+                                            <p>{prescriptionDetails.allergy}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+                                </div>
+
+
+                            </>
+                        ) : (
+                            <p>Loading prescription details...</p>
+                        )}
+                        <div className="mt-[14%] text-lg text-right">
+                            <p>Signed By Dr.  ____________________________</p>
+                        </div>
                     </div>
-                </div>
-            </Modal.Body>}
+                </Modal.Body>}
             <Modal.Footer className="bg-gray-100">
                 <Button variant="secondary" onClick={handleClose} className="py-2 px-4 border border-gray-400 text-gray-600 hover:bg-gray-200">
                     Close
@@ -235,12 +316,12 @@ const PrescriptionModal = ({
                 >
                     <FaDownload className="mr-2 w-5 h-5" /> Download PDF
                 </Button>
-                <Button
+                {/* <Button
                     variant="success"
                     className="!flex items-center justify-center bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-300 ease-in-out"
                 >
                     <FaEnvelope className="mr-2 w-5 h-5" /> Email Patient
-                </Button>
+                </Button> */}
 
             </Modal.Footer>
         </Modal>

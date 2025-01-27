@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button, Container, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
@@ -13,6 +13,10 @@ const PatientDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    const location = useLocation();
+    const [isDoctor, setIsDoctor] = useState(false);
+    const [isReceptionist, setIsReceptionist] = useState(false);
 
     const calculateAge = (dateString) => {
         const birthDate = new Date(dateString);
@@ -39,9 +43,21 @@ const PatientDetails = () => {
 
         const fetchPatientDetails = async () => {
             try {
-                const response = await axios.get(
-                    `${network_url}/api/Receptionist/patient-details/${patient_id}`
-                );
+                let response = null;
+                let doctorData = null;
+                if (location.pathname.includes('/doctor/')) {
+                    doctorData = JSON.parse(localStorage.getItem('doctor'));
+                    response = await axios.get(
+                        `${network_url}/api/Receptionist/patient-details/${patient_id}?doctorId=${doctorData.doctorID}`
+                    );
+                    setIsDoctor(true);
+                }
+                else {
+                    response = await axios.get(
+                        `${network_url}/api/Receptionist/patient-details/${patient_id}`
+                    );
+                    setIsReceptionist(true)
+                }
                 setPatient(response.data);
                 setLoading(false);
             } catch (error) {
@@ -73,12 +89,12 @@ const PatientDetails = () => {
         <Container className="pt-4">
             <div className="flex justify-between">
                 <div className="flex gap-3 items-center align-middle">
-                    <button onClick={() => navigate('/receptionist/patients-portal')} className="text-success -mt-2">
+                    <button onClick={() => navigate(isReceptionist ? '/receptionist/patients-portal' : '/doctor/patients-portal')} className="text-success -mt-2">
                         <FaArrowLeft size={20} />
                     </button>
                     <h2 className="font-semibold text-2xl">Patient Details</h2>
                 </div>
-                <Button onClick={(() => { navigate(`/receptionist/edit-patient/${patient_id}`) })} variant="success">Edit Patient</Button>
+                {isReceptionist && <Button onClick={(() => { navigate(`/receptionist/edit-patient/${patient_id}`) })} variant="success">Edit Patient</Button>}
             </div>
             <div className="bg-[#F8F8F8] grid grid-cols-1 md:grid-cols-3 gap-4 p-6 mt-4 rounded-md">
                 <div className="patientDetails">
@@ -149,7 +165,7 @@ const PatientDetails = () => {
                                 <td> <Button
                                     variant="outline-success"
                                     className=' !text-xs'
-                                    onClick={() => navigate(`/receptionist/invoice-details/${appointment.appointmentID}`)}
+                                    onClick={() => navigate(isReceptionist ? `/receptionist/invoice-details/${appointment.appointmentID}` : `/doctor/invoice-details/${appointment.appointmentID}`)}
                                 >
                                     Details
                                 </Button></td>

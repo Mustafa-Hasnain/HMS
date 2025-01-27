@@ -8,7 +8,6 @@ import Login from './components/login';
 import Unauthorized from './components/unauthorized';
 import AddDoctor from './components/Receptionist/addDoctor';
 import SetAppointment from './components/Custom Components/setAppointment';
-import PatientPortal from './components/Receptionist/PatientsProtal';
 import DoctorPortal from './components/Receptionist/DoctorsProtal';
 import InventoryManager from './components/Receptionist/Inventory';
 import InvoiceManagement from './components/Receptionist/Invoices';
@@ -20,7 +19,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Dashboard from './components/Receptionist/Dashboard';
-import PatientDetails from './components/Receptionist/patient_details';
+import PatientDetails from './components/Custom Components/patient_details';
 import DoctorDashboard from './components/Doctor/Dashboard';
 import DoctorSchedule from './components/Doctor/DoctorSchedules';
 import DoctorRevenue from './components/Doctor/Revenue';
@@ -31,6 +30,7 @@ import { RefreshProvider } from './contexts/RefreshContext';
 import ExpensesManager from './components/Receptionist/Expenses';
 import UpcomingDoctorAppointments from './components/Custom Components/UpcomingDoctorAppointments';
 import DoctorServices from './components/Custom Components/EditDoctorService';
+import PatientPortal from './components/Custom Components/PatientsProtal';
 
 
 
@@ -99,13 +99,18 @@ function App() {
               <Route path="appointments" element={<UpcomingDoctorAppointments />} />
               <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
               <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
+              <Route path="edit-prescription/:patientId/:appointmentId/:prescriptionId" element={<PrescriptionPage />} />
               <Route path='prescriptions' element={<Prescriptions />}></Route>
+              <Route path='patients' element={<PatientPortal />}></Route>
+              <Route path="patients-details/:patient_id" element={<PatientDetails />} />
               <Route path='set-appointment' element={<SetAppointment />}></Route>
               <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
               <Route path='schedules' element={<DoctorSchedule />}></Route>
-              <Route path='services' element={<DoctorServices doctorId={null} />}></Route>
+              <Route path='services' element={<DoctorServices doctorId={null} />} />
               <Route path='revenue' element={<RevenueComponent />}></Route>
               <Route path='profile' element={<EditDoctorForm />}></Route>
+              <Route path="patients-portal" element={<PatientPortal />} />
+
 
             </Route>
 

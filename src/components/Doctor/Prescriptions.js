@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Spinner } from 'react-bootstrap';
-import 'tailwindcss/tailwind.css';
-import PrescriptionModal from './PrescriptionModal';
 import { network_url } from '../Network/networkConfig';
 import { useNavigate } from 'react-router-dom';
+import PrescriptionModal from '../Custom Components/PrescriptionModal';
+import { FaEdit } from 'react-icons/fa';
 
 const Prescriptions = () => {
     const doctorId = JSON.parse(localStorage.getItem('doctor')).doctorID;
@@ -122,6 +122,16 @@ const Prescriptions = () => {
                                     <td>{prescription.invoiceID}</td>
                                     <td>
                                         <div className='flex gap-3'>
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Prevent row click from firing
+                                                    navigate(`/doctor/edit-prescription/${prescription.patientID}/${prescription.invoiceID}/${prescription.prescriptionID}`);
+                                                }}
+                                            >
+                                                <FaEdit />
+                                            </Button>
                                             <Button
                                                 variant="outline-primary"
                                                 onClick={() => handleViewPrescription(prescription)}

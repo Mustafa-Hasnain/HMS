@@ -12,7 +12,7 @@ import PrintableInvoiceView from "./PrintInvoiceView";
 import AddProcedureModal from "./AddProcedureModal";
 import InventoryModal from "./InventoryModal";
 import { network_url } from "../Network/networkConfig";
-import PrescriptionTableModal from "../Doctor/PrescriptionTableModal";
+import PrescriptionTableModal from "./PrescriptionTableModal";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -555,7 +555,7 @@ const InvoiceDetails = () => {
 
 
 
-    if (loading) {
+    if (loading && !appointment) {
         return (
             <div className="text-center mt-4">
                 <Spinner animation="border" variant="primary" />
@@ -571,7 +571,7 @@ const InvoiceDetails = () => {
         );
     }
 
-    if (!appointment) {
+    if (!loading && !appointment) {
         return <div>No details found</div>;
     }
     const { patient, doctor, invoices } = appointment;
