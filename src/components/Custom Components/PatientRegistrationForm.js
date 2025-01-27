@@ -362,11 +362,11 @@ const RegisterPatient = () => {
             errors.MobileNumber = 'Mobile Number must be exactly 11 digits';
         }
 
-        if (!appointmentData.patient.Cnic) {
-            errors.Cnic = 'CNIC is required';
-        } else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
-            errors.Cnic = 'CNIC must be exactly 13 digits';
-        }
+        //if (!appointmentData.patient.Cnic) {
+          //  errors.Cnic = 'CNIC is required';
+        //} else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
+         //   errors.Cnic = 'CNIC must be exactly 13 digits';
+        //}
 
         // Condition: Both Consultation and Procedure are unselected
         if (!isProcedureSelected && !isConsultationSelected) {
