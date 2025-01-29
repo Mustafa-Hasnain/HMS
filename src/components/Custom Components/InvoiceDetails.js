@@ -771,6 +771,7 @@ const InvoiceDetails = () => {
                                         <th>Doctor Name</th>
                                         <th>Appointment Time</th>
                                         <th>Amount</th>
+                                        <th>Discount(%)</th>
                                         <th>Appointment Status</th>
                                         <th>Payment Status</th>
                                         {isReceptionist && <th>Action</th>}
@@ -790,6 +791,7 @@ const InvoiceDetails = () => {
                                             <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
                                             <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
                                             <td>{appointment.amount}</td>
+                                            <td>{appointment?.discountPercentage}</td>
                                             <td>{appointment.status}</td>
                                             <td className="text-center">
                                                 <Badge className="text-xl p-2" bg={!appointment.paid ? 'danger' : 'success'}>

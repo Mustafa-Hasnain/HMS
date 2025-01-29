@@ -51,6 +51,53 @@ const SetAppointment = () => {
         DoctorID: ''
     });
 
+    const [isDiscounted, setIsDiscounted] = useState(false);
+    const [discountPercentage, setDiscountPercentage] = useState(null);
+    const [discountedAmount, setDiscountedAmount] = useState(appointmentData.Amount);
+    const [discountedAmountConsultation, setDiscountedAmountConsultation] = useState(Number(selectedDoctor?.consultationFee ?? 0));
+    const [isAdvnacedPaid, setIsAdvancedPaid] = useState(false);
+
+    const handleDiscountChange = (e) => {
+        const value = Math.min(e.target.value, 100); // Limit percentage to 100%
+        setDiscountPercentage(value);
+    };
+
+    const handleDiscountCheckboxChange = () => {
+        setIsDiscounted(!isDiscounted);
+    };
+
+    const handleAdvancedPaidCheckboxChange = () => {
+        setIsAdvancedPaid(!isAdvnacedPaid);
+    };
+
+    const handleDiscountedAmountChange = (e) => {
+        let value = parseFloat(e.target.value) || 0;
+
+        // Ensure discountedAmount does not exceed the original amount
+        value = Math.min(value, appointmentData?.Amount).toFixed(0);
+        setDiscountedAmount(value);
+
+        // Recalculate discount percentage
+        if (appointmentData?.Amount) {
+            const percentage = ((appointmentData?.Amount - value) / appointmentData?.Amount) * 100;
+            setDiscountPercentage(percentage.toFixed(2));
+        }
+    };
+
+    useEffect(() => {
+        if (isDiscounted && discountPercentage > 0 && appointmentData?.Amount) {
+            const discount = (appointmentData?.Amount * discountPercentage) / 100;
+            const newAmount = appointmentData?.Amount - discount;
+
+            const discountConsultation = (Number(selectedDoctor?.consultationFee ?? 0) * discountPercentage) / 100;
+            const newAmountConsultation = Number(selectedDoctor?.consultationFee ?? 0) - discountConsultation;
+            setDiscountedAmount(newAmount.toFixed(0));
+            setDiscountedAmountConsultation(newAmountConsultation);
+        } else {
+            setDiscountedAmount(appointmentData?.Amount);
+        }
+    }, [isDiscounted, discountPercentage, appointmentData?.Amount]);
+
 
 
     const [deletingId, setDeletingId] = useState(null);
@@ -93,7 +140,7 @@ const SetAppointment = () => {
 
     const handleCheckboxChange = (e) => {
         const { value, checked } = e.target;
-    
+
         if (value === 'Consultation') {
             setIsConsultationSelected(checked);
             setAppointmentData(prev => ({
@@ -101,11 +148,11 @@ const SetAppointment = () => {
                 ConsultationAmount: checked ? Number(selectedDoctor?.consultationFee ?? 0) : 0,
                 isConsultation: checked
             }));
-    
+
         } else if (value === 'Procedure') {
             setIsProcedureSelected(checked);
         }
-    
+
         // Update the Amount immediately after updating checkboxes
         setAppointmentData(prev => ({
             ...prev,
@@ -131,8 +178,8 @@ const SetAppointment = () => {
 
 
     const addProcedureItem = (finalProcedure) => {
-        const newItem = { ...finalProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID};
-        console.log("New Item: ",finalProcedure)
+        const newItem = { ...finalProcedure, procedureItemID: Date.now(), DoctorID: selectedDoctor?.doctorID };
+        console.log("New Item: ", finalProcedure)
 
         setAppointmentData(prev => ({
             ...prev,
@@ -145,10 +192,10 @@ const SetAppointment = () => {
         setShowModal(false);
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         console.log("Appointment Data Payload: ", appointmentData);
 
-    },[appointmentData])
+    }, [appointmentData])
 
     const deleteProcedureItem = (procedureItemID) => {
         setDeletingId(procedureItemID);
@@ -373,6 +420,7 @@ const SetAppointment = () => {
         setLoading(true);
 
         const appointmentTimeIn24hr = convertTo24HourFormat(appointmentData.appointmentTime);
+        const finalAmount = isDiscounted ? discountedAmount : appointmentData.Amount;
 
 
         const payload = {
@@ -381,12 +429,18 @@ const SetAppointment = () => {
             patientID: selectedPatient.patientID,
             appointmentDate: appointmentData.appointmentDate,
             appointmentTime: appointmentTimeIn24hr,
-            Amount: appointmentData.Amount,
+            Amount: finalAmount,
             ProcedureItems: appointmentData.ProcedureItems,
             ReferredByDoctor: appointmentData.ReferredByDoctor,
             ReferredDoctorName: referredDoctor,
             isConsultation: appointmentData.isConsultation,
+            DiscountPercentage: discountPercentage,
+            isAdvancedPaid: isAdvnacedPaid
         };
+
+        if (isDiscounted) {
+            payload.ConsultationAmount = discountedAmountConsultation;
+        }
 
         console.log("Payload: ", payload);
 
@@ -788,7 +842,7 @@ const SetAppointment = () => {
                                                 selected={appointmentData.appointmentDate ? new Date(appointmentData.appointmentDate) : null}
                                                 onChange={handleDateChange}
                                                 filterDate={(date) => availableDaysInNumbers.includes(date.getDay())}
-                                                minDate={new Date()} // Disable past dates
+                                                // minDate={new Date()} // Disable past dates
                                                 placeholderText="Select an appointment date"
                                                 dateFormat="EEE, dd-MM-yyyy"  // Display day with date
                                                 className="w-full !border-[1px] !border-solid !border-[#04394F] !text-black rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-[#04394F]"
@@ -848,7 +902,7 @@ const SetAppointment = () => {
                                                     onChange={(e) => {
                                                         setAppointmentData(prev => ({
                                                             ...prev,
-                                                            ReferredDoctorName: e.target.value 
+                                                            ReferredDoctorName: e.target.value
                                                         }));
                                                         setReferredDoctor(e.target.value);
                                                     }}
@@ -963,9 +1017,55 @@ const SetAppointment = () => {
                                             isProcedureSelected && <div className="text-center mt-3">No procedure items added.</div>
                                         )}
 
+                                        <Form.Group controlId="giveDiscount" className="my-3 flex justify-between">
+                                            <Form.Check
+                                                type="checkbox"
+                                                label="Give Discount"
+                                                checked={isDiscounted}
+                                                onChange={handleDiscountCheckboxChange}
+                                                disabled={!selectedDoctor || appointmentData?.Amount <= 0}
+                                            />
+                                            <Form.Check
+                                                type="checkbox"
+                                                label="Advanced Paid"
+                                                checked={isAdvnacedPaid}
+                                                onChange={handleAdvancedPaidCheckboxChange}
+                                                disabled={!selectedDoctor}
+                                            />
+
+                                        </Form.Group>
+
+                                        {isDiscounted && (
+                                            <Row className="mt-2">
+                                                <Col>
+                                                    <Form.Group controlId="discountPercentage">
+                                                        <Form.Label>Discount Percentage (%)</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            value={discountPercentage}
+                                                            onChange={handleDiscountChange}
+                                                            placeholder="Enter discount percentage"
+                                                            max="100"
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Group controlId="discountedAmount">
+                                                        <Form.Label>Amount after Discount</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            value={discountedAmount}
+                                                            onChange={handleDiscountedAmountChange}
+                                                            placeholder="Enter discounted amount"
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                            </Row>
+                                        )}
+
                                         <div className='flex justify-between border-t-[1px] border-b-[1px] border-solid border-black pt-3'>
                                             <p>Total Amount</p>
-                                            <p>{appointmentData?.Amount}</p>
+                                            <p>{discountedAmount}</p>
                                         </div>
 
                                         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}

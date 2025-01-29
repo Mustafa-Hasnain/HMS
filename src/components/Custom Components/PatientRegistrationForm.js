@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Breadcrumb, Toast, ListGroup, Card, Spinner, Table } from 'react-bootstrap';
+import { Button, Form, Breadcrumb, Toast, ListGroup, Card, Spinner, Table, Row, Col } from 'react-bootstrap';
 import DoctorScheduleModal from './DoctorScheduleModal';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';  // Useful for formatting dates
@@ -109,6 +109,10 @@ const RegisterPatient = () => {
     };
 
 
+    const [isDiscounted, setIsDiscounted] = useState(false);
+    const [discountPercentage, setDiscountPercentage] = useState(null);
+    const [isAdvnacedPaid, setIsAdvancedPaid] = useState(false);
+
 
     const [appointmentData, setAppointmentData] = useState({
         patient: {
@@ -139,6 +143,8 @@ const RegisterPatient = () => {
             referredByDoctor: false,
             ReferredDoctorName: referredDoctor,
             isConsultation: isConsultationSelected,
+            DiscountPercentage: discountPercentage,
+            isAdvancedPaid: isAdvnacedPaid,
             ProcedureItems: []
         }
     });
@@ -150,6 +156,50 @@ const RegisterPatient = () => {
         DoctorServiceID: '',
         DoctorID: ''
     });
+
+    const [discountedAmount, setDiscountedAmount] = useState(appointmentData.appointment?.Amount);
+    const [discountedAmountConsultation, setDiscountedAmountConsultation] = useState(Number(selectedDoctor?.consultationFee ?? 0));
+
+    const handleDiscountChange = (e) => {
+        const value = Math.min(e.target.value, 100); // Limit percentage to 100%
+        setDiscountPercentage(value);
+    };
+
+    const handleDiscountCheckboxChange = () => {
+        setIsDiscounted(!isDiscounted);
+    };
+
+    const handleAdvancedPaidCheckboxChange = () => {
+        setIsAdvancedPaid(!isAdvnacedPaid);
+    };
+
+    const handleDiscountedAmountChange = (e) => {
+        let value = parseFloat(e.target.value) || 0;
+
+        // Ensure discountedAmount does not exceed the original amount
+        value = Math.min(value, appointmentData.appointment?.Amount).toFixed(0);
+        setDiscountedAmount(value);
+
+        // Recalculate discount percentage
+        if (appointmentData.appointment?.Amount) {
+            const percentage = ((appointmentData.appointment?.Amount - value) / appointmentData.appointment?.Amount) * 100;
+            setDiscountPercentage(percentage.toFixed(2));
+        }
+    };
+
+    useEffect(() => {
+        if (isDiscounted && discountPercentage > 0 && appointmentData.appointment?.Amount) {
+            const discount = (appointmentData.appointment?.Amount * discountPercentage) / 100;
+            const newAmount = appointmentData.appointment?.Amount - discount;
+
+            const discountConsultation = (Number(selectedDoctor?.consultationFee ?? 0) * discountPercentage) / 100;
+            const newAmountConsultation = Number(selectedDoctor?.consultationFee ?? 0) - discountConsultation;
+            setDiscountedAmount(newAmount.toFixed(0));
+            setDiscountedAmountConsultation(newAmountConsultation);
+        } else {
+            setDiscountedAmount(appointmentData.appointment?.Amount);
+        }
+    }, [isDiscounted, discountPercentage, appointmentData.appointment?.Amount]);
 
 
     const [countries, setCountries] = useState([]);
@@ -363,9 +413,9 @@ const RegisterPatient = () => {
         }
 
         //if (!appointmentData.patient.Cnic) {
-          //  errors.Cnic = 'CNIC is required';
+        //  errors.Cnic = 'CNIC is required';
         //} else if (!/^\d{13}$/.test(appointmentData.patient.Cnic)) {
-         //   errors.Cnic = 'CNIC must be exactly 13 digits';
+        //   errors.Cnic = 'CNIC must be exactly 13 digits';
         //}
 
         // Condition: Both Consultation and Procedure are unselected
@@ -616,12 +666,18 @@ const RegisterPatient = () => {
 
         try {
             const appointmentTimeIn24hr = convertTo24HourFormat(appointmentData.appointment.AppointmentTime);
+            const finalAmount = isDiscounted ? discountedAmount : appointmentData.appointment.Amount;
+
 
             const dataToSubmit = {
                 ...appointmentData,
                 appointment: {
                     ...appointmentData.appointment,
                     AppointmentTime: appointmentTimeIn24hr, // Use 24-hour format here
+                    Amount: finalAmount,
+                    DiscountPercentage: discountPercentage,
+                    isAdvancedPaid: isAdvnacedPaid,
+                    ConsultationAmount: isDiscounted ? discountedAmountConsultation : selectedDoctor?.consultationFee   
                 }
             };
 
@@ -1280,7 +1336,7 @@ const RegisterPatient = () => {
                                     selected={appointmentData.appointment.AppointmentDate ? new Date(appointmentData.appointment.AppointmentDate) : null}
                                     onChange={handleDateChange}
                                     filterDate={(date) => availableDaysInNumbers.includes(date.getDay())}
-                                    minDate={new Date()} // Disable past dates
+                                    // minDate={new Date()} // Disable past dates
                                     placeholderText="Select an appointment date"
                                     dateFormat="EEE, dd-MM-yyyy"  // Display day with date
                                     className="w-full !border-[1px] !border-solid !border-[#04394F] !text-black rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-[#04394F]"
@@ -1468,9 +1524,55 @@ const RegisterPatient = () => {
                                 isProcedureSelected && <div className="text-center mt-3">No procedure items added.</div>
                             )}
 
+                            <Form.Group controlId="giveDiscount" className="my-3 flex justify-between">
+                                <Form.Check
+                                    type="checkbox"
+                                    label="Give Discount"
+                                    checked={isDiscounted}
+                                    onChange={handleDiscountCheckboxChange}
+                                    disabled={!selectedDoctor || appointmentData.appointment?.Amount <= 0}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="Advanced Paid"
+                                    checked={isAdvnacedPaid}
+                                    onChange={handleAdvancedPaidCheckboxChange}
+                                    disabled={!selectedDoctor}
+                                />
+
+                            </Form.Group>
+
+                            {isDiscounted && (
+                                <Row className="mt-2">
+                                    <Col>
+                                        <Form.Group controlId="discountPercentage">
+                                            <Form.Label>Discount Percentage (%)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                value={discountPercentage}
+                                                onChange={handleDiscountChange}
+                                                placeholder="Enter discount percentage"
+                                                max="100"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col>
+                                        <Form.Group controlId="discountedAmount">
+                                            <Form.Label>Amount after Discount</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                value={discountedAmount}
+                                                onChange={handleDiscountedAmountChange}
+                                                placeholder="Enter discounted amount"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            )}
+
                             <div className='flex justify-between'>
                                 <p>Total Amount</p>
-                                <p>{appointmentData.appointment?.Amount}</p>
+                                <p>{discountedAmount}</p>
                             </div>
 
                             <Button

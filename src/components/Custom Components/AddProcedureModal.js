@@ -14,6 +14,7 @@ const AddProcedureModal = ({
     doctorDefaultSelected
 }) => {
     const [isDiscounted, setIsDiscounted] = useState(false);
+    const [isAdvancedPaid, setIsAdvancedPaid] = useState(false);
     const [discountPercentage, setDiscountPercentage] = useState(null);
     const [discountedAmount, setDiscountedAmount] = useState(newProcedure.Amount);
     const [isDoctorSelected, setIsDoctorSelected] = useState(false); // Track if "Doctor" is selected
@@ -59,6 +60,10 @@ const AddProcedureModal = ({
         setIsDiscounted(!isDiscounted);
     };
 
+    const handleAdvancedPaidCheckboxChange = () => {
+        setIsAdvancedPaid(!isAdvancedPaid);
+    };
+
     const handleDoctorSelection = () => {
         setIsDoctorSelected(true);
         setNewProcedure(prev => ({ ...prev, DoctorID: selectedDoctor ? selectedDoctor.doctorID : null }));
@@ -99,9 +104,10 @@ const AddProcedureModal = ({
             ...newProcedure,
             Amount: finalAmount,
             DoctorID: selectedDoctor ? selectedDoctor?.doctorID : null,
-            discountPercentage: discountPercentage || 0
+            discountPercentage: discountPercentage || 0,
+            isAdvancedPaid: isAdvancedPaid,
+            Paid: isAdvancedPaid
         };
-        
         console.log("Procedure Payload: ", procedurePayload);
         onAddProcedure(procedurePayload);
         resetState();
@@ -230,13 +236,19 @@ const AddProcedureModal = ({
                                     />
                                 </Form.Group>
 
-                                <Form.Group controlId="giveDiscount" className="mt-3">
+                                <Form.Group controlId="giveDiscount" className="mt-3 flex justify-between">
                                     <Form.Check
                                         type="checkbox"
                                         label="Give Discount"
                                         checked={isDiscounted}
                                         onChange={handleCheckboxChange}
                                         disabled={!selectedService}
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Advanced Paid"
+                                        checked={isAdvancedPaid}
+                                        onChange={handleAdvancedPaidCheckboxChange}
                                     />
                                 </Form.Group>
 
@@ -316,12 +328,19 @@ const AddProcedureModal = ({
                                     />
                                 </Form.Group>
 
-                                <Form.Group controlId="giveDiscount" className="mt-3">
+                                <Form.Group controlId="giveDiscount" className="mt-3 flex justify-between">
                                     <Form.Check
                                         type="checkbox"
                                         label="Give Discount"
                                         checked={isDiscounted}
                                         onChange={handleCheckboxChange}
+                                    />
+
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Advanced Paid"
+                                        checked={isAdvancedPaid}
+                                        onChange={handleAdvancedPaidCheckboxChange}
                                     />
                                 </Form.Group>
 

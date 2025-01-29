@@ -198,7 +198,7 @@ const UpcomingDoctorAppointments = () => {
             <ToastContainer />
             <div className='flex justify-between items-center mb-4'>
                 <div className="flex gap-3 items-center align-middle">
-                    <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
+                    <button onClick={() => navigate(isReceptionist ? '/receptionist/overview' : '/doctor/overview')} className="text-success -mt-2">
                         <FaArrowLeft size={20} />
                     </button>
                     <h2 className="font-bold text-2xl">Appointments</h2>
