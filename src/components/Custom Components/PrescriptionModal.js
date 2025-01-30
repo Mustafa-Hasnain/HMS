@@ -286,6 +286,22 @@ const PrescriptionModal = ({
                                             <hr className="my-4" />
                                         </>
                                     )}
+
+                                    {prescriptionDetails.hasTreatment && (
+                                        <>
+                                            <h4 className="font-semibold">Treatment</h4>
+                                            <p>{prescriptionDetails.treatment}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
+
+                                    {prescriptionDetails.hasPrecautions && (
+                                        <>
+                                            <h4 className="font-semibold">Precautions</h4>
+                                            <p>{prescriptionDetails.precautions}</p>
+                                            <hr className="my-4" />
+                                        </>
+                                    )}
                                 </div>
 
 

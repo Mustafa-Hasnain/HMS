@@ -24,7 +24,7 @@ function Sidebar_Doctor() {
         {[
           { label: 'Dashboard', path: '/doctor/overview', icon: <FaTachometerAlt /> },
           { label: 'Appointments', path: '/doctor/appointments', icon: <FaCalendarAlt /> },
-          { label: 'Prescriptions', path: '/doctor/prescriptions', icon: <FaFileMedical /> },
+          { label: 'WorkBooks', path: '/doctor/prescriptions', icon: <FaFileMedical /> },
           { label: 'Patients', path: '/doctor/patients', icon: <FaUserFriends /> },
           // { label: 'Set Appointment', path: '/doctor/set-appointment', icon: <FaClipboardList /> },
           { label: 'Schedules', path: '/doctor/schedules', icon: <FaClock /> },

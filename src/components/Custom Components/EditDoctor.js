@@ -186,7 +186,7 @@ const EditDoctorForm = () => {
                                     <p className="text-[16px] font-medium leading-[22px]">
                                         <strong>Consultation Fee:</strong>
                                     </p>
-                                    <p className="text-[14px] text-gray-700">${doctor.consultationFee}</p>
+                                    <p className="text-[14px] text-gray-700">Rs. {doctor.consultationFee}/-</p>
                                 </Col>
                                 <Col md={6}>
                                     <p className="text-[16px] font-medium leading-[22px]">

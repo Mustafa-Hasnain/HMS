@@ -18,6 +18,8 @@ const labelOptions = [
     "Follow Up",
     "Procedure",
     "Allergy",
+    "Treatment",
+    "Precautions"
 ];
 
 const PrescriptionPage = () => {
@@ -346,6 +348,12 @@ const PrescriptionPage = () => {
 
             hasAllergy: !!fieldValues.Allergy,
             allergy: fieldValues.Allergy || "",
+
+            hasTreatment: !!fieldValues.Treatment,
+            treatment: fieldValues.Treatment || "",
+
+            hasPrecautions: !!fieldValues.Precautions,
+            precautions: fieldValues.Precautions || "",
         };
 
         console.log("PAyload: ", payload);
@@ -436,6 +444,13 @@ const PrescriptionPage = () => {
 
                     hasAllergy: !!fieldValues.Allergy,
                     allergy: fieldValues.Allergy || "",
+
+                    hasTreatment: !!fieldValues.Treatment,
+                    treatment: fieldValues.Treatment || "",
+
+                    hasPrecautions: !!fieldValues.Precautions,
+                    precautions: fieldValues.Precautions || "",
+
                 };
 
                 setPrescriptionDetails(prescriptionDetails);
@@ -822,8 +837,8 @@ const PrescriptionPage = () => {
                             ? "Updating..."
                             : "Submitting..."
                         : isEditing
-                            ? "Update Prescription"
-                            : "Submit Prescription"}
+                            ? "Update"
+                            : "Submit"}
                 </Button>
             </Form>
 

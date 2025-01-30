@@ -4,6 +4,8 @@ import { network_url } from "../Network/networkConfig";
 import { useReactToPrint } from "react-to-print";
 import "../../styles/revenue.css";
 import { useLocation } from "react-router-dom";
+import { saveAs } from "file-saver";
+
 
 const RevenueComponent = () => {
   const [key, setKey] = useState("doctor");
@@ -179,6 +181,73 @@ const RevenueComponent = () => {
     documentTitle: 'Clinic Revenue Details',
   });
 
+  const handleDownloadCSV = () => {
+    if (revenueData.length === 0) return;
+
+    const doctorName = `${printSelectedDoctor?.firstName}_${printSelectedDoctor?.lastName}`;
+    const filename = `${doctorName}_Revenue_${selectedPrintFromDate}_to_${selectedPrintToDate}.csv`;
+
+    // CSV header
+    let csvContent =
+      "Dated,Invoice ID,Client Name,Amount,Discount(%),Payment Method,Deduction,Gross After Tax,Expense Deduction,Procedure/Consultation,Net Amount for Sharing,Doctor Share (%),Clinic Share (%),Doctor Amount\n";
+
+    // Add table rows
+    revenueData.forEach((record) => {
+      csvContent += `${record.date},${record?.invoice_id},${record.clientName},${record.amount.toFixed(2)},${record?.discountedPercentage ?? "N/A"},${record.paymentMethod},${record.deduction.toFixed(2)},${record.grossAfterTax.toFixed(2)},${record.expenseDeduction.toFixed(2)},${record.procedureConsultation},${record.netAmountForSharing.toFixed(2)},${record.doctorSharePercentage},${record.clinicSharePercentage},${record.doctorAmount.toFixed(2)}\n`;
+    });
+
+    // Add totals row
+    csvContent += `Totals,, ,${totalAmount.toFixed(2)},,, ,${totalGrossAfterTax.toFixed(2)},,,${totalNetAmountForSharing.toFixed(2)},,,${totalDoctorAmount.toFixed(2)}\n`;
+
+    // Create a Blob and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, filename);
+  };
+
+  const handleDownloadClinicCSV = () => {
+    if (clinicRevenueData.length === 0) return;
+  
+    const filename = `Clinic_Revenue_${selectedPrintFromDate}_to_${selectedPrintToDate}.csv`;
+  
+    let csvContent = `Clinic Revenue Report\n`;
+    csvContent += `From: ${selectedPrintFromDate}, To: ${selectedPrintToDate}\n\n`;
+  
+    // **Clinic Revenue Table**
+    csvContent += "Doctor Name,Specialty,Total Revenue,No. of Expenses,Total Expenses Amount,Total Doctor Share,Total Clinic Share\n";
+    clinicRevenueData.forEach((record) => {
+      csvContent += `${record.doctorName},${record.specialty},${record.totalRevenue.toFixed(2)},${record.totalExpensesCount},${record.totalExpenses.toFixed(2)},${record.totalDoctorShare.toFixed(2)},${record.totalClinicShare.toFixed(2)}\n`;
+    });
+    csvContent += `Totals,,, ,${clinicTotals.totalExpensesAmount.toFixed(2)},${clinicTotals.totalDoctorShare.toFixed(2)},${clinicTotals.totalClinicShare.toFixed(2)}\n\n`;
+  
+    // **Inventory Items Table (if available)**
+    if (InventoryItemsData.length > 0) {
+      csvContent += "Invoice Inventory Items\n";
+      csvContent += "Invoice ID,Inventory Item ID,Item Name,Quantity,Amount\n";
+      InventoryItemsData.forEach((item) => {
+        csvContent += `${item.invoiceID},${item.inventoryItemID},${item.inventoryItem.name},${item.quantity},${item.amount.toFixed(2)}\n`;
+      });
+      csvContent += `Total Inventory Amount,, , ,${totalInventoryAmount.toFixed(2)}\n\n`;
+    } else {
+      csvContent += "No Inventory Items Available\n\n";
+    }
+  
+    // **Clinic Expenses Table (if available)**
+    if (ClinicExpensesData.length > 0) {
+      csvContent += "Clinic Expenses\n";
+      csvContent += "Expense ID,Name,Description,Amount,Date\n";
+      ClinicExpensesData.forEach((expense) => {
+        csvContent += `${expense.clinicExpenseID},${expense.name},${expense.description},${expense.amount.toFixed(2)},${new Date(expense.date).toLocaleDateString()}\n`;
+      });
+      csvContent += `Total Clinic Expenses,, ,${totalClinicExpenses.toFixed(2)},\n`;
+    } else {
+      csvContent += "No Clinic Expenses Available\n";
+    }
+  
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, filename);
+  };
+
   return (
     <div>
       <Tabs
@@ -225,8 +294,8 @@ const RevenueComponent = () => {
                 <Button variant="primary" onClick={fetchRevenueData}>
                   Submit
                 </Button>
-                <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handlePrintDoctorRevenue}>
-                  Print
+                <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handleDownloadCSV}>
+                  Download CSV
                 </Button>
               </div>
             </Form>
@@ -333,8 +402,8 @@ const RevenueComponent = () => {
               <Button variant="primary" onClick={fetchClinicRevenueData}>
                 Submit
               </Button>
-              <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handlePrintClinicRevenue}>
-                Print
+              <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handleDownloadClinicCSV}>
+                Download CSV
               </Button>
             </div>
           </Form>
