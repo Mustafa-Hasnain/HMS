@@ -31,6 +31,8 @@ import ExpensesManager from './components/Receptionist/Expenses';
 import UpcomingDoctorAppointments from './components/Custom Components/UpcomingDoctorAppointments';
 import DoctorServices from './components/Custom Components/EditDoctorService';
 import PatientPortal from './components/Custom Components/PatientsProtal';
+import RefundItem from './components/Receptionist/RefundItem';
+import RefundItemsTable from './components/Receptionist/RefundItemTable';
 
 
 
@@ -81,6 +83,8 @@ function App() {
               <Route path="invoices" element={<InvoiceManagement />} />
               <Route path="revenue" element={<RevenueComponent />} />
               <Route path="expenses" element={<ExpensesManager />} />
+              <Route path="add-refund-item" element={<RefundItem />} />
+              <Route path="refund-items" element={<RefundItemsTable />} />
 
             </Route>
 

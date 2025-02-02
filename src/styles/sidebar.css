@@ -43,4 +43,25 @@
   .sidebar-button:hover .sidebar-icon {
     color: white;
   }
+
+  /* Scrollbar Styling */
+.sidebar-scroll {
+  max-height: calc(100vh - 64px); /* Adjust height */
+  overflow-y: auto;
+}
+
+/* Thin Scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;  /* Thin scrollbar */
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(4, 57, 79, 0.4); /* Slightly visible thumb */
+  border-radius: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
   

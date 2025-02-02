@@ -188,7 +188,7 @@ const UpcomingDoctorAppointments = () => {
 
             }
         } else {
-            toast.warn('Please select both From Date and To Date.');
+            toast.warn('Please select both Dates.');
         }
     };
 

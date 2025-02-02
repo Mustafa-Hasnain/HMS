@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from "../assets/Logo Green.png";
-import { FaTachometerAlt, FaUserFriends, FaCalendarAlt, FaUserMd, FaFileInvoiceDollar, FaChartLine, FaMoneyBillWave, FaBoxes } from 'react-icons/fa';  // Importing icons
+import { FaTachometerAlt, FaUserFriends, FaCalendarAlt, FaUserMd, FaFileInvoiceDollar, FaChartLine, FaMoneyBillWave, FaBoxes, FaUndoAlt } from 'react-icons/fa';  // Importing icons
 import "../styles/sidebar.css";
 
 
@@ -55,7 +55,7 @@ function Sidebar() {
       </div>
 
       {/* Sidebar Items */}
-      <div className="flex flex-col mt-4 px-2">
+      <div className="flex flex-col mt-4 px-2 overflow-y-auto flex-grow sidebar-scroll">
         {[
           { label: 'Dashboard', path: '/receptionist/overview', icon: <FaTachometerAlt /> },
           { label: 'Patients', path: '/receptionist/patients-portal', icon: <FaUserFriends /> },
@@ -65,6 +65,7 @@ function Sidebar() {
           { label: 'Revenue', path: '/receptionist/revenue', icon: <FaChartLine /> },
           { label: 'Expenses', path: '/receptionist/expenses', icon: <FaMoneyBillWave /> },
           { label: 'Inventory', path: '/receptionist/inventory', icon: <FaBoxes /> },
+          { label: 'Refund Items', path: '/receptionist/refund-items', icon: <FaUndoAlt /> },
         ].map((item) => (
           <button
             key={item.path}
