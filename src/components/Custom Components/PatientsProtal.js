@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Table, Pagination, Card, Accordion, Spinner, Alert, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import "../../styles/table.css";
-import { FaArrowLeft, FaEdit } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaEye } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { network_url } from '../Network/networkConfig';
 
@@ -121,7 +121,7 @@ const PatientPortal = () => {
       <div className="flex items-center justify-between align-middle mb-4">
         <div className="flex gap-[4%]">
           <div className="flex gap-3 items-center align-middle">
-            <button onClick={() => navigate(isReceptionist ? '/receptionist/overview' : '/doctor/overview' )} className="text-success -mt-2">
+            <button onClick={() => navigate(isReceptionist ? '/receptionist/overview' : '/doctor/overview')} className="text-success -mt-2">
               <FaArrowLeft size={20} />
             </button>
             <h1 className="text-2xl font-bold">Patients</h1>
@@ -176,6 +176,18 @@ const PatientPortal = () => {
                     >
                       <FaEdit />
                     </Button>}
+
+                  <Button
+                    variant="outline-info"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)
+                    }}
+                  >
+                    <FaEye />
+                  </Button>
+
                   <Button
                     variant="outline-success"
                     size="sm"

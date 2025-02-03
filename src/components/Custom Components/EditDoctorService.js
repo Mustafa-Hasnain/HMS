@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import AddEditDoctorServiceModal from "./AddEditDoctorServicesModal";
 import { network_url } from "../Network/networkConfig";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const DoctorServices = ({ doctorId }) => {
-    if(!doctorId){
+    if (!doctorId) {
         doctorId = JSON.parse(localStorage.getItem('doctor'))?.doctorID;
     }
     const [services, setServices] = useState([]);
@@ -12,6 +14,7 @@ const DoctorServices = ({ doctorId }) => {
     const [error, setError] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
+    const navigate = useNavigate();
 
 
     // Fetch services when component mounts or doctorId changes
@@ -115,7 +118,12 @@ const DoctorServices = ({ doctorId }) => {
     return (
         <div className="mt-10">
             <div className="flex justify-between items-center align-middle">
-                <h1 className="text-2xl font-semibold">Edit Doctor's Services</h1>
+                <div className="flex gap-3 items-center align-middle">
+                    {/* <button onClick={() => navigate("/doctor/overview")} className="text-success -mt-2">
+                        <FaArrowLeft size={20} />
+                    </button> */}
+                    <h1 className="text-2xl font-semibold">Edit Doctor's Services</h1>
+                </div>
                 {/* {error && <div className="text-danger">{error}</div>} */}
                 <Button variant="outline-success" onClick={() => handleOpenModal()}>
                     Add Service

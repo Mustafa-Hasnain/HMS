@@ -3,7 +3,7 @@ import { Table, Button, Form, Spinner } from 'react-bootstrap';
 import { network_url } from '../Network/networkConfig';
 import { useNavigate } from 'react-router-dom';
 import PrescriptionModal from '../Custom Components/PrescriptionModal';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaEye } from 'react-icons/fa';
 
 const Prescriptions = () => {
     const doctorId = JSON.parse(localStorage.getItem('doctor')).doctorID;
@@ -133,16 +133,18 @@ const Prescriptions = () => {
                                                 <FaEdit />
                                             </Button>
                                             <Button
-                                                variant="outline-primary"
+                                                variant="outline-info"
+                                                size="sm"
                                                 onClick={() => handleViewPrescription(prescription)}
                                             >
-                                                View Prescription
+                                                <FaEye />
                                             </Button>
                                             <Button
                                                 variant="outline-success"
+                                                size="sm"
                                                 onClick={() => navigate(`/doctor/invoice-details/${prescription.invoiceID}`)}
                                             >
-                                                View Details
+                                                Details
                                             </Button>
                                         </div>
                                     </td>

@@ -122,7 +122,7 @@ const EditDoctorForm = () => {
     return (
         <Container fluid className="p-4">
             <div className="flex gap-3 mb-4 items-center align-middle">
-                <button onClick={() => navigate('/receptionist/doctors-portal')} className="text-success -mt-2">
+                <button onClick={() => navigate(isReceptionist ? '/receptionist/doctors-portal' : '/receptionist/overview')} className="text-success -mt-2">
                     <FaArrowLeft size={20} />
                 </button>
                 <h2 className="text-left text-2xl font-bold">Doctor Profile</h2>

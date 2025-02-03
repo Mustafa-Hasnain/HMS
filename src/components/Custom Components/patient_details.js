@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button, Container, Form, Nav, Tab, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
-import { FaArrowLeft, FaEdit } from "react-icons/fa";
+import { FaArrowLeft, FaEdit, FaEye } from "react-icons/fa";
 import { network_url } from "../Network/networkConfig";
 import PrescriptionModal from "./PrescriptionModal";
 
@@ -199,7 +199,9 @@ const PatientDetails = () => {
                 <Tab.Content className="mt-3 p-3">
 
                     <Tab.Pane eventKey="appointments">
-                        <h3 className="text-2xl mb-4">Appointments</h3>
+                        <div>
+                            <h3 className="text-2xl mb-4">Appointments</h3>
+                        </div>
                         {sortedAppointments.length === 0 ? (
                             <p>No appointments</p>
                         ) : (
@@ -294,16 +296,16 @@ const PatientDetails = () => {
                                                             <FaEdit />
                                                         </Button>}
                                                         <Button
-                                                            variant="outline-primary"
+                                                            variant="outline-info"
                                                             onClick={() => handleViewPrescription(prescription)}
                                                         >
-                                                            View Prescription
+                                                            <FaEye />
                                                         </Button>
                                                         <Button
                                                             variant="outline-success"
-                                                            onClick={() => navigate(isDoctor ?  `/doctor/invoice-details/${prescription.invoiceID}` : `/receptionist/invoice-details/${prescription.invoiceID}`)}
+                                                            onClick={() => navigate(isDoctor ? `/doctor/invoice-details/${prescription.invoiceID}` : `/receptionist/invoice-details/${prescription.invoiceID}`)}
                                                         >
-                                                            View Details
+                                                            Details
                                                         </Button>
                                                     </div>
                                                 </td>

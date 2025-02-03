@@ -33,6 +33,7 @@ import DoctorServices from './components/Custom Components/EditDoctorService';
 import PatientPortal from './components/Custom Components/PatientsProtal';
 import RefundItem from './components/Receptionist/RefundItem';
 import RefundItemsTable from './components/Receptionist/RefundItemTable';
+import useCheckDoctorRedirect from './components/Hooks/useCheckDoctorRedirect';
 
 
 
@@ -44,10 +45,13 @@ function ProtectedRoute({ children, role }) {
   // if (user.role !== role) {
   //   return <Navigate to="/unauthorized" />;
   // }
+  useCheckDoctorRedirect();
   return children;
 }
 
+
 function App() {
+
   return (
     <RefreshProvider>
       <AuthProvider>

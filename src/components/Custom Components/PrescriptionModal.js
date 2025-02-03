@@ -303,15 +303,28 @@ const PrescriptionModal = ({
                                         </>
                                     )}
                                 </div>
+                                
+                                <div className="mt-[14%] text-lg text-right">
+                                    <p>
+                                        Signed By: {" "}
+                                        {prescriptionDetails.doctor.firstName.startsWith("Dr.") ? (
+                                            <span className="font-bold">
+                                                {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}
+                                            </span>
+                                        ) : (
+                                            <>
 
-
+                                                <span className="font-bold">
+                                                    Dr. {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}
+                                                </span>
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
                             </>
                         ) : (
                             <p>Loading prescription details...</p>
                         )}
-                        <div className="mt-[14%] text-lg text-right">
-                            <p>Signed By Dr.  ____________________________</p>
-                        </div>
                     </div>
                 </Modal.Body>}
             <Modal.Footer className="bg-gray-100">

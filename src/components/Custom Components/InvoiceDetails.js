@@ -682,10 +682,10 @@ const InvoiceDetails = () => {
                                     <FaFileMedical /> Create WorkBook
                                 </Button>
                                 <Button variant="outline-primary" onClick={() => setShowPrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
-                                    <FaFileMedical /> Patient Prescriptions
+                                    <FaFileMedical /> Patient WorkBooks
                                 </Button>
                                 <Button variant="outline-primary" onClick={() => setShowInvoicePrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
-                                    <FaFileMedical /> Invoice Prescriptions
+                                    <FaFileMedical /> Invoice WorkBooks
                                 </Button>
                             </div>
                         }
