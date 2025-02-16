@@ -140,7 +140,7 @@ const PrescriptionModal = ({
                                     </div>
                                     <div className="patientDetails">
                                         <p>Invoice Date</p>
-                                        <h2>{prescriptionDetails.dateIssued ? new Date(prescriptionDetails.dateIssued).toLocaleDateString('en-US', {
+                                        <h2>{prescriptionDetails.invoice ? new Date(prescriptionDetails.invoice.invoiceDate).toLocaleDateString('en-US', {
                                             weekday: 'short',
                                             year: 'numeric',
                                             month: 'short',

@@ -73,12 +73,12 @@ const PatientPortal = () => {
     );
   };
 
-  // Pagination Logic
-  const indexOfLastPatient = currentPage * patientsPerPage;
-  const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
-  const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient);
+  // // Pagination Logic
+  // const indexOfLastPatient = currentPage * patientsPerPage;
+  // const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
+  // const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Show spinner while loading data
   if (loading) {
@@ -156,7 +156,7 @@ const PatientPortal = () => {
           </tr>
         </thead>
         <tbody>
-          {currentPatients.map((patient) => (
+          {patients.map((patient) => (
             <tr key={patient.patientID} onClick={() => navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
               <td>{patient.patientID}</td>
               <td>{patient.firstName}</td>
@@ -207,7 +207,7 @@ const PatientPortal = () => {
       </Table>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4">
+      {/* <div className="flex justify-center mt-4">
         <Pagination>
           {Array.from({ length: Math.ceil(filteredPatients.length / patientsPerPage) }, (_, index) => (
             <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
@@ -215,7 +215,7 @@ const PatientPortal = () => {
             </Pagination.Item>
           ))}
         </Pagination>
-      </div>
+      </div> */}
     </div>
   );
 };
