@@ -21,7 +21,7 @@ const PatientPortal = () => {
   const location = useLocation();
   const [isDoctor, setIsDoctor] = useState(false);
   const [isReceptionist, setIsReceptionist] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(null);
+  const searchTermRef = useRef(null);
   const [typingTimeout, setTypingTimeout] = useState(null);
 
   // useEffect(() => {
@@ -70,35 +70,34 @@ const PatientPortal = () => {
   }, [currentPage]);
 
 
-  const handleSearch = async (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
+  const handleSearch = async () => {
+    const searchTerm = searchTermRef.current?.value.trim();
+    if (!searchTerm) {
+      fetchPatients(currentPage);
+      return; // Prevent empty searches
     }
 
-    setTypingTimeout(
-      setTimeout(async () => {
-        if (value.trim() !== "") {
-          try {
-            setSearching(true);
-            const response = await axios.get(`${network_url}/api/Receptionist/search-patients`, {
-              params: { searchTerm: value }
-            });
-            console.log("Search Paitents: ", response.data);
-            setFilteredPatients(response.data.patients);
-            setSearching(false);
-          } catch (error) {
-            console.error('Error searching patients:', error);
-            setSearching(false);
-          }
-        } else {
-          setFilteredPatients(patients);
-        }
-      }, 500)
-    );
+    try {
+      setSearching(true);
+      const response = await axios.get(`${network_url}/api/Receptionist/search-patients`, {
+        params: { searchTerm }
+      });
+      console.log("Search Patients:", response.data);
+      setFilteredPatients(response.data.patients);
+    } catch (error) {
+      console.error('Error searching patients:', error);
+    } finally {
+      setSearching(false);
+    }
   };
+
+  // Trigger search on Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
 
 
   // // Search filter logic
@@ -130,15 +129,15 @@ const PatientPortal = () => {
   };
 
   // Show spinner while loading data
-  if (loading || searching) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      </div>
-    );
-  }
+  // if (loading || searching) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen">
+  //       <Spinner animation="border" variant="primary" role="status">
+  //         <span className="visually-hidden">Loading...</span>
+  //       </Spinner>
+  //     </div>
+  //   );
+  // }
 
   // Error message if data fetching fails
   if (error) {
@@ -184,78 +183,91 @@ const PatientPortal = () => {
       </div>
 
       {/* Search Bar */}
-      <Form.Group className="mb-4 flex justify-between">
+      <Form.Group className="mb-4 flex justify-between gap-3">
         <Form.Control
           type="text"
           placeholder="Search Patients..."
-          value={searchTerm}
-          onChange={handleSearch}
+          ref={searchTermRef}
+          onKeyPress={handleKeyPress}
+          disabled={searching}
         />
+        <Button onClick={() => handleSearch()} variant="outline-primary" disabled={searching}>
+          Search
+        </Button>
       </Form.Group>
 
-      <Table className="table" hover responsive>
-        <thead>
-          <tr>
-            <th>MR. No.</th>
-            <th>Name</th>
-            <th>Phone No</th>
-            <th>Gender</th>
-            <th>Registration Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPatients.map((patient) => (
-            <tr key={patient.patientID} onClick={() => navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
-              <td>{patient.patientID}</td>
-              <td>{patient.firstName}</td>
-              <td>{patient.mobileNumber}</td>
-              <td>{patient.gender}</td>
-              <td>{new Date(patient.registrationDate).toLocaleDateString()}</td>
-              <td>
-                <div className='flex gap-3'>
-                  {isReceptionist &&
+
+      {(loading || searching)
+        ?
+        <div className="flex justify-center items-center h-screen">
+          <Spinner animation="border" variant="primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+        :
+        <Table className="table" hover responsive>
+          <thead>
+            <tr>
+              <th>MR. No.</th>
+              <th>Name</th>
+              <th>Phone No</th>
+              <th>Gender</th>
+              <th>Registration Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPatients.map((patient) => (
+              <tr key={patient.patientID} onClick={() => navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
+                <td>{patient.patientID}</td>
+                <td>{patient.firstName}</td>
+                <td>{patient.mobileNumber}</td>
+                <td>{patient.gender}</td>
+                <td>{new Date(patient.registrationDate).toLocaleDateString()}</td>
+                <td>
+                  <div className='flex gap-3'>
+                    {isReceptionist &&
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click from firing
+                          navigate(`/receptionist/edit-patient/${patient.patientID}`);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>}
+
                     <Button
-                      variant="outline-primary"
+                      variant="outline-info"
                       size="sm"
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent row click from firing
-                        navigate(`/receptionist/edit-patient/${patient.patientID}`);
+                        e.stopPropagation();
+                        navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)
                       }}
                     >
-                      <FaEdit />
-                    </Button>}
+                      <FaEye />
+                    </Button>
 
-                  <Button
-                    variant="outline-info"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)
-                    }}
-                  >
-                    <FaEye />
-                  </Button>
-
-                  <Button
-                    variant="outline-success"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      localStorage.setItem('patient', JSON.stringify(patient));
-                      navigate(isReceptionist ? `/receptionist/set-appointment` : `/doctor/set-appointment`);
-                    }}
-                  >
-                    Set Appointment
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-      {!searchTerm && <div className="flex justify-center mt-4">
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        localStorage.setItem('patient', JSON.stringify(patient));
+                        navigate(isReceptionist ? `/receptionist/set-appointment` : `/doctor/set-appointment`);
+                      }}
+                    >
+                      Set Appointment
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      }
+      {!searchTermRef.current?.value && <div className="flex justify-center mt-4">
         <Pagination>
           {[...Array(totalPages)].map((_, index) => (
             <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
