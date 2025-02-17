@@ -10,16 +10,19 @@ const PatientPortal = () => {
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null); // Error state
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState(''); // Search term state
+  const [totalPatients, setTotalPatients] = useState(null);
 
   const navigate = useNavigate();
 
   const location = useLocation();
   const [isDoctor, setIsDoctor] = useState(false);
   const [isReceptionist, setIsReceptionist] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(null);
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
   // useEffect(() => {
   //   if (location.pathname.includes('/doctor/')) {
@@ -32,56 +35,102 @@ const PatientPortal = () => {
   //   }
   // }, [location.pathname]);
 
-  useEffect(() => {
-    // Fetch patients data from the API
-    const fetchPatients = async () => {
-      try {
-        let response = null;
-        let doctorData = null;
-        if (location.pathname.includes('/doctor/')) {
-          doctorData = JSON.parse(localStorage.getItem('doctor'));
-          response = await axios.get(`${network_url}/api/Receptionist/patients?doctorID=${doctorData.doctorID}`);
-          setIsDoctor(true);
-        }
-        else {
-          response = await axios.get(`${network_url}/api/Receptionist/patients`);
-          setIsReceptionist(true);
-        }
+  const fetchPatients = async () => {
+    try {
+      setLoading(true)
+      let response;
+      let doctorData = null;
 
-        setPatients(response.data);
-        setFilteredPatients(response.data); // Initialize filteredPatients
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching patient data:', error);
-        setError('Failed to fetch patient data. Please try again later.');
-        setLoading(false);
+      if (location.pathname.includes('/doctor/')) {
+        doctorData = JSON.parse(localStorage.getItem('doctor'));
+        response = await axios.get(`${network_url}/api/Receptionist/patients`, {
+          params: { doctorID: doctorData.doctorID, pageNumber: currentPage, pageSize: 50 }
+        });
+        setIsDoctor(true);
+      } else {
+        response = await axios.get(`${network_url}/api/Receptionist/patients`, {
+          params: { pageNumber: currentPage, pageSize: 50 }
+        });
+        setIsReceptionist(true);
       }
-    };
 
-    fetchPatients();
-  }, []);
+      setPatients(response.data.patients);
+      setFilteredPatients(response.data.patients);
+      setTotalPatients(response.data.totalPatients);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+      setError('Failed to fetch patient data. Please try again later.');
+      setLoading(false);
+    }
+  };
 
-  // Search filter logic
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setFilteredPatients(
-      patients.filter(patient =>
-        Object.values(patient).some(val =>
-          val.toString().toLowerCase().includes(e.target.value.toLowerCase())
-        )
-      )
+  useEffect(() => {
+    fetchPatients(currentPage);
+  }, [currentPage]);
+
+
+  const handleSearch = async (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+
+    setTypingTimeout(
+      setTimeout(async () => {
+        if (value.trim() !== "") {
+          try {
+            setSearching(true);
+            const response = await axios.get(`${network_url}/api/Receptionist/search-patients`, {
+              params: { searchTerm: value }
+            });
+            console.log("Search Paitents: ", response.data);
+            setFilteredPatients(response.data.patients);
+            setSearching(false);
+          } catch (error) {
+            console.error('Error searching patients:', error);
+            setSearching(false);
+          }
+        } else {
+          setFilteredPatients(patients);
+        }
+      }, 500)
     );
   };
+
+
+  // // Search filter logic
+  // const handleSearch = (e) => {
+  //   setSearchTerm(e.target.value);
+  //   e.preventDefault();
+  //   setFilteredPatients(
+  //     patients.filter(patient =>
+  //       Object.values(patient).some(val =>
+  //         val.toString().toLowerCase().includes(e.target.value.toLowerCase())
+  //       )
+  //     )
+  //   );
+  // };
+
+
 
   // // Pagination Logic
   // const indexOfLastPatient = currentPage * patientsPerPage;
   // const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
   // const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient);
 
-  // const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const totalPages = Math.ceil(totalPatients / 50);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  };
 
   // Show spinner while loading data
-  if (loading) {
+  if (loading || searching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner animation="border" variant="primary" role="status">
@@ -125,7 +174,7 @@ const PatientPortal = () => {
               <FaArrowLeft size={20} />
             </button>
             <h1 className="text-2xl font-bold">Patients</h1>
-            <h1 className="text-2xl font-bold">({filteredPatients.length})</h1>
+            <h1 className="text-2xl font-bold">({totalPatients})</h1>
           </div>
         </div>
         {isReceptionist &&
@@ -135,7 +184,7 @@ const PatientPortal = () => {
       </div>
 
       {/* Search Bar */}
-      <Form.Group className="mb-4">
+      <Form.Group className="mb-4 flex justify-between">
         <Form.Control
           type="text"
           placeholder="Search Patients..."
@@ -156,7 +205,7 @@ const PatientPortal = () => {
           </tr>
         </thead>
         <tbody>
-          {patients.map((patient) => (
+          {filteredPatients.map((patient) => (
             <tr key={patient.patientID} onClick={() => navigate(isReceptionist ? `/receptionist/patients-details/${patient.patientID}` : `/doctor/patients-details/${patient.patientID}`)} style={{ cursor: 'pointer' }}>
               <td>{patient.patientID}</td>
               <td>{patient.firstName}</td>
@@ -206,16 +255,15 @@ const PatientPortal = () => {
         </tbody>
       </Table>
 
-      {/* Pagination */}
-      {/* <div className="flex justify-center mt-4">
+      {!searchTerm && <div className="flex justify-center mt-4">
         <Pagination>
-          {Array.from({ length: Math.ceil(filteredPatients.length / patientsPerPage) }, (_, index) => (
+          {[...Array(totalPages)].map((_, index) => (
             <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
               {index + 1}
             </Pagination.Item>
           ))}
         </Pagination>
-      </div> */}
+      </div>}
     </div>
   );
 };
