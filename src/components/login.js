@@ -51,6 +51,13 @@ function Login() {
           body: JSON.stringify(payload)
         });
 
+        if (response.status === 401) {
+          const response_data = await response.json();
+          localStorage.setItem('doctorOTP', JSON.stringify(response_data));
+          navigate("/otpVerification")
+          return;
+        }
+
         if (!response.ok) {
           throw new Error('Failed to login. Please check your credentials.');
         }

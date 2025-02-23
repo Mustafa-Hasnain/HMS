@@ -34,6 +34,7 @@ import PatientPortal from './components/Custom Components/PatientsProtal';
 import RefundItem from './components/Receptionist/RefundItem';
 import RefundItemsTable from './components/Receptionist/RefundItemTable';
 import useCheckDoctorRedirect from './components/Hooks/useCheckDoctorRedirect';
+import PinConfirmation from './components/Doctor/Pin';
 
 
 
@@ -58,6 +59,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="*" element={<Login />} />
+            <Route path="/otpVerification" element={<PinConfirmation />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Routes for Receptionist */}
