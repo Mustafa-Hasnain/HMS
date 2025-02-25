@@ -51,7 +51,7 @@ const PinConfirmation = () => {
             if (response.data.success) {
                 toast.success(response.data.message);
                 localStorage.setItem('doctor', JSON.stringify(response.data.data));
-                setTimeout(() => navigate('/doctor/appointments'), 1500);
+                setTimeout(() => navigate('/doctor/appointments'), 500);
             } else {
                 toast.error(response.data.message);
                 if (response.data.message === "OTP expired.") {

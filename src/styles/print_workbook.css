@@ -1,0 +1,19 @@
+@media print {
+    #prescription-content, #prescription-content * {
+        visibility: visible;
+    }
+    #prescription-content {
+        @apply fixed left-0 top-0 w-full overflow-hidden;
+    }
+
+    /* Hide scrollbars */
+    body {
+        @apply overflow-hidden;
+    }
+
+    /* Ensure modal does not clip content */
+    .modal {
+        @apply w-full h-full flex items-start justify-start overflow-hidden;
+    }
+}
+

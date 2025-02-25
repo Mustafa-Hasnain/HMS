@@ -5,6 +5,7 @@ import { Printer } from 'react-bootstrap-icons'; // For print icon
 import { useReactToPrint } from 'react-to-print';
 import html2pdf from 'html2pdf.js';
 import { FaDownload, FaEnvelope } from 'react-icons/fa';
+import "../../styles/print_workbook.css";
 
 
 const PrescriptionModal = ({
@@ -79,8 +80,8 @@ const PrescriptionModal = ({
                 <Modal.Title>{openFromPrescriptions ? "Prescription Actions" : "Prescription Details"}</Modal.Title>
             </Modal.Header>
             {openFromPrescriptions &&
-                <Modal.Body ref={printRef}>
-                    <div id="prescription-content" className="p-4">
+                <Modal.Body ref={printRef} className="p-3 overflow-auto">
+                    <div id="prescription-content" className="p-4 overflow-hidden break-words">
                         {prescriptionDetails ? (
                             <>
                                 {/* <div className="flex gap-[2%] mb-6">

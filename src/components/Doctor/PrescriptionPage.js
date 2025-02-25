@@ -474,7 +474,7 @@ const PrescriptionPage = () => {
     if (isLoading) return <Spinner className='mt-4' animation="border" />;
 
     return (
-        <Container>
+        <Container className='min-h-screen'>
             <ToastContainer />
 
             <h2 className="text-2xl font-bold mb-4 pt-2">Create Prescription</h2>
@@ -806,11 +806,18 @@ const PrescriptionPage = () => {
                     </div>
                 ))}
 
-                <Dropdown className="my-4 !w-full">
+                <Dropdown className="my-4 !w-full relative">
                     <Dropdown.Toggle variant="success">
                         Add Field
                     </Dropdown.Toggle>
-                    <Dropdown.Menu>
+                    <Dropdown.Menu
+                        style={{
+                            maxHeight: '200px',  // Adjust height as needed
+                            overflowY: 'auto',   // Enable scrolling
+                            zIndex: 5000,        // Ensure it's above other elements
+                            position: 'absolute'
+                        }}
+                    >
                         {remainingLabels.length > 0 ? (
                             remainingLabels.map((label) => (
                                 <Dropdown.Item

@@ -128,16 +128,15 @@ const PatientPortal = () => {
 
   };
 
-  // Show spinner while loading data
-  // if (loading || searching) {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen">
-  //       <Spinner animation="border" variant="primary" role="status">
-  //         <span className="visually-hidden">Loading...</span>
-  //       </Spinner>
-  //     </div>
-  //   );
-  // }
+  if (loading || searching) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner animation="border" variant="primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
 
   // Error message if data fetching fails
   if (error) {
