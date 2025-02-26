@@ -571,9 +571,14 @@ const InvoiceDetails = () => {
         );
     }
 
-    // if (!loading && !appointment && !error) {
-    //     return <div>No details found</div>;
-    // }
+    if (!loading && !appointment && !error) {
+        return (
+            <div className="text-center mt-4">
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
+    
     const { patient, doctor, invoices } = appointment;
     const primaryInvoice = invoices.find(invoice => invoice.isConsultationInvoice);
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
