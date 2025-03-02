@@ -272,7 +272,11 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{item.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{item?.discountPercentage ? `${item?.discountPercentage} %` : '0'}</td>
-                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.paid ? 'Paid' : 'Unpaid'}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{item.isAdvancedPaid
+                                        ? 'Advanced Paid'
+                                        : item.paid
+                                            ? 'Paid'
+                                            : 'Unpaid'}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -345,7 +349,11 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{appointment.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{appointment?.discountPercentage ? `${appointment?.discountPercentage} %` : '0'}</td>
-                                    <td style={{ border: '1px solid black', padding: '4px' }}>{appointment.paid ? 'Paid' : 'Unpaid'}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{appointment.isAdvancedPaid
+                                        ? 'Advanced Paid'
+                                        : appointment.paid
+                                            ? 'Paid'
+                                            : 'Unpaid'}</td>
                                 </tr>
                             )}
 
@@ -366,7 +374,11 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{app.amount}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{app?.discountPercentage ? `${app?.discountPercentage} %` : '0'}</td>
-                                    <td style={{ border: '1px solid black', padding: '4px' }}>{app.paid ? 'Paid' : 'Unpaid'}</td>
+                                    <td style={{ border: '1px solid black', padding: '4px' }}>{app.isAdvancedPaid
+                                        ? 'Advanced Paid'
+                                        : app.paid
+                                            ? 'Paid'
+                                            : 'Un-Paid'}</td>
                                 </tr>
                             ))}
                         </tbody>
