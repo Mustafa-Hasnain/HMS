@@ -578,7 +578,7 @@ const InvoiceDetails = () => {
             </div>
         );
     }
-    
+
     const { patient, doctor, invoices } = appointment;
     const primaryInvoice = invoices.find(invoice => invoice.isConsultationInvoice);
     const secondaryAppointments = primaryInvoice?.secondaryAppointments || [];
@@ -800,7 +800,11 @@ const InvoiceDetails = () => {
                                             <td>{appointment.status}</td>
                                             <td className="text-center">
                                                 <Badge className="text-xl p-2" bg={!appointment.paid ? 'danger' : 'success'}>
-                                                    {!appointment.paid ? 'Un-Paid' : 'Paid'}
+                                                    {appointment.isAdvancedPaid
+                                                        ? 'Advanced Paid'
+                                                        : appointment.paid
+                                                            ? 'Paid'
+                                                            : 'Un-Paid'}
                                                 </Badge>
                                             </td>
                                             {isReceptionist && <td>
@@ -851,7 +855,11 @@ const InvoiceDetails = () => {
                                                 <td>{appt.status}</td>
                                                 <td className="text-center">
                                                     <Badge className="text-xl p-2" bg={appt.paid ? 'success' : 'danger'}>
-                                                        {appt.paid ? 'Paid' : 'Un-Paid'}
+                                                        {appt.isAdvancedPaid
+                                                            ? 'Advanced Paid'
+                                                            : appt.paid
+                                                                ? 'Paid'
+                                                                : 'Un-Paid'}
                                                     </Badge>
                                                 </td>
                                                 {isReceptionist && <td>
@@ -993,14 +1001,18 @@ const InvoiceDetails = () => {
                                         <td>{item.amount}</td>
                                         <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
                                         {isReceptionist && <td className="flex gap-3">
-                                            {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : "Paid"}
+                                            {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : <Badge className="text-xl p-2" bg="success">{item.isAdvancedPaid ? "Advanced Paid" : "Paid"}</Badge>}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => deleteProcedureItem(invoice.invoiceID, item.procedureItemID)}
                                                 disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Procedure"}</Button>}
                                         </td>}
                                         {isDoctor &&
                                             <td className="text-center">
                                                 <Badge className="text-xl p-2" bg={!item.paid ? 'danger' : 'success'}>
-                                                    {!item.paid ? 'Un-Paid' : 'Paid'}
+                                                    {item.isAdvancedPaid
+                                                        ? 'Advanced Paid'
+                                                        : item.paid
+                                                            ? 'Paid'
+                                                            : 'Un-Paid'}
                                                 </Badge>
                                             </td>
                                         }

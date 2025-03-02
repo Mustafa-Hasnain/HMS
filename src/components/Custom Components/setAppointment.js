@@ -316,10 +316,10 @@ const SetAppointment = () => {
         debounce((query) => {
             if (query.length >= 3) {
                 setLoading(true);
-                axios.post(`${network_url}/api/Receptionist/search-patients/${query}`)
+                axios.get(`${network_url}/api/Receptionist/search-patients?searchTerm=${query}`)
                     .then(response => {
-                        setPatients(response.data);
-                        setNoData(response.data.length === 0);
+                        setPatients(response.data.patients);
+                        setNoData(response.data.patients.length === 0);
                     })
                     .catch(error => {
                         console.error(error);
