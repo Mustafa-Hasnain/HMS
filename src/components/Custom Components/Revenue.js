@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Tabs, Tab, Spinner, Table, Form, Button } from "react-bootstrap";
+import { Tabs, Tab, Spinner, Table, Form, Button, Card } from "react-bootstrap";
 import { network_url } from "../Network/networkConfig";
 import { useReactToPrint } from "react-to-print";
 import "../../styles/revenue.css";
@@ -206,19 +206,19 @@ const RevenueComponent = () => {
 
   const handleDownloadClinicCSV = () => {
     if (clinicRevenueData.length === 0) return;
-  
+
     const filename = `Clinic_Revenue_${selectedPrintFromDate}_to_${selectedPrintToDate}.csv`;
-  
+
     let csvContent = `Clinic Revenue Report\n`;
     csvContent += `From: ${selectedPrintFromDate}, To: ${selectedPrintToDate}\n\n`;
-  
+
     // **Clinic Revenue Table**
     csvContent += "Doctor Name,Specialty,Total Revenue,No. of Expenses,Total Expenses Amount,Total Doctor Share,Total Clinic Share\n";
     clinicRevenueData.forEach((record) => {
       csvContent += `${record.doctorName},${record.specialty},${record.totalRevenue.toFixed(2)},${record.totalExpensesCount},${record.totalExpenses.toFixed(2)},${record.totalDoctorShare.toFixed(2)},${record.totalClinicShare.toFixed(2)}\n`;
     });
     csvContent += `Totals,,, ,${clinicTotals.totalExpensesAmount.toFixed(2)},${clinicTotals.totalDoctorShare.toFixed(2)},${clinicTotals.totalClinicShare.toFixed(2)}\n\n`;
-  
+
     // **Inventory Items Table (if available)**
     if (InventoryItemsData.length > 0) {
       csvContent += "Invoice Inventory Items\n";
@@ -230,7 +230,7 @@ const RevenueComponent = () => {
     } else {
       csvContent += "No Inventory Items Available\n\n";
     }
-  
+
     // **Clinic Expenses Table (if available)**
     if (ClinicExpensesData.length > 0) {
       csvContent += "Clinic Expenses\n";
@@ -242,7 +242,7 @@ const RevenueComponent = () => {
     } else {
       csvContent += "No Clinic Expenses Available\n";
     }
-  
+
     // Create and download the CSV file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, filename);
@@ -427,6 +427,8 @@ const RevenueComponent = () => {
                   </p>
                 </div>
               )}
+
+              <h3 className="text-xl font-semibold mt-4">Clinic Revenue Breakdown</h3>
               <Table bordered striped hover className="mt-4">
                 <thead>
                   <tr>
@@ -462,6 +464,7 @@ const RevenueComponent = () => {
                 </tbody>
               </Table>
 
+              <h3 className="text-xl font-semibold mt-6">Inventory Items Summary</h3>
               {InventoryItemsData.length > 0 ? (
                 <>
                   {/* Invoice Inventory Items Table */}
@@ -495,6 +498,8 @@ const RevenueComponent = () => {
               ) : (
                 <div>No Inventory Items</div>
               )}
+
+              <h3 className="text-xl font-semibold mt-6">Clinic Expenses</h3>
 
               {ClinicExpensesData.length > 0 ? (
                 <>
@@ -532,11 +537,16 @@ const RevenueComponent = () => {
               )}
 
               {/* Clinic Profit Calculation */}
-              <div className="mt-4">
-                <h4>
-                  Total Clinic Profit: {totalClinicProfit.toFixed(2)}
-                </h4>
-              </div>
+              <Card className="mt-6 bg-blue-100 border border-blue-300 p-4">
+                <Card.Body>
+                  {/* <h3 className="text-xl font-semibold mb-2">Clinic Profit Calculation</h3> */}
+                  <p className="mt-2">Total Clinic Share: <strong>{clinicTotals.totalClinicShare.toFixed(2)}</strong></p>
+                  <p>Total Inventory Amount: <strong>{totalInventoryAmount.toFixed(2)}</strong></p>
+                  <p>Total Clinic Expenses: <strong>{totalClinicExpenses.toFixed(2)}</strong></p>
+                  <hr />
+                  <h4 className="font-bold text-lg">Total Clinic Profit: {totalClinicProfit.toFixed(2)}</h4>
+                </Card.Body>
+              </Card>
             </div>
           ) : (
             <div className="text-center text-gray-500">No data available.</div>
