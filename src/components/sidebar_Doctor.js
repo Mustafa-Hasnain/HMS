@@ -29,7 +29,7 @@ function Sidebar_Doctor() {
           // { label: 'Set Appointment', path: '/doctor/set-appointment', icon: <FaClipboardList /> },
           { label: 'Schedules', path: '/doctor/schedules', icon: <FaClock /> },
           { label: 'Services', path: '/doctor/services', icon: <FaClipboardList /> },
-          // { label: 'Revenue', path: '/doctor/revenue', icon: <FaDollarSign /> },
+          { label: 'Revenue', path: '/doctor/revenue', icon: <FaDollarSign /> },
           { label: 'Profile', path: '/doctor/profile', icon: <FaUser /> },
         ].map((item) => (
           <button
