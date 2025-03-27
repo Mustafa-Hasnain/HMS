@@ -174,7 +174,7 @@ const InventoryManager = () => {
                             <th>Description</th>
                             <th>Stock</th>
                             <th>Cost Price</th>
-                            <th>Price</th>
+                            <th>Selling Price</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
