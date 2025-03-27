@@ -13,6 +13,7 @@ import AddProcedureModal from "./AddProcedureModal";
 import InventoryModal from "./InventoryModal";
 import { network_url } from "../Network/networkConfig";
 import PrescriptionTableModal from "./PrescriptionTableModal";
+import { formatPrice } from "../utils/FormatPrice";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -795,7 +796,7 @@ const InvoiceDetails = () => {
                                             <td>{appointment.patient.firstName}</td>
                                             <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
                                             <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
-                                            <td>{appointment.amount}</td>
+                                            <td>{formatPrice(appointment.amount)}</td>
                                             <td>{appointment?.discountPercentage ?? 0}</td>
                                             <td>{appointment.status}</td>
                                             <td className="text-center">
@@ -850,7 +851,7 @@ const InvoiceDetails = () => {
                                                 <td>{patient.firstName}</td>
                                                 <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
                                                 <td>{!appt.referredByDoctor ? getMeetingTime(appt) : 'Referred By Doctor'}</td>
-                                                <td>{appt.amount}</td>
+                                                <td>{formatPrice(appt.amount)}</td>
                                                 <td>{appt?.discountPercentage ?? 0}</td>
                                                 <td>{appt.status}</td>
                                                 <td className="text-center">
@@ -998,7 +999,7 @@ const InvoiceDetails = () => {
                                         <td>{item.procedureName}</td>
                                         <td>{item.procedureDetail || 'N/A'}</td>
                                         <td className="text-center">{item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
-                                        <td>{item.amount}</td>
+                                        <td>{formatPrice(item.amount)}</td>
                                         <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
                                         {isReceptionist && <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : <Badge className="text-xl p-2" bg="success">{item.isAdvancedPaid ? "Advanced Paid" : "Paid"}</Badge>}
@@ -1049,9 +1050,9 @@ const InvoiceDetails = () => {
                                     <tr key={item.invoiceInventoryItemID}>
                                         <td>{item.invoiceInventoryItemID}</td>
                                         <td>{item.inventoryItem.name}</td>
-                                        <td>{item.inventoryItem.price}</td>
+                                        <td>{formatPrice(item.inventoryItem.price)}</td>
                                         <td>{item.quantity || 0}</td>
-                                        <td>{item.amount}</td>
+                                        <td>{formatPrice(item.amount)}</td>
                                         {isReceptionist && <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Paid</Button> : "Paid"}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => handleDeleteInventoryItem(invoice.invoiceID, item.invoiceInventoryItemID)}
@@ -1111,7 +1112,7 @@ const InvoiceDetails = () => {
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Amount to be Paid Consultations</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalAppointmentUnpaid}</div>
+                            <div className="text-gray-800 text-base font-semibold">{formatPrice(totalAppointmentUnpaid)}</div>
                         </Col>
                     </Row>
 
@@ -1127,7 +1128,7 @@ const InvoiceDetails = () => {
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Amount to be Paid Procedures</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalProcedureUnpaid}</div>
+                            <div className="text-gray-800 text-base font-semibold">{formatPrice(totalProcedureUnpaid)}</div>
                         </Col>
                     </Row>
 
@@ -1143,7 +1144,7 @@ const InvoiceDetails = () => {
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Amount to be Paid Items</div>
-                            <div className="text-gray-800 text-base font-semibold">{totalInvoiceItemUnpaid}</div>
+                            <div className="text-gray-800 text-base font-semibold">{formatPrice(totalInvoiceItemUnpaid)}</div>
                         </Col>
                     </Row>
 
@@ -1152,16 +1153,16 @@ const InvoiceDetails = () => {
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Amount</div>
                             <div className="text-gray-800 text-lg font-bold">
-                                Rs. {(totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount).toFixed(2)}
+                                Rs. {formatPrice((totalAppointmentAmount + totalProcedureAmount + totalInvoiceItemAmount).toFixed(2))}
                             </div>
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Total Paid</div>
-                            <div className="text-gray-800 text-lg font-bold">Rs. {totalPaid.toFixed(2)}</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {formatPrice(totalPaid.toFixed(2))}</div>
                         </Col>
                         <Col>
                             <div className="text-gray-600 text-sm font-medium">Balance Due</div>
-                            <div className="text-gray-800 text-lg font-bold">Rs. {totalUnpaid.toFixed(2)}</div>
+                            <div className="text-gray-800 text-lg font-bold">Rs. {formatPrice(totalUnpaid.toFixed(2))}</div>
                         </Col>
                     </Row>
                 </Card>

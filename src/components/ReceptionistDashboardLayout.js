@@ -10,7 +10,7 @@ function ReceptionistDashboardLayout() {
       <Sidebar />
       <div className="main-content flex-1 ml-48 mt-16">
         <NavbarHeader />
-        <div className="p-6">
+        <div className="p-6 relative">
           <Outlet /> {/* This is where the receptionist-specific routes will be rendered */}
         </div>
       </div>

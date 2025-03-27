@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, Button, Form, Spinner, Alert } from "react-bootstrap";
 import { network_url } from "../Network/networkConfig";
+import { formatPrice } from "../utils/FormatPrice";
 
 const ClinicExpenses = () => {
     const [expenses, setExpenses] = useState([]);
@@ -163,7 +164,7 @@ const ClinicExpenses = () => {
                                     <td>{index + 1}</td>
                                     <td>{expense.name}</td>
                                     <td>{expense.description}</td>
-                                    <td>{expense.amount}</td>
+                                    <td>{formatPrice(expense.amount)}</td>
                                     <td>{new Date(expense.date).toLocaleDateString()}</td>
                                     <td>
                                         <Button

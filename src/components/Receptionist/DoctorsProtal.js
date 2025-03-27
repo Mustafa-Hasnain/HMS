@@ -122,7 +122,7 @@ const DoctorPortal = () => {
   return (
     <>
       <ToastContainer />
-      <div className="container mx-auto py-5">
+      <div className="container mx-auto py-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex gap-3 items-center align-middle">
             <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">

@@ -28,3 +28,17 @@
       display: none;
     }
   }
+
+  /* Thin Scrollbar */
+  .table-scroll::-webkit-scrollbar {
+    width: 6px;  /* Thin scrollbar */
+  }
+  
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(4, 57, 79, 0.4); /* Slightly visible thumb */
+    border-radius: 6px;
+  }
+  
+  .table-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }

@@ -164,7 +164,7 @@ const PatientPortal = () => {
   }
 
   return (
-    <div className="container mx-auto py-5">
+    <div className="container mx-auto py-4">
       <div className="flex items-center justify-between align-middle mb-4">
         <div className="flex gap-[4%]">
           <div className="flex gap-3 items-center align-middle">

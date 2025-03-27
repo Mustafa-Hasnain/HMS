@@ -5,6 +5,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import ConfirmationModal from "../Custom Components/confirmationModal";
+import { formatPrice } from "../utils/FormatPrice";
 
 const RefundItemsTable = () => {
     const [refundItems, setRefundItems] = useState([]);
@@ -109,7 +110,7 @@ const RefundItemsTable = () => {
                             <tr key={item.refundItemID} className="text-center">
                                 <td>{item.refundItemID}</td>
                                 <td className="text-green-500 font-semibold">
-                                    Rs. {item.amountRefunded}/-
+                                    Rs. {formatPrice(item.amountRefunded)}/-
                                 </td>
                                 <td>{item.invoice.appointment.patient.firstName}</td>
                                 <td>{item.itemType.replace(/([a-z])([A-Z])/g, '$1 $2')}</td>

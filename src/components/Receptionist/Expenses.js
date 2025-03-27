@@ -8,6 +8,7 @@ import ClinicExpenses from "./ClinicExpenses";
 import { debounce } from "chart.js/helpers";
 import InvoiceDetailsModal from "../Custom Components/InvoiceModal";
 import { network_url } from "../Network/networkConfig";
+import { formatPrice } from "../utils/FormatPrice";
 
 const ExpensesManager = () => {
   const [appointment, setAppointment] = useState(null);
@@ -258,7 +259,7 @@ const ExpensesManager = () => {
                           <tr key={expense.expenseID}>
                             <td>{expense.expenseID}</td>
                             <td>{expense.productName}</td>
-                            <td>{expense.amount}</td>
+                            <td>{formatPrice(expense.amount)}</td>
                             <td>{expense.invoiceID}</td>
                             <td>
                               {expense.doctor

@@ -3,6 +3,7 @@ import { Table, Button, Form, Modal, Spinner, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import 'tailwindcss/tailwind.css'; // Assuming you're using Tailwind for layout/styling.
 import { network_url } from '../Network/networkConfig';
+import { formatPrice } from '../utils/FormatPrice';
 
 const InventoryManager = () => {
     const [inventoryItems, setInventoryItems] = useState([]);
@@ -13,6 +14,7 @@ const InventoryManager = () => {
         description: '',
         stockQuantity: '',
         price: '',
+        costPrice: ""
     });
     const [editingItem, setEditingItem] = useState(null); // To handle editing
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -98,7 +100,7 @@ const InventoryManager = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h3 className="text-lg mb-4">Manage Inventory</h3>
+            <h1 className="text-2xl font-bold mb-4">Manage Inventory</h1>
 
             {/* Add Inventory Form */}
             <Form onSubmit={handleAddItem} className="mb-4 grid grid-cols-4 gap-2">
@@ -140,7 +142,16 @@ const InventoryManager = () => {
                 <Form.Group>
                     <Form.Control 
                         type="number" 
-                        placeholder="Price" 
+                        placeholder="Cost Price" 
+                        value={newItem.costPrice} 
+                        onChange={(e) => handleInputChange(e, 'costPrice')} 
+                        required 
+                    />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Control 
+                        type="number" 
+                        placeholder="Selling Price" 
                         value={newItem.price} 
                         onChange={(e) => handleInputChange(e, 'price')} 
                         required 
@@ -162,6 +173,7 @@ const InventoryManager = () => {
                             <th>Type</th>
                             <th>Description</th>
                             <th>Stock</th>
+                            <th>Cost Price</th>
                             <th>Price</th>
                             <th>Actions</th>
                         </tr>
@@ -202,6 +214,13 @@ const InventoryManager = () => {
                                         <td>
                                             <Form.Control 
                                                 type="number" 
+                                                value={editingItem.costPrice} 
+                                                onChange={(e) => handleInputChange(e, 'costPrice', true)} 
+                                            />
+                                        </td>
+                                        <td>
+                                            <Form.Control 
+                                                type="number" 
                                                 value={editingItem.price} 
                                                 onChange={(e) => handleInputChange(e, 'price', true)} 
                                             />
@@ -218,7 +237,8 @@ const InventoryManager = () => {
                                         <td>{item.type}</td>
                                         <td>{item.description}</td>
                                         <td>{item.stockQuantity}</td>
-                                        <td>{item.price}</td>
+                                        <td>{formatPrice(item.costPrice)}</td>
+                                        <td>{formatPrice(item.price)}</td>
                                         <td>
                                             <Button variant="warning" onClick={() => handleEditItem(item)}>Edit</Button>{' '}
                                             <Button variant="danger" onClick={() => handleDeleteModal(item.inventoryItemID)}>Delete</Button>

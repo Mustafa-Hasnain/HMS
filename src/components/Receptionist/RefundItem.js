@@ -6,6 +6,7 @@ import { network_url } from "../Network/networkConfig";
 import RefundModal from "../Custom Components/RefundModal";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
+import { formatPrice } from "../utils/FormatPrice";
 
 const RefundItem = () => {
     const [invoiceId, setInvoiceId] = useState("");
@@ -107,7 +108,7 @@ const RefundItem = () => {
 
                         <div className="patientDetails">
                             <p>Total Invoice Amount</p>
-                            <h2>{invoiceData.amount}</h2>
+                            <h2>{formatPrice(invoiceData.amount)}</h2>
                         </div>
                     </div>
 
@@ -130,7 +131,7 @@ const RefundItem = () => {
                                     <tr>
                                         <td>{invoiceData.appointment.appointmentID}</td>
                                         <td>{invoiceData.appointment.doctor?.firstName} {invoiceData.appointment.doctor?.lastName}</td>
-                                        <td>{invoiceData.appointment.amount}</td>
+                                        <td>{formatPrice(invoiceData.appointment.amount)}</td>
                                         <td>
                                             <Button
                                                 variant="outline-danger"
@@ -150,7 +151,7 @@ const RefundItem = () => {
                                         <tr key={item.secondaryAppointmentID}>
                                             <td>{item.secondaryAppointmentID}</td>
                                             <td>{item?.doctor?.firstName} {item?.doctor?.lastName}</td>
-                                            <td>{item.amount}</td>
+                                            <td>{formatPrice(item.amount)}</td>
                                             <td>
                                                 <Button
                                                     variant="outline-danger"
@@ -189,7 +190,7 @@ const RefundItem = () => {
                                         <td>{item.procedureItemID}</td>
                                         <td>{item.procedureName}</td>
                                         <td>{item?.doctor?.firstName} {item?.doctor?.lastName}</td>
-                                        <td>{item.amount}</td>
+                                        <td>{formatPrice(item.amount)}</td>
                                         <td>
                                             <Button
                                                 variant="outline-danger"
@@ -225,7 +226,7 @@ const RefundItem = () => {
                                     <tr key={item.invoiceInventoryItemID}>
                                         <td>{item.invoiceInventoryItemID}</td>
                                         <td>{item.quantity}</td>
-                                        <td>{item.amount}</td>
+                                        <td>{formatPrice(item.amount)}</td>
                                         <td>
                                             <Button
                                                 variant="outline-danger"

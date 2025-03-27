@@ -5,6 +5,10 @@ import { useReactToPrint } from "react-to-print";
 import "../../styles/revenue.css";
 import { useLocation } from "react-router-dom";
 import { saveAs } from "file-saver";
+import { FaFilter } from "react-icons/fa";
+import { AiOutlineDownload } from "react-icons/ai";
+import { formatPrice } from "../utils/FormatPrice";
+
 
 
 const RevenueComponent = () => {
@@ -29,6 +33,9 @@ const RevenueComponent = () => {
   const [ClinicExpensesData, setClinicExpensesData] = useState([]);
   const [InventoryItemsData, setInventoryItemsData] = useState([]);
   const [totalInventoryAmount, setTotalInventoryAmount] = useState(0);
+  const [totalInventoryCostPrice, setTotalInventoryCostPrice] = useState(0);
+  const [totalInventoryProfit, setTotalInventoryProfit] = useState(0);
+
   const [totalClinicExpenses, setTotalClinicExpenses] = useState(0);
   const [totalClinicProfit, setTotalClinicProfit] = useState(0);
   const [printSelectedDoctor, setSelectedPrintDoctor] = useState(null);
@@ -139,15 +146,18 @@ const RevenueComponent = () => {
         );
 
         const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
-
+        const totalInventoryCostPrice = data.InventoryItemsData.totalInventoryCostPrice || 0;
+        const totalInventoryProfit = data.InventoryItemsData.totalInventoryProfit || 0;
         const clinicExpenses = data.ClinicExpensesData.totalClinicAmount || 0;
 
         setClinicTotals(totals);
         setTotalInventoryAmount(totalInventory);
+        setTotalInventoryCostPrice(totalInventoryCostPrice);
+        setTotalInventoryProfit(totalInventoryProfit);
         setTotalClinicExpenses(clinicExpenses);
 
 
-        const profit = totals.totalClinicShare - (totalInventory + clinicExpenses);
+        const profit = totals.totalClinicShare - (totalInventoryProfit + clinicExpenses);
         setTotalClinicProfit(profit);
       }
 
@@ -257,9 +267,9 @@ const RevenueComponent = () => {
         className="mb-3"
       >
         <Tab eventKey="doctor" title="Doctor Revenue">
-          <div className="mb-4 max-w-[175vh]">
-            <Form className="mb-4">
-              <Form.Group controlId="doctorSelect" className="mb-3">
+          <Form className="mb-3 flex flex-wrap gap-3 items-center">
+            <div>
+              <Form.Group controlId="doctorSelect">
                 <Form.Label>Select Doctor</Form.Label>
                 <Form.Select
                   value={selectedDoctor?.doctorID}
@@ -274,32 +284,38 @@ const RevenueComponent = () => {
                   ))}
                 </Form.Select>
               </Form.Group>
-              <Form.Group controlId="fromDate" className="mb-3">
-                <Form.Label>From Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group controlId="toDate" className="mb-3">
-                <Form.Label>To Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                />
-              </Form.Group>
-              <div className="flex justify-between align-middle">
-                <Button variant="primary" onClick={fetchRevenueData}>
-                  Submit
+            </div>
+            <div className="flex gap-3 justify-between items-center">
+              <div className="flex gap-3">
+                <Form.Group controlId="fromDate">
+                  <Form.Label>From Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group controlId="toDate">
+                  <Form.Label>To Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                  />
+                </Form.Group>
+              </div>
+              <div className="flex gap-3 h-fit items-center mt-[5%]">
+                <Button variant="primary" onClick={fetchRevenueData} className="!flex rounded-md gap-2 items-center">
+                  <FaFilter className="text-white" /> Submit
                 </Button>
-                <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handleDownloadCSV}>
-                  Download CSV
+
+                <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handleDownloadCSV} className="!flex rounded-md gap-2 items-center">
+                  <AiOutlineDownload /> CSV
                 </Button>
               </div>
-            </Form>
-
+            </div>
+          </Form>
+          <div className="mt-1 max-w-[175vh]">
             {loading ? (
               <div className="flex justify-center items-center">
                 <Spinner animation="border" role="status">
@@ -309,71 +325,70 @@ const RevenueComponent = () => {
             ) : error ? (
               <div className="text-center text-red-500">{error}</div>
             ) : revenueData.length > 0 ? (
+              <>
+                {/* Print Header */}
+                <div className="print-header text-center mb-4">
+                  <h2>{`Doctor '${printSelectedDoctor?.firstName} ${printSelectedDoctor?.lastName}' Revenue Report`}</h2>
+                  <p>
+                    Revenue data from <strong>{selectedPrintFromDate}</strong> to <strong>{selectedPrintToDate}</strong>
+                  </p>
+                </div>
 
-              <div ref={printDoctorRevenueRef}>
-                {revenueData.length > 0 && (
-                  <div className="print-header text-center mb-4">
-                    <h2>{`Doctor '${printSelectedDoctor?.firstName} ${printSelectedDoctor?.lastName}' Revenue Report`}</h2>
-                    <p>
-                      Revenue data from{' '}
-                      <strong>{selectedPrintFromDate}</strong> to <strong>{selectedPrintToDate}</strong>
-                    </p>
-                  </div>
-                )}
-                <Table bordered striped hover responsive className="mt-4">
-                  <thead>
-                    <tr>
-                      <th>Dated</th>
-                      <th>Invoice ID</th>
-                      <th>Client Name</th>
-                      <th>Amount</th>
-                      <th>Discount(%)</th>
-                      <th>Payment Method</th>
-                      <th>Deduction</th>
-                      <th>Gross After Tax</th>
-                      <th>Expense Deduction</th>
-                      <th>Procedure/Consultation</th>
-                      <th>Net Amount for Sharing</th>
-                      <th>Doctor Share (%)</th>
-                      <th>Clinic Share (%)</th>
-                      <th>Doctor Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {revenueData.map((record, index) => (
-                      <tr key={index}>
-                        <td>{record.date}</td>
-                        <td>{record?.invoice_id}</td>
-                        <td>{record.clientName}</td>
-                        <td>{record.amount.toFixed(2)}</td>
-                        <td>{record?.discountedPercentage ?? "N/A"}</td>
-                        <td>{record.paymentMethod}</td>
-                        <td>{record.deduction.toFixed(2)}</td>
-                        <td>{record.grossAfterTax.toFixed(2)}</td>
-                        <td>{record.expenseDeduction.toFixed(2)}</td>
-                        <td>{record.procedureConsultation}</td>
-                        <td>{record.netAmountForSharing.toFixed(2)}</td>
-                        <td>{record.doctorSharePercentage}%</td>
-                        <td>{record.clinicSharePercentage}%</td>
-                        <td>{record.doctorAmount.toFixed(2)}</td>
+                {/* Scrollable Table */}
+                <div ref={printDoctorRevenueRef} className="overflow-auto max-h-[60vh] table-scroll">
+                  <Table bordered striped hover responsive >
+                    <thead>
+                      <tr>
+                        <th>Dated</th>
+                        <th>Invoice ID</th>
+                        <th>Client Name</th>
+                        <th>Amount</th>
+                        <th>Discount(%)</th>
+                        <th>Payment Method</th>
+                        <th>Deduction</th>
+                        <th>Gross After Tax</th>
+                        <th>Expense Deduction</th>
+                        <th>Procedure/Consultation</th>
+                        <th>Net Amount for Sharing</th>
+                        <th>Doctor Share (%)</th>
+                        <th>Clinic Share (%)</th>
+                        <th>Doctor Amount</th>
                       </tr>
-                    ))}
-                    <tr className="font-bold">
-                      <td colSpan="3" className="text-right">
-                        Totals:
-                      </td>
-                      <td>{totalAmount.toFixed(2)}</td>
-                      <td colSpan="3"></td>
-                      <td>{totalGrossAfterTax.toFixed(2)}</td>
-                      <td></td>
-                      <td></td>
-                      <td>{totalNetAmountForSharing.toFixed(2)}</td>
-                      <td colSpan="2"></td>
-                      <td>{totalDoctorAmount.toFixed(2)}</td>
-                    </tr>
-                  </tbody>
-                </Table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {revenueData.map((record, index) => (
+                        <tr key={index}>
+                          <td>{record.date}</td>
+                          <td>{record?.invoice_id}</td>
+                          <td>{record.clientName}</td>
+                          <td>{formatPrice(record.amount.toFixed(2))}</td>
+                          <td>{record?.discountedPercentage ?? "N/A"}</td>
+                          <td>{record.paymentMethod}</td>
+                          <td>{formatPrice(record.deduction.toFixed(2))}</td>
+                          <td>{formatPrice(record.grossAfterTax.toFixed(2))}</td>
+                          <td>{formatPrice(record.expenseDeduction.toFixed(2))}</td>
+                          <td>{record.procedureConsultation}</td>
+                          <td>{formatPrice(record.netAmountForSharing.toFixed(2))}</td>
+                          <td>{record.doctorSharePercentage}%</td>
+                          <td>{record.clinicSharePercentage}%</td>
+                          <td>{formatPrice(record.doctorAmount.toFixed(2))}</td>
+                        </tr>
+                      ))}
+                      <tr className="font-bold">
+                        <td colSpan="3" className="text-right !font-bold">Totals:</td>
+                        <td className="!font-bold">{formatPrice(totalAmount.toFixed(2))}</td>
+                        <td colSpan="3"></td>
+                        <td className="!font-bold">{formatPrice(totalGrossAfterTax.toFixed(2))}</td>
+                        <td></td>
+                        <td></td>
+                        <td className="!font-bold">{formatPrice(totalNetAmountForSharing.toFixed(2))}</td>
+                        <td colSpan="2"></td>
+                        <td className="!font-bold">{formatPrice(totalDoctorAmount.toFixed(2))}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <div className="text-center text-gray-500">No data found.</div>
             )}
@@ -381,29 +396,31 @@ const RevenueComponent = () => {
         </Tab>
 
         {isReceptionist && <Tab eventKey="clinic" title="Clinic Revenue">
-          <Form>
-            <Form.Group controlId="fromDate" className="mb-3">
-              <Form.Label>From Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group controlId="toDate" className="mb-3">
-              <Form.Label>To Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </Form.Group>
-            <div className="flex justify-between align-middle">
-              <Button variant="primary" onClick={fetchClinicRevenueData}>
-                Submit
+          <Form className="flex items-center justify-between mb-3">
+            <div className="flex gap-3 items-center">
+              <Form.Group controlId="fromDate">
+                <Form.Label>From Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group controlId="toDate">
+                <Form.Label>To Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </Form.Group>
+            </div>
+            <div className="flex items-center gap-3 mt-[30px]">
+              <Button variant="primary" onClick={fetchClinicRevenueData}  className="!flex rounded-md gap-2 items-center">
+              <FaFilter className="text-white" /> Submit
               </Button>
-              <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handleDownloadClinicCSV}>
-                Download CSV
+              <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handleDownloadClinicCSV} className="!flex rounded-md gap-2 items-center">
+              <AiOutlineDownload /> CSV
               </Button>
             </div>
           </Form>
@@ -417,7 +434,7 @@ const RevenueComponent = () => {
           ) : error ? (
             <div className="text-center text-red-500">{error}</div>
           ) : clinicRevenueData.length > 0 ? (
-            <div ref={printClinicRevenueRef}>
+            <div ref={printClinicRevenueRef} className="overflow-auto max-h-[60vh] table-scroll">
               {clinicRevenueData.length > 0 && (
                 <div className="print-header text-center mb-4">
                   <h2>Clinic Revenue Report</h2>
@@ -429,7 +446,7 @@ const RevenueComponent = () => {
               )}
 
               <h3 className="text-xl font-semibold mt-4">Clinic Revenue Breakdown</h3>
-              <Table bordered striped hover className="mt-4">
+              <Table bordered striped hover responsive className="mt-4">
                 <thead>
                   <tr>
                     <th>Doctor Name</th>
@@ -446,20 +463,20 @@ const RevenueComponent = () => {
                     <tr key={index}>
                       <td>{record.doctorName}</td>
                       <td>{record.specialty}</td>
-                      <td>{record.totalRevenue.toFixed(2)}</td>
+                      <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
                       <td>{record.totalExpensesCount}</td>
                       <td>{record.totalExpenses}</td>
-                      <td>{record.totalDoctorShare.toFixed(2)}</td>
-                      <td>{record.totalClinicShare.toFixed(2)}</td>
+                      <td>{formatPrice(record.totalDoctorShare.toFixed(2))}</td>
+                      <td>{formatPrice(record.totalClinicShare.toFixed(2))}</td>
                     </tr>
                   ))}
-                  <tr className="font-bold">
-                    <td colSpan="4" className="text-right">
+                  <tr className="!font-bold">
+                    <td colSpan="4" className="text-right !font-bold">
                       Totals:
                     </td>
-                    <td>{clinicTotals.totalExpensesAmount.toFixed(2)}</td>
-                    <td>{clinicTotals.totalDoctorShare.toFixed(2)}</td>
-                    <td>{clinicTotals.totalClinicShare.toFixed(2)}</td>
+                    <td className="!font-bold">{formatPrice(clinicTotals.totalExpensesAmount.toFixed(2))}</td>
+                    <td className="!font-bold">{formatPrice(clinicTotals.totalDoctorShare.toFixed(2))}</td>
+                    <td className="!font-bold">{formatPrice(clinicTotals.totalClinicShare.toFixed(2))}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -475,7 +492,9 @@ const RevenueComponent = () => {
                         <th>Inventory Item ID</th>
                         <th>Item Name</th>
                         <th>Quantity</th>
-                        <th>Amount</th>
+                        <th>Cost Price</th>
+                        <th>Selling Price</th>
+                        <th>Profit</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -485,12 +504,16 @@ const RevenueComponent = () => {
                           <td>{item.inventoryItemID}</td>
                           <td>{item.inventoryItem.name}</td>
                           <td>{item.quantity}</td>
-                          <td>{item.amount}</td>
+                          <td>{formatPrice(item.costPrice)}</td>
+                          <td>{formatPrice(item.amount)}</td>
+                          <td>{formatPrice(item.amount - item.costPrice)}</td>
                         </tr>
                       ))}
-                      <tr className="font-bold">
-                        <td colSpan="4" className="text-right">Total Inventory Amount:</td>
-                        <td>{totalInventoryAmount.toFixed(2)}</td>
+                      <tr>
+                        <td colSpan="4" className="text-right !font-bold">Total Inventory Amount:</td>
+                        <td className="!font-bold">{formatPrice(totalInventoryCostPrice.toFixed(2))}</td>
+                        <td className="!font-bold">{formatPrice(totalInventoryAmount.toFixed(2))}</td>
+                        <td className="!font-bold">{formatPrice(totalInventoryProfit.toFixed(2))}</td>
                       </tr>
                     </tbody>
                   </Table>
@@ -520,13 +543,13 @@ const RevenueComponent = () => {
                           <td>{expense.clinicExpenseID}</td>
                           <td>{expense.name}</td>
                           <td>{expense.description}</td>
-                          <td>{expense.amount}</td>
+                          <td>{formatPrice(expense.amount)}</td>
                           <td>{new Date(expense.date).toLocaleDateString()}</td>
                         </tr>
                       ))}
                       <tr className="font-bold">
-                        <td colSpan="3" className="text-right">Total Clinic Expenses:</td>
-                        <td>{totalClinicExpenses.toFixed(2)}</td>
+                        <td colSpan="3" className="text-right !font-bold">Total Clinic Expenses:</td>
+                        <td className="!font-bold">{formatPrice(totalClinicExpenses.toFixed(2))}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -540,11 +563,11 @@ const RevenueComponent = () => {
               <Card className="mt-6 bg-blue-100 border border-blue-300 p-4">
                 <Card.Body>
                   {/* <h3 className="text-xl font-semibold mb-2">Clinic Profit Calculation</h3> */}
-                  <p className="mt-2">Total Clinic Share: <strong>{clinicTotals.totalClinicShare.toFixed(2)}</strong></p>
-                  <p>Total Inventory Amount: <strong>{totalInventoryAmount.toFixed(2)}</strong></p>
-                  <p>Total Clinic Expenses: <strong>{totalClinicExpenses.toFixed(2)}</strong></p>
+                  <p className="mt-2">Total Clinic Share: <strong>{formatPrice(clinicTotals.totalClinicShare.toFixed(2))}</strong></p>
+                  <p>Total Inventory Amount: <strong>{formatPrice(totalInventoryAmount.toFixed(2))}</strong></p>
+                  <p>Total Clinic Expenses: <strong>{formatPrice(totalClinicExpenses.toFixed(2))}</strong></p>
                   <hr />
-                  <h4 className="font-bold text-lg">Total Clinic Profit: {totalClinicProfit.toFixed(2)}</h4>
+                  <h4 className="font-bold text-lg">Total Clinic Profit: {formatPrice(totalClinicProfit.toFixed(2))}</h4>
                 </Card.Body>
               </Card>
             </div>

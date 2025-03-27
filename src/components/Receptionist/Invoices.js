@@ -80,15 +80,15 @@ const InvoiceManagement = () => {
   const paidInvoices = invoices.filter((invoice) => invoice.status === 'Paid');
 
   return (
-    <div className="container my-4">
-      <div className="flex gap-3 items-center align-middle mb-4">
+    <div className="container mt-3 ">
+      <div className="flex gap-3 items-center align-middle mb-2">
         <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
           <FaArrowLeft size={20} />
         </button>
         <h2 className="font-bold text-2xl">Invoice Management</h2>
       </div>
 
-      <Form className="mb-4">
+      <Form className="mb-2">
         <Row className="align-items-center">
           <Col md={4}>
             <Form.Label>
@@ -130,12 +130,13 @@ const InvoiceManagement = () => {
       </Form>
 
       {/* Tabs for switching between unpaid and paid invoices */}
-      
-        {loading ? (
-          <div className="text-center">
-            <Spinner animation="border" />
-          </div>
-        ) : (
+
+      {loading ? (
+        <div className="text-center">
+          <Spinner animation="border" />
+        </div>
+      ) : (
+        <div className="overflow-auto max-h-[60vh] table-scroll">
           <InvoiceTable
             invoices={unpaidInvoices}
             showPayButton={true}
@@ -145,9 +146,10 @@ const InvoiceManagement = () => {
             setUpdatingInvoiceID={setUpdatingInvoiceID}
             setShowPaymentModal={setShowPaymentModal}
           />
-        )}
+        </div>
+      )}
 
-        {/* <Tab eventKey="paid" title="Paid Invoices">
+      {/* <Tab eventKey="paid" title="Paid Invoices">
           {loading ? (
             <div className="text-center">
               <Spinner animation="border" />
