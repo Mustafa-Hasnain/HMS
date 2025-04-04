@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
-import { Card, Button, Form, Row, Col, InputGroup, Spinner, ToastContainer, Toast } from 'react-bootstrap';
+import { Card, Button, Form, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
 import Dots from "../assets/dots.png";
 import Dots_small from '../assets/dots small.png';
 import Logo from "../assets/Logo.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Icons for show/hide password
 import { network_url } from './Network/networkConfig';
+import { toast, ToastContainer } from 'react-toastify';
 
 
 function Login() {
@@ -66,7 +67,7 @@ function Login() {
         localStorage.setItem('doctor', JSON.stringify(response_data));
         navigate('/doctor/appointments');
       } catch (error) {
-        setGlobalError('Login failed. Please try again.');
+        toast.error('Failed to login. Please check your credentials.');
       } finally {
         setIsLoading(false);
       }
@@ -83,6 +84,7 @@ function Login() {
 
   return (
       <Row>
+        <ToastContainer></ToastContainer>
         <Col md={4}>
           <div className="bg-[#00743C] text-white p-5 flex flex-col justify-center items-center h-full Montserrat text-center relative overflow-hidden">
             {/* Logo at the top right */}
@@ -145,13 +147,13 @@ function Login() {
             </Form.Group>
 
              {/* Global Error Toast */}
-             {globalError && (
+             {/* {globalError && (
               <ToastContainer position="top-end" className="p-3">
                 <Toast bg="danger" onClose={() => setGlobalError('')} delay={3000} autohide>
                   <Toast.Body>{globalError}</Toast.Body>
                 </Toast>
               </ToastContainer>
-            )}
+            )} */}
 
             {/* Login Button with Spinner */}
             <Button

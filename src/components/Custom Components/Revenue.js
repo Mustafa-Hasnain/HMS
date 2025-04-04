@@ -5,9 +5,18 @@ import { useReactToPrint } from "react-to-print";
 import "../../styles/revenue.css";
 import { useLocation } from "react-router-dom";
 import { saveAs } from "file-saver";
-import { FaFilter } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaFilter } from "react-icons/fa";
 import { AiOutlineDownload } from "react-icons/ai";
 import { formatPrice } from "../utils/FormatPrice";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionItemHeading,
+  AccordionItemPanel,
+  AccordionItemButton,
+} from 'react-accessible-accordion';
+import 'react-accessible-accordion/dist/fancy-example.css';
+
 
 
 
@@ -45,6 +54,11 @@ const RevenueComponent = () => {
   const location = useLocation();
   const [isDoctor, setIsDoctor] = useState(false);
   const [isReceptionist, setIsReceptionist] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleAccordion = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   useEffect(() => {
     if (location.pathname.includes('/doctor/')) {
@@ -416,11 +430,11 @@ const RevenueComponent = () => {
               </Form.Group>
             </div>
             <div className="flex items-center gap-3 mt-[30px]">
-              <Button variant="primary" onClick={fetchClinicRevenueData}  className="!flex rounded-md gap-2 items-center">
-              <FaFilter className="text-white" /> Submit
+              <Button variant="primary" onClick={fetchClinicRevenueData} className="!flex rounded-md gap-2 items-center">
+                <FaFilter className="text-white" /> Submit
               </Button>
               <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handleDownloadClinicCSV} className="!flex rounded-md gap-2 items-center">
-              <AiOutlineDownload /> CSV
+                <AiOutlineDownload /> CSV
               </Button>
             </div>
           </Form>
@@ -445,7 +459,7 @@ const RevenueComponent = () => {
                 </div>
               )}
 
-              <h3 className="text-xl font-semibold mt-4">Clinic Revenue Breakdown</h3>
+              {/* <h3 className="text-xl font-semibold mt-4">Clinic Revenue Breakdown</h3>
               <Table bordered striped hover responsive className="mt-4">
                 <thead>
                   <tr>
@@ -484,7 +498,6 @@ const RevenueComponent = () => {
               <h3 className="text-xl font-semibold mt-6">Inventory Items Summary</h3>
               {InventoryItemsData.length > 0 ? (
                 <>
-                  {/* Invoice Inventory Items Table */}
                   <Table bordered striped hover className="mt-4">
                     <thead>
                       <tr>
@@ -526,7 +539,6 @@ const RevenueComponent = () => {
 
               {ClinicExpensesData.length > 0 ? (
                 <>
-                  {/* Clinic Expenses Table */}
                   <Table bordered striped hover className="mt-4">
                     <thead>
                       <tr>
@@ -557,19 +569,188 @@ const RevenueComponent = () => {
                 </>
               ) : (
                 <div>No Clinic Expenses</div>
-              )}
+              )} */}
 
-              {/* Clinic Profit Calculation */}
-              <Card className="mt-6 bg-blue-100 border border-blue-300 p-4">
+              <Accordion allowZeroExpanded>
+                {/* Clinic Revenue Breakdown */}
+                <AccordionItem>
+                  <div
+                    className="flex justify-between items-center py-3 px-4 border-b cursor-pointer"
+                    onClick={() => toggleAccordion(0)}
+                  >
+                    <span className="text-lg font-semibold">Clinic Revenue Breakdown</span>
+                    {openIndex === 0 ? <FaChevronUp /> : <FaChevronDown />}
+                  </div>
+                  {openIndex === 0 && (
+                    <div className="p-4">
+                      <Table bordered striped hover responsive className="mt-2">
+                        <thead>
+                          <tr>
+                            <th>Doctor Name</th>
+                            <th>Specialty</th>
+                            <th>Total Revenue</th>
+                            <th>No. of Expenses</th>
+                            <th>Total Expenses Amount</th>
+                            <th>Total Doctor Share</th>
+                            <th>Total Clinic Share</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {clinicRevenueData.map((record, index) => (
+                            <tr key={index}>
+                              <td>{record.doctorName}</td>
+                              <td>{record.specialty}</td>
+                              <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
+                              <td>{record.totalExpensesCount}</td>
+                              <td>{record.totalExpenses}</td>
+                              <td>{formatPrice(record.totalDoctorShare.toFixed(2))}</td>
+                              <td>{formatPrice(record.totalClinicShare.toFixed(2))}</td>
+                            </tr>
+                          ))}
+                          <tr className="font-bold">
+                            <td colSpan="4" className="text-right">Totals:</td>
+                            <td>{formatPrice(clinicTotals.totalExpensesAmount.toFixed(2))}</td>
+                            <td>{formatPrice(clinicTotals.totalDoctorShare.toFixed(2))}</td>
+                            <td>{formatPrice(clinicTotals.totalClinicShare.toFixed(2))}</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </AccordionItem>
+
+                {/* Inventory Items Summary */}
+                <AccordionItem>
+                  <div
+                    className="flex justify-between items-center py-3 px-4 border-b cursor-pointer"
+                    onClick={() => toggleAccordion(1)}
+                  >
+                    <span className="text-lg font-semibold">Inventory Items Summary</span>
+                    {openIndex === 1 ? <FaChevronUp /> : <FaChevronDown />}
+                  </div>
+                  {openIndex === 1 && (
+                    <div className="p-4">
+                      {InventoryItemsData.length > 0 ? (
+                        <Table bordered striped hover className="mt-2">
+                          <thead>
+                            <tr>
+                              <th>Invoice ID</th>
+                              <th>Inventory Item ID</th>
+                              <th>Item Name</th>
+                              <th>Quantity</th>
+                              <th>Cost Price</th>
+                              <th>Selling Price</th>
+                              <th>Profit</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {InventoryItemsData.map((item, index) => (
+                              <tr key={index}>
+                                <td>{item.invoiceID}</td>
+                                <td>{item.inventoryItemID}</td>
+                                <td>{item.inventoryItem.name}</td>
+                                <td>{item.quantity}</td>
+                                <td>{formatPrice(item.costPrice)}</td>
+                                <td>{formatPrice(item.amount)}</td>
+                                <td>{formatPrice(item.amount - item.costPrice)}</td>
+                              </tr>
+                            ))}
+                            <tr className="font-bold">
+                              <td colSpan="4" className="text-right">Total Inventory Amount:</td>
+                              <td>{formatPrice(totalInventoryCostPrice.toFixed(2))}</td>
+                              <td>{formatPrice(totalInventoryAmount.toFixed(2))}</td>
+                              <td>{formatPrice(totalInventoryProfit.toFixed(2))}</td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      ) : (
+                        <div>No Inventory Items</div>
+                      )}
+                    </div>
+                  )}
+                </AccordionItem>
+
+                {/* Clinic Expenses */}
+                <AccordionItem>
+                  <div
+                    className="flex justify-between items-center py-3 px-4 border-b cursor-pointer"
+                    onClick={() => toggleAccordion(2)}
+                  >
+                    <span className="text-lg font-semibold">Clinic Expenses</span>
+                    {openIndex === 2 ? <FaChevronUp /> : <FaChevronDown />}
+                  </div>
+                  {openIndex === 2 && (
+                    <div className="p-4">
+                      {ClinicExpensesData.length > 0 ? (
+                        <Table bordered striped hover className="mt-2">
+                          <thead>
+                            <tr>
+                              <th>Expense ID</th>
+                              <th>Name</th>
+                              <th>Description</th>
+                              <th>Amount</th>
+                              <th>Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ClinicExpensesData.map((expense, index) => (
+                              <tr key={index}>
+                                <td>{expense.clinicExpenseID}</td>
+                                <td>{expense.name}</td>
+                                <td>{expense.description}</td>
+                                <td>{formatPrice(expense.amount)}</td>
+                                <td>{new Date(expense.date).toLocaleDateString()}</td>
+                              </tr>
+                            ))}
+                            <tr className="font-bold">
+                              <td colSpan="3" className="text-right">Total Clinic Expenses:</td>
+                              <td>{formatPrice(totalClinicExpenses.toFixed(2))}</td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      ) : (
+                        <div>No Clinic Expenses</div>
+                      )}
+                    </div>
+                  )}
+                </AccordionItem>
+              </Accordion>
+
+
+              <Card className="mt-6 p-2 !border-0">
                 <Card.Body>
-                  {/* <h3 className="text-xl font-semibold mb-2">Clinic Profit Calculation</h3> */}
-                  <p className="mt-2">Total Clinic Share: <strong>{formatPrice(clinicTotals.totalClinicShare.toFixed(2))}</strong></p>
-                  <p>Total Inventory Amount: <strong>{formatPrice(totalInventoryAmount.toFixed(2))}</strong></p>
-                  <p>Total Clinic Expenses: <strong>{formatPrice(totalClinicExpenses.toFixed(2))}</strong></p>
-                  <hr />
-                  <h4 className="font-bold text-lg">Total Clinic Profit: {formatPrice(totalClinicProfit.toFixed(2))}</h4>
+                  <div className="grid grid-cols-3 gap-4 text-gray-600 text-sm font-medium">
+                    <p className="text-[#00000080]">
+                      Total Clinic Shares: <br />
+                      <span className="text-2xl font-bold text-gray-900">
+                       Rs. {formatPrice(clinicTotals.totalClinicShare.toFixed(0))}/-
+                      </span>
+                    </p>
+                    <p className="text-[#00000080]">
+                      Total Inventory Amount: <br />
+                      <span className="text-2xl font-bold text-gray-900">
+                       Rs. {formatPrice(totalInventoryAmount.toFixed(0))}/-
+                      </span>
+                    </p>
+                    <p className="text-[#00000080]">
+                      Total Clinic Expenses: <br />
+                      <span className="text-2xl font-bold text-gray-900">
+                       Rs. {formatPrice(totalClinicExpenses.toFixed(0))}/-
+                      </span>
+                    </p>
+                  </div>
+                  <hr className="mt-2 mb-4 border-[#C0C0C0] border-2" />
+                  <h4 className="text-lg font-semibold text-[#00000080]">
+                    Total Clinic Profit:
+                    <br />
+                    <span className="text-2xl font-bold text-green-600">
+                      Rs. {formatPrice(totalClinicProfit.toFixed(0))}/-
+                    </span>
+                  </h4>
                 </Card.Body>
               </Card>
+
             </div>
           ) : (
             <div className="text-center text-gray-500">No data available.</div>

@@ -18,6 +18,7 @@ import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'react-accessible-accordion/dist/fancy-example.css';
 import Dashboard from './components/Receptionist/Dashboard';
 import PatientDetails from './components/Custom Components/patient_details';
 import DoctorDashboard from './components/Doctor/Dashboard';
