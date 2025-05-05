@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Tabs, Tab, Table, Button, Spinner, Col, Form, Row } from 'react-bootstrap';
 import axios from 'axios';
 import PaymentModal from '../Custom Components/PaymentModal';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import { network_url } from '../Network/networkConfig';
+import { useReactToPrint } from 'react-to-print';
+import Logo from "../../assets/Logo Green.png";
+
 
 const InvoiceManagement = () => {
   const [key, setKey] = useState('unpaid');
@@ -12,20 +15,21 @@ const InvoiceManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [updatingInvoiceID, setUpdatingInvoiceID] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
 
+  const componentRef = useRef();
 
-  // Fetch invoices from API
   useEffect(() => {
     const fetchInvoices = async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${network_url}/api/Prescription/GetInvoices`);
-        console.log("Fetch Invoices Data: ", response.data)
         setInvoices(response.data);
       } catch (error) {
         console.error('Error fetching invoices:', error);
@@ -37,7 +41,6 @@ const InvoiceManagement = () => {
     fetchInvoices();
   }, []);
 
-  // Mark an invoice as paid
   const markAsPaid = async (invoiceID) => {
     setUpdatingInvoiceID(invoiceID);
     try {
@@ -54,8 +57,6 @@ const InvoiceManagement = () => {
     }
   };
 
-
-  // Filter invoices by search criteria
   const handleSearch = async () => {
     setSearchLoading(true);
     try {
@@ -64,9 +65,7 @@ const InvoiceManagement = () => {
       if (fromDate) params.fromDate = fromDate;
       if (toDate) params.toDate = toDate;
 
-      const response = await axios.get(`${network_url}/api/Prescription/GetInvoices`, {
-        params,
-      });
+      const response = await axios.get(`${network_url}/api/Prescription/GetInvoices`, { params });
       setInvoices(response.data);
     } catch (error) {
       console.error('Error searching invoices:', error);
@@ -75,12 +74,15 @@ const InvoiceManagement = () => {
     }
   };
 
-  // Filter invoices by status
   const unpaidInvoices = invoices.filter((invoice) => invoice.status !== 'Paid');
-  const paidInvoices = invoices.filter((invoice) => invoice.status === 'Paid');
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'Invoice Report',
+  });
 
   return (
-    <div className="container mt-3 ">
+    <div className="container mt-3">
       <div className="flex gap-3 items-center align-middle mb-2">
         <button onClick={() => navigate('/receptionist/overview')} className="text-success -mt-2">
           <FaArrowLeft size={20} />
@@ -91,9 +93,7 @@ const InvoiceManagement = () => {
       <Form className="mb-2">
         <Row className="align-items-center">
           <Col md={4}>
-            <Form.Label>
-              Search
-            </Form.Label>
+            <Form.Label>Search</Form.Label>
             <Form.Control
               type="text"
               placeholder="Search by text..."
@@ -102,34 +102,21 @@ const InvoiceManagement = () => {
             />
           </Col>
           <Col md={3}>
-            <Form.Label>
-              From Date
-            </Form.Label>
-            <Form.Control
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
+            <Form.Label>From Date</Form.Label>
+            <Form.Control type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
           </Col>
           <Col md={3}>
-            <Form.Label>
-              To Date
-            </Form.Label>
-            <Form.Control
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
+            <Form.Label>To Date</Form.Label>
+            <Form.Control type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
           </Col>
-          <Col className='pt-[30px]' md={2}>
+          <Col className="pt-[30px] flex gap-2" md={2}>
             <Button variant="primary" onClick={handleSearch} disabled={searchLoading}>
               {searchLoading ? <Spinner as="span" animation="border" size="sm" /> : 'Search'}
             </Button>
+            <Button variant="secondary" onClick={handlePrint}>Print</Button>
           </Col>
         </Row>
       </Form>
-
-      {/* Tabs for switching between unpaid and paid invoices */}
 
       {loading ? (
         <div className="text-center">
@@ -142,31 +129,20 @@ const InvoiceManagement = () => {
             showPayButton={true}
             markAsPaid={markAsPaid}
             updatingInvoiceID={updatingInvoiceID}
-            noInvoicesMessage="No unpaid invoices left."
+            noInvoicesMessage="No Invoices Found."
             setUpdatingInvoiceID={setUpdatingInvoiceID}
             setShowPaymentModal={setShowPaymentModal}
           />
         </div>
       )}
 
-      {/* <Tab eventKey="paid" title="Paid Invoices">
-          {loading ? (
-            <div className="text-center">
-              <Spinner animation="border" />
-            </div>
-          ) : (
-            <InvoiceTable
-              invoices={paidInvoices}
-              showPayButton={false}
-              noInvoicesMessage="No paid invoices available."
-              setUpdatingInvoiceID={setUpdatingInvoiceID}
-              setShowPaymentModal={setShowPaymentModal}
-            />
-          )}
-        </Tab> */}
+      <div style={{ display: 'none' }}>
+        <PrintableInvoiceTable invoices={unpaidInvoices} ref={componentRef} />
+      </div>
+
       <PaymentModal
         show={showPaymentModal}
-        onHide={() => { setShowPaymentModal(false); setUpdatingInvoiceID(null) }}
+        onHide={() => { setShowPaymentModal(false); setUpdatingInvoiceID(null); }}
         invoiceID={updatingInvoiceID}
         markAsPaid={() => markAsPaid(updatingInvoiceID)}
       />
@@ -174,7 +150,7 @@ const InvoiceManagement = () => {
   );
 };
 
-// Table component to display invoices
+// Table visible in UI
 const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, noInvoicesMessage, setShowPaymentModal, setUpdatingInvoiceID }) => {
   const navigate = useNavigate();
   return invoices.length === 0 ? (
@@ -184,13 +160,13 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
       <thead>
         <tr>
           <th>#</th>
+          <th>Date</th>
           <th>Invoice ID</th>
           <th>MR. NO.</th>
           <th>Patient Name</th>
-          <th>Patient Phone</th>
           <th>Doctor Name</th>
           <th>Total Amount</th>
-          <th>Date</th>
+          <th>Amount Paid</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -198,44 +174,17 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
         {invoices.map((invoice, index) => (
           <tr key={invoice.invoiceID}>
             <td>{index + 1}</td>
+            <td>{new Date(invoice.appointment.appointmentDate).toLocaleDateString()}</td>
             <td>{invoice.invoiceID}</td>
             <td>{invoice.appointment.patient.patientID}</td>
             <td>{invoice.appointment.patient.firstName}</td>
-            <td>{invoice.appointment.patient.mobileNumber}</td>
             <td>{invoice.appointment.doctor.firstName}</td>
             <td>{invoice.amount}</td>
-            <td>{invoice.appointment.appointmentDate ? new Date(invoice.appointment.appointmentDate).toLocaleDateString('en-US', {
-              weekday: 'short',
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric'
-            }) : 'N/A'}</td>
-
+            <td>{invoice.totalPaid}</td>
             <td>
-              <div className='flex gap-3'>
-                {/* {showPayButton && (
-                  <Button
-                    variant="outline-success"
-                    onClick={() => {
-                      setUpdatingInvoiceID(invoice.invoiceID)
-                      setShowPaymentModal(true);
-                    }}
-                    className='!text-sm'
-                    disabled={updatingInvoiceID === invoice.invoiceID}
-                  >
-                    {updatingInvoiceID === invoice.invoiceID ? (
-                      <Spinner as="span" animation="border" size="sm" />
-                    ) : (
-                      'Mark as Paid'
-                    )}
-                  </Button>
-                )} */}
-                <Button variant='outline-success' className='!text-sm'
-                  onClick={() => (navigate(`/receptionist/invoice-details/${invoice.appointment.appointmentID}/`))}
-                >
-                  View Details
-                </Button>
-              </div>
+              <Button variant="outline-success" className="!text-sm" onClick={() => navigate(`/receptionist/invoice-details/${invoice.appointment.appointmentID}/`)}>
+                View Details
+              </Button>
             </td>
           </tr>
         ))}
@@ -243,5 +192,51 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
     </Table>
   );
 };
+
+// Printable version without Action column
+const PrintableInvoiceTable = React.forwardRef(({ invoices }, ref) => {
+  return (
+    <div ref={ref} style={{ padding: '20px' }}>
+      <div className="flex justify-between mb-3">
+        <img src={Logo} alt="Woodlands Health Center Logo" style={{ width: '120px', height: '120px', marginBottom: '8px' }} />
+        <div>
+          <p style={{ fontSize: '12px', lineHeight: '1.2' }}>4th floor, Building 1-C, F8 Markaz, Islamabad. Ph: 051 6103000</p>
+          <p style={{ fontSize: '12px', margin: '0' }}>woodlandshealthcenter@gmail.com</p>
+          <p style={{ fontSize: '12px' }}>woodlandshealthcenter.com</p>
+        </div>
+      </div>
+
+        <h3 className='text-center mb-3'>Invoices</h3>
+      <Table bordered size="sm">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Invoice ID</th>
+            <th>MR. NO.</th>
+            <th>Patient Name</th>
+            <th>Doctor Name</th>
+            <th>Total Amount</th>
+            <th>Amount Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoices.map((invoice, index) => (
+            <tr key={invoice.invoiceID}>
+              <td>{index + 1}</td>
+              <td>{new Date(invoice.appointment.appointmentDate).toLocaleDateString()}</td>
+              <td>{invoice.invoiceID}</td>
+              <td>{invoice.appointment.patient.patientID}</td>
+              <td>{invoice.appointment.patient.firstName}</td>
+              <td>{invoice.appointment.doctor.firstName}</td>
+              <td>{invoice.amount}</td>
+              <td>{invoice.totalPaid}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  );
+});
 
 export default InvoiceManagement;

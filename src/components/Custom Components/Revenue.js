@@ -281,8 +281,8 @@ const RevenueComponent = () => {
         className="mb-3"
       >
         <Tab eventKey="doctor" title="Doctor Revenue">
-          <Form className="mb-3 flex flex-wrap gap-3 items-center">
-            <div>
+          <Form className="mb-3 flex flex-wrap items-center justify-between">
+            <div className="w-1/3">
               <Form.Group controlId="doctorSelect">
                 <Form.Label>Select Doctor</Form.Label>
                 <Form.Select
@@ -602,7 +602,7 @@ const RevenueComponent = () => {
                               <td>{record.specialty}</td>
                               <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
                               <td>{record.totalExpensesCount}</td>
-                              <td>{record.totalExpenses}</td>
+                              <td>{formatPrice(record.totalExpensesAmount.toFixed(2))}</td>
                               <td>{formatPrice(record.totalDoctorShare.toFixed(2))}</td>
                               <td>{formatPrice(record.totalClinicShare.toFixed(2))}</td>
                             </tr>
