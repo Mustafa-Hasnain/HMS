@@ -54,12 +54,17 @@ const RevenueComponent = () => {
   const location = useLocation();
   const [isDoctor, setIsDoctor] = useState(false);
   const [isReceptionist, setIsReceptionist] = useState(false);
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIndices, setOpenIndices] = useState([]);
 
   const toggleAccordion = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
+    if (openIndices.includes(index)) {
+      // Remove the index if already open
+      setOpenIndices(openIndices.filter(i => i !== index));
+    } else {
+      // Add the index to the list of open indices
+      setOpenIndices([...openIndices, index]);
+    }
   };
-
   useEffect(() => {
     if (location.pathname.includes('/doctor/')) {
       setIsDoctor(true);
@@ -153,7 +158,7 @@ const RevenueComponent = () => {
           (totals, record) => {
             totals.totalDoctorShare += record.totalDoctorShare || 0;
             totals.totalClinicShare += record.totalClinicShare || 0;
-            totals.totalExpensesAmount += record.totalExpenses || 0;
+            totals.totalExpensesAmount += record.totalExpenseDeduction || 0;
             return totals;
           },
           { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0 }
@@ -579,9 +584,9 @@ const RevenueComponent = () => {
                     onClick={() => toggleAccordion(0)}
                   >
                     <span className="text-lg font-semibold">Clinic Revenue Breakdown</span>
-                    {openIndex === 0 ? <FaChevronUp /> : <FaChevronDown />}
+                    {openIndices.includes(0) ? <FaChevronUp /> : <FaChevronDown />}
                   </div>
-                  {openIndex === 0 && (
+                  {openIndices.includes(0) && (
                     <div className="p-4">
                       <Table bordered striped hover responsive className="mt-2">
                         <thead>
@@ -599,10 +604,10 @@ const RevenueComponent = () => {
                           {clinicRevenueData.map((record, index) => (
                             <tr key={index}>
                               <td>{record.doctorName}</td>
-                              <td>{record.specialty}</td>
+                              <td>{record.speciality}</td>
                               <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
                               <td>{record.totalExpensesCount}</td>
-                              <td>{formatPrice(record.totalExpensesAmount.toFixed(2))}</td>
+                              <td>{formatPrice(record.totalExpenseDeduction.toFixed(2))}</td>
                               <td>{formatPrice(record.totalDoctorShare.toFixed(2))}</td>
                               <td>{formatPrice(record.totalClinicShare.toFixed(2))}</td>
                             </tr>
@@ -626,9 +631,9 @@ const RevenueComponent = () => {
                     onClick={() => toggleAccordion(1)}
                   >
                     <span className="text-lg font-semibold">Inventory Items Summary</span>
-                    {openIndex === 1 ? <FaChevronUp /> : <FaChevronDown />}
+                    {openIndices.includes(1) ? <FaChevronUp /> : <FaChevronDown />}
                   </div>
-                  {openIndex === 1 && (
+                  {openIndices.includes(1) && (
                     <div className="p-4">
                       {InventoryItemsData.length > 0 ? (
                         <Table bordered striped hover className="mt-2">
@@ -677,9 +682,9 @@ const RevenueComponent = () => {
                     onClick={() => toggleAccordion(2)}
                   >
                     <span className="text-lg font-semibold">Clinic Expenses</span>
-                    {openIndex === 2 ? <FaChevronUp /> : <FaChevronDown />}
+                    {openIndices.includes(2) ? <FaChevronUp /> : <FaChevronDown />}
                   </div>
-                  {openIndex === 2 && (
+                  {openIndices.includes(2) && (
                     <div className="p-4">
                       {ClinicExpensesData.length > 0 ? (
                         <Table bordered striped hover className="mt-2">
