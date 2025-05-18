@@ -6,7 +6,7 @@ import "../../styles/revenue.css";
 import { useLocation } from "react-router-dom";
 import { saveAs } from "file-saver";
 import { FaChevronDown, FaChevronUp, FaFilter } from "react-icons/fa";
-import { AiOutlineDownload } from "react-icons/ai";
+import { AiOutlineCheck, AiOutlineDownload } from "react-icons/ai";
 import { formatPrice } from "../utils/FormatPrice";
 import {
   Accordion,
@@ -16,6 +16,7 @@ import {
   AccordionItemButton,
 } from 'react-accessible-accordion';
 import 'react-accessible-accordion/dist/fancy-example.css';
+import { toast, ToastContainer } from "react-toastify";
 
 
 
@@ -55,6 +56,42 @@ const RevenueComponent = () => {
   const [isDoctor, setIsDoctor] = useState(false);
   const [isReceptionist, setIsReceptionist] = useState(false);
   const [openIndices, setOpenIndices] = useState([]);
+  const [selectedRevenueRows, setSelectedRevenueRows] = useState([]);
+  const [isSubmittingRevenue, setIsSubmittingRevenue] = useState(false);
+
+  const handleSubmitRevenue = async () => {
+    setIsSubmittingRevenue(true);
+    const payload = selectedRevenueRows.map(index => {
+      const item = revenueData[index];
+      return {
+        type: item.procedureConsultation?.toLowerCase().includes("procedure") ? "procedure" : "consultation",
+        id: item.id // Ensure your `record` object includes the relevant ID property
+      };
+    });
+
+    try {
+      const response = await fetch(`${network_url}/api/Doctor/submit-items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Failed to submit revenue");
+
+      toast.success("Revenue Submitted Successfully");
+      setSelectedRevenueRows([]);
+      fetchRevenueData(); // refresh data
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Error occured.");
+    }
+    finally{
+      setIsSubmittingRevenue(false);
+    }
+  };
+
 
   const toggleAccordion = (index) => {
     if (openIndices.includes(index)) {
@@ -279,6 +316,7 @@ const RevenueComponent = () => {
 
   return (
     <div>
+    <ToastContainer></ToastContainer>
       <Tabs
         id="revenue-tabs"
         activeKey={key}
@@ -324,13 +362,21 @@ const RevenueComponent = () => {
                 </Form.Group>
               </div>
               <div className="flex gap-3 h-fit items-center mt-[5%]">
-                <Button variant="primary" onClick={fetchRevenueData} className="!flex rounded-md gap-2 items-center">
+                <Button variant="primary" disabled={loading} onClick={fetchRevenueData} className="!flex rounded-md gap-2 items-center">
                   <FaFilter className="text-white" /> Submit
                 </Button>
 
                 <Button disabled={revenueData.length === 0} variant="outline-primary" onClick={handleDownloadCSV} className="!flex rounded-md gap-2 items-center">
                   <AiOutlineDownload /> CSV
                 </Button>
+                {isDoctor && <Button
+                  variant="success"
+                  className="!flex rounded-md gap-2 items-center"
+                  disabled={selectedRevenueRows.length === 0 || isSubmittingRevenue}
+                  onClick={handleSubmitRevenue}
+                >
+                  <AiOutlineCheck /> Revenue
+                </Button>}
               </div>
             </div>
           </Form>
@@ -372,27 +418,57 @@ const RevenueComponent = () => {
                         <th>Doctor Share (%)</th>
                         <th>Clinic Share (%)</th>
                         <th>Doctor Amount</th>
+                        <th>
+                          {isDoctor && <Form.Check
+                            type="checkbox"
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedRevenueRows(revenueData.map((_, index) => index));
+                              } else {
+                                setSelectedRevenueRows([]);
+                              }
+                            }}
+                            checked={selectedRevenueRows.length === revenueData.length && revenueData.length > 0}
+                          />}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {revenueData.map((record, index) => (
-                        <tr key={index}>
-                          <td>{record.date}</td>
-                          <td>{record?.invoice_id}</td>
-                          <td>{record.clientName}</td>
-                          <td>{formatPrice(record.amount.toFixed(2))}</td>
-                          <td>{record?.discountedPercentage ?? "N/A"}</td>
-                          <td>{record.paymentMethod}</td>
-                          <td>{formatPrice(record.deduction.toFixed(2))}</td>
-                          <td>{formatPrice(record.grossAfterTax.toFixed(2))}</td>
-                          <td>{formatPrice(record.expenseDeduction.toFixed(2))}</td>
-                          <td>{record.procedureConsultation}</td>
-                          <td>{formatPrice(record.netAmountForSharing.toFixed(2))}</td>
-                          <td>{record.doctorSharePercentage}%</td>
-                          <td>{record.clinicSharePercentage}%</td>
-                          <td>{formatPrice(record.doctorAmount.toFixed(2))}</td>
-                        </tr>
-                      ))}
+                      {revenueData.map((record, index) => {
+                        const isChecked = selectedRevenueRows.includes(index);
+                        return (
+                          <tr key={index}>
+                            <td>{record.date}</td>
+                            <td>{record?.invoice_id}</td>
+                            <td>{record.clientName}</td>
+                            <td>{formatPrice(record.amount.toFixed(2))}</td>
+                            <td>{record?.discountedPercentage ?? "N/A"}</td>
+                            <td>{record.paymentMethod}</td>
+                            <td>{formatPrice(record.deduction.toFixed(2))}</td>
+                            <td>{formatPrice(record.grossAfterTax.toFixed(2))}</td>
+                            <td>{formatPrice(record.expenseDeduction.toFixed(2))}</td>
+                            <td>{record.procedureConsultation}</td>
+                            <td>{formatPrice(record.netAmountForSharing.toFixed(2))}</td>
+                            <td>{record.doctorSharePercentage}%</td>
+                            <td>{record.clinicSharePercentage}%</td>
+                            <td>{formatPrice(record.doctorAmount.toFixed(2))}</td>
+                            <td>
+                              <Form.Check
+                                type="checkbox"
+                                checked={record.isSubmittedByDoctor || isChecked}
+                                onChange={() => {
+                                  if (isChecked) {
+                                    setSelectedRevenueRows(selectedRevenueRows.filter(i => i !== index));
+                                  } else {
+                                    setSelectedRevenueRows([...selectedRevenueRows, index]);
+                                  }
+                                }}
+                                disabled={isReceptionist || record.isSubmittedByDoctor}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
                       <tr className="font-bold">
                         <td colSpan="3" className="text-right !font-bold">Totals:</td>
                         <td className="!font-bold">{formatPrice(totalAmount.toFixed(2))}</td>
@@ -435,7 +511,7 @@ const RevenueComponent = () => {
               </Form.Group>
             </div>
             <div className="flex items-center gap-3 mt-[30px]">
-              <Button variant="primary" onClick={fetchClinicRevenueData} className="!flex rounded-md gap-2 items-center">
+              <Button variant="primary" onClick={fetchClinicRevenueData} disabled={loading} className="!flex rounded-md gap-2 items-center">
                 <FaFilter className="text-white" /> Submit
               </Button>
               <Button disabled={clinicRevenueData.length === 0} variant="outline-primary" onClick={handleDownloadClinicCSV} className="!flex rounded-md gap-2 items-center">
@@ -729,19 +805,19 @@ const RevenueComponent = () => {
                     <p className="text-[#00000080]">
                       Total Clinic Shares: <br />
                       <span className="text-2xl font-bold text-gray-900">
-                       Rs. {formatPrice(clinicTotals.totalClinicShare.toFixed(0))}/-
+                        Rs. {formatPrice(clinicTotals.totalClinicShare.toFixed(0))}/-
                       </span>
                     </p>
                     <p className="text-[#00000080]">
                       Total Inventory Amount: <br />
                       <span className="text-2xl font-bold text-gray-900">
-                       Rs. {formatPrice(totalInventoryAmount.toFixed(0))}/-
+                        Rs. {formatPrice(totalInventoryAmount.toFixed(0))}/-
                       </span>
                     </p>
                     <p className="text-[#00000080]">
                       Total Clinic Expenses: <br />
                       <span className="text-2xl font-bold text-gray-900">
-                       Rs. {formatPrice(totalClinicExpenses.toFixed(0))}/-
+                        Rs. {formatPrice(totalClinicExpenses.toFixed(0))}/-
                       </span>
                     </p>
                   </div>
