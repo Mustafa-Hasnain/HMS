@@ -14,6 +14,7 @@ import InventoryModal from "./InventoryModal";
 import { network_url } from "../Network/networkConfig";
 import PrescriptionTableModal from "./PrescriptionTableModal";
 import { formatPrice } from "../utils/FormatPrice";
+import ConfirmationModal from "./confirmationModal";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -26,6 +27,10 @@ const InvoiceDetails = () => {
     const [showModal, setShowModal] = useState(false);
     const [showInventoryModal, setShowInventoryModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showProcedureItemPayConfirmationModal, setShowProcedureItemPayConfirmationModal] = useState(false);
+    const [showInventoryItemPayConfirmationModal, setShowInventoryItemPayConfirmationModal] = useState(false);
+
     const [showInventoryPaymentModal, setShowInventoryPaymentModal] = useState(false);
 
     const [deletingId, setDeletingId] = useState(null); // Track which procedure item is being deleted
@@ -290,9 +295,20 @@ const InvoiceDetails = () => {
         setShowPaymentModal(true);
     }
 
+    const handleUnPayProcedureItem = (id) => {
+        setfunctionId(id);
+        setfunction(true);
+        setShowProcedureItemPayConfirmationModal(true);
+    }
+
     const handlePayInventoryItem = (id) => {
         setfunctionId(id);
         setShowInventoryPaymentModal(true);
+    }
+
+    const handleUnPayInventoryItem = (id) => {
+        setfunctionId(id);
+        setShowInventoryItemPayConfirmationModal(true);
     }
 
     const handlePaySecondaryAppointment = (id) => {
@@ -301,12 +317,30 @@ const InvoiceDetails = () => {
         setShowPaymentModal(true);
     }
 
+    const handleUnPaySecondaryAppointment = (id) => {
+        setfunctionId(id);
+        setfunction(false);
+        setShowConfirmationModal(true);
+    }
+
     const handlePayPrimaryAppointment = (id) => {
         setIsPrimaryAppointment(true);
         setfunctionId(id);
         setfunction(false);
         setShowPaymentModal(true);
     }
+
+
+    const handleUnPayPrimaryAppointment = (id) => {
+        setIsPrimaryAppointment(true);
+        setfunctionId(id);
+        setfunction(false);
+        setShowConfirmationModal(true);
+    }
+
+
+
+
 
     const markAsPaidProcedureItem = async (paymentMethod, procedureItemID) => {
         setSubmitting(true);
@@ -321,6 +355,39 @@ const InvoiceDetails = () => {
                     const updatedProcedureItems = invoice.procedureItems.map((item) => {
                         if (item.procedureItemID === procedureItemID) {
                             return { ...item, paid: true };
+                        }
+                        return item;
+                    });
+                    return { ...invoice, procedureItems: updatedProcedureItems };
+                });
+
+                // Return the updated appointment object
+                return { ...prevAppointment, invoices: updatedInvoices };
+            });
+
+
+        } catch (error) {
+            toast.error("Error Occured.");
+        } finally {
+            setSubmitting(false);
+            setfunctionId(null)
+        }
+    };
+
+    const markAsUnPaidProcedureItem = async (paymentMethod, procedureItemID) => {
+        setSubmitting(true);
+        setShowProcedureItemPayConfirmationModal(false);
+        try {
+            await axios.post(`${network_url}/procedureitem-unpaid`, { procedureItemID, paymentMethod });
+            toast.success("Procedure Mark as unpaid Successfully");
+            setAppointment((prevAppointment) => {
+                if (!prevAppointment) return prevAppointment; // No update if no appointment data
+
+                // Map over invoices to find the procedure item and mark it as paid
+                const updatedInvoices = prevAppointment.invoices.map((invoice) => {
+                    const updatedProcedureItems = invoice.procedureItems.map((item) => {
+                        if (item.procedureItemID === procedureItemID) {
+                            return { ...item, paid: false };
                         }
                         return item;
                     });
@@ -385,13 +452,38 @@ const InvoiceDetails = () => {
         }).finally(() => {
             setUpdatingAppointmentID(null);
             setShowPaymentModal(false);
-            toast.success("Invoice Mark as Paid Successfully.")
+            toast.success("Appointment Mark as Paid Successfully.")
             setSubmitting(false);
             setLoading(false);
             setIsPrimaryAppointment(false);
 
         });
     }
+
+    const markAsUnPaidAppointment = (paymentMethod, appointmentID) => {
+        setSubmitting(true)
+        setUpdatingAppointmentID(appointmentID);
+        setLoading(true);
+        setShowConfirmationModal(false);
+        let url = isPrimaryAppointment ? `${network_url}/api/Prescription/appointment-unpaid` : `${network_url}/api/Prescription/secondary-appointment-unpaid`;
+        axios.post(`${url}`, { appointmentID, paymentMethod }).then((value) => {
+            updateRefresh(Math.random() * 10);
+            toast.success("Appointment Mark as Unaid Successfully.")
+        }).catch((error) => {
+            console.error('Error marking invoice as paid:', error);
+            toast.error(`Error marking invoice as unpaid: , ${error}`)
+            setSubmitting(false);
+
+        }).finally(() => {
+            setUpdatingAppointmentID(null);
+            setShowPaymentModal(false);
+            setSubmitting(false);
+            setLoading(false);
+            setIsPrimaryAppointment(false);
+
+        });
+    }
+
 
     const handleAddInventoryItem = async (data) => {
         const response = await fetch(`${network_url}/api/Receptionist/AddInventoryItemInInvoice`, {
@@ -457,7 +549,7 @@ const InvoiceDetails = () => {
         setSubmitting(true);
         try {
             await axios.post(`${network_url}/api/Receptionist/PayInventoryItem/${InventoryItemID}`, { paymentMethod });
-            toast.success("Procedure Mark as Paid Successfully");
+            toast.success("InventoryItem Mark as Paid Successfully");
             setAppointment((prevAppointment) => {
                 if (!prevAppointment) return prevAppointment; // No update if no appointment data
 
@@ -466,6 +558,38 @@ const InvoiceDetails = () => {
                     const updatedProcedureItems = invoice.invoiceInventoryItems.map((item) => {
                         if (item.invoiceInventoryItemID === InventoryItemID) {
                             return { ...item, paid: true };
+                        }
+                        return item;
+                    });
+                    return { ...invoice, invoiceInventoryItems: updatedProcedureItems };
+                });
+
+                // Return the updated appointment object
+                return { ...prevAppointment, invoices: updatedInvoices };
+            });
+
+        } catch (error) {
+            toast.error("Error Occured.");
+        } finally {
+            setSubmitting(false);
+            setfunctionId(null)
+        }
+    };
+
+    const markAsUnPaidInventoryItem = async (paymentMethod, InventoryItemID) => {
+        setSubmitting(true);
+        setShowInventoryItemPayConfirmationModal(false)
+        try {
+            await axios.post(`${network_url}/api/Receptionist/UnpayInventoryItem/${InventoryItemID}`, { paymentMethod });
+            toast.success("Inventory Item Mark as Unpaid Successfully");
+            setAppointment((prevAppointment) => {
+                if (!prevAppointment) return prevAppointment; // No update if no appointment data
+
+                // Map over invoices to find the procedure item and mark it as paid
+                const updatedInvoices = prevAppointment.invoices.map((invoice) => {
+                    const updatedProcedureItems = invoice.invoiceInventoryItems.map((item) => {
+                        if (item.invoiceInventoryItemID === InventoryItemID) {
+                            return { ...item, paid: false };
                         }
                         return item;
                     });
@@ -730,7 +854,7 @@ const InvoiceDetails = () => {
                     </div>
                     <div className="patientDetails">
                         <p>CNIC</p>
-                        <h2>{patient.cnic}</h2>
+                        <h2>{patient.cnic || 'N/A'}</h2>
                     </div>
                     <div className="patientDetails">
                         <p>Date of Birth</p>
@@ -830,7 +954,7 @@ const InvoiceDetails = () => {
                                                             </Button>
                                                         </div>
                                                         :
-                                                        "Paid"
+                                                        <Button variant="outline-danger" disabled={submitting} className="!text-xs" onClick={() => { handleUnPayPrimaryAppointment(appointment.appointmentID) }}>Mark as Unpaid</Button>
                                                     }
                                                 </div>
                                             </td>}
@@ -885,7 +1009,7 @@ const InvoiceDetails = () => {
                                                             </Button>
                                                         </div>
                                                     ) : (
-                                                        "Paid"
+                                                        <Button variant="outline-danger" disabled={submitting} className="!text-xs" onClick={() => { handleUnPaySecondaryAppointment(appointment.appointmentID) }}>Mark as Unpaid</Button>
                                                     )}
                                                 </td>}
                                             </tr>
@@ -1003,6 +1127,7 @@ const InvoiceDetails = () => {
                                         <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
                                         {isReceptionist && <td className="flex gap-3">
                                             {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayProcedureItem(item.procedureItemID) }}>Mark as Paid</Button> : <Badge className="text-xl p-2" bg="success">{item.isAdvancedPaid ? "Advanced Paid" : "Paid"}</Badge>}
+                                            {item.paid && <Button variant="outline-danger" disabled={submitting} className="!text-xs" onClick={() => { handleUnPayProcedureItem(item.procedureItemID) }}>Mark as Unpaid</Button>}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => deleteProcedureItem(invoice.invoiceID, item.procedureItemID)}
                                                 disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Procedure"}</Button>}
                                         </td>}
@@ -1054,7 +1179,8 @@ const InvoiceDetails = () => {
                                         <td>{item.quantity || 0}</td>
                                         <td>{formatPrice(item.amount)}</td>
                                         {isReceptionist && <td className="flex gap-3">
-                                            {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Paid</Button> : "Paid"}
+                                            {!item.paid ? <Button variant="outline-success" disabled={submitting} className="!text-xs" onClick={() => { handlePayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Paid</Button> : <Badge className="text-xl p-2" bg="success">Paid</Badge>}
+                                            {item.paid && <Button variant="outline-danger" disabled={submitting} className="!text-xs" onClick={() => { handleUnPayInventoryItem(item.invoiceInventoryItemID) }}>Mark as Unpaid</Button>}
                                             {!item.paid && <Button variant="outline-danger" className="!text-xs" onClick={() => handleDeleteInventoryItem(invoice.invoiceID, item.invoiceInventoryItemID)}
                                                 disabled={deletingId !== null || submitting}>{deletingId === item.procedureItemID ? <Spinner as="span" animation="border" size="sm" /> : "Delete Item"}</Button>}
                                         </td>}
@@ -1226,6 +1352,30 @@ const InvoiceDetails = () => {
                     prescriptions={filteredInvoicePrescriptions}
                     handleSearch={handleInvoiceSearch}
                     searchQuery={searchQueryInvoice}
+                />
+
+                <ConfirmationModal
+                    show={showConfirmationModal}
+                    confirmText="Are you sure to mark the tansaction as unpaid?"
+                    onConfirm={() => (markAsUnPaidAppointment("Cash", functionId))}
+                    onHide={() => (setShowConfirmationModal(false))}
+                    confirmButtonText="Confirm"
+                />
+
+                <ConfirmationModal
+                    show={showProcedureItemPayConfirmationModal}
+                    confirmText="Are you sure to mark the tansaction as unpaid?"
+                    onConfirm={() => (markAsUnPaidProcedureItem("Cash", functionId))}
+                    onHide={() => (setShowProcedureItemPayConfirmationModal(false))}
+                    confirmButtonText="Confirm"
+                />
+
+                <ConfirmationModal
+                    show={showInventoryItemPayConfirmationModal}
+                    confirmText="Are you sure to mark the tansaction as unpaid?"
+                    onConfirm={() => (markAsUnPaidInventoryItem("Cash", functionId))}
+                    onHide={() => (setShowInventoryItemPayConfirmationModal(false))}
+                    confirmButtonText="Confirm"
                 />
 
             </Container>
