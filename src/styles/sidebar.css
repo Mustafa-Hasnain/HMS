@@ -64,4 +64,39 @@
   background: transparent;
 }
 
+/* Mobile menu transition */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 767px) {
+  .dashboard-container {
+    padding-left: 0;
+  }
+}
+
+/* Ensure mobile menu animates in */
+@media (max-width: 767px) {
+  .fixed.inset-0.bg-black {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
   
+  .relative.z-50.w-64 {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+}
