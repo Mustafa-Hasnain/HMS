@@ -34,7 +34,9 @@ const RevenueComponent = () => {
   const [clinicTotals, setClinicTotals] = useState({
     totalDoctorShare: 0,
     totalClinicShare: 0,
-    totalExpensesAmount: 0
+    totalExpensesAmount: 0,
+    totalRevenue: 0,
+    totalGrossAfterTax: 0
   });
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalGrossAfterTax, setTotalGrossAfterTax] = useState(0);
@@ -196,9 +198,11 @@ const RevenueComponent = () => {
             totals.totalDoctorShare += record.totalDoctorShare || 0;
             totals.totalClinicShare += record.totalClinicShare || 0;
             totals.totalExpensesAmount += record.totalExpenseDeduction || 0;
+            totals.totalRevenue += record.totalRevenue || 0;
+            totals.totalGrossAfterTax += record.totalGrossAfterTax || 0;
             return totals;
           },
-          { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0 }
+          { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0, totalRevenue:0, totalGrossAfterTax:0}
         );
 
         const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
@@ -669,9 +673,11 @@ const RevenueComponent = () => {
                           <tr>
                             <th>Doctor Name</th>
                             <th>Specialty</th>
-                            <th>Total Revenue</th>
                             <th>No. of Expenses</th>
                             <th>Total Expenses Amount</th>
+
+                            <th>Total Revenue</th>
+                            <th>Total Gross</th>
                             <th>Total Doctor Share</th>
                             <th>Total Clinic Share</th>
                           </tr>
@@ -681,16 +687,19 @@ const RevenueComponent = () => {
                             <tr key={index}>
                               <td>{record.doctorName}</td>
                               <td>{record.speciality}</td>
-                              <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
                               <td>{record.totalExpensesCount}</td>
                               <td>{formatPrice(record.totalExpenseDeduction.toFixed(2))}</td>
+                              <td>{formatPrice(record.totalRevenue.toFixed(2))}</td>
+                              <td>{formatPrice(record.totalGrossAfterTax.toFixed(2))}</td>
                               <td>{formatPrice(record.totalDoctorShare.toFixed(2))}</td>
                               <td>{formatPrice(record.totalClinicShare.toFixed(2))}</td>
                             </tr>
                           ))}
                           <tr className="font-bold">
-                            <td colSpan="4" className="text-right">Totals:</td>
+                            <td colSpan="3" className="text-right">Totals:</td>
                             <td>{formatPrice(clinicTotals.totalExpensesAmount.toFixed(2))}</td>
+                            <td>{formatPrice(clinicTotals.totalRevenue.toFixed(2))}</td>
+                            <td>{formatPrice(clinicTotals.totalGrossAfterTax.toFixed(2))}</td>
                             <td>{formatPrice(clinicTotals.totalDoctorShare.toFixed(2))}</td>
                             <td>{formatPrice(clinicTotals.totalClinicShare.toFixed(2))}</td>
                           </tr>
