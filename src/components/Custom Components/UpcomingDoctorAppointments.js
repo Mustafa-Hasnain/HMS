@@ -7,12 +7,13 @@ import { FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
 import PaymentModal from './PaymentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
+import { useDoctors } from '../../contexts/DoctorsContext';
 
 const UpcomingDoctorAppointments = () => {
+    const { doctors, loadingDoctors, doctorError } = useDoctors();
+    const [selectedDoctorID, setSelectedDoctorID] = useState('');
     const [searchInput, setSearchInput] = useState('');
-    const [doctors, setDoctors] = useState([]);
     const [filteredDoctors, setFilteredDoctors] = useState([]);
-    const [loadingDoctors, setLoadingDoctors] = useState(true);
     const [loadingAppointments, setLoadingAppointments] = useState(false);
     const [appointments, setAppointments] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -51,28 +52,31 @@ const UpcomingDoctorAppointments = () => {
         if (isDoctor || isReceptionist) {
             fetchUpcomingAppointments();
         }
+        if (isDoctor) {
+            const doctorData = JSON.parse(localStorage.getItem('doctor'));
+            setSelectedDoctorID(doctorData.doctorID);
+        }
     }, [isDoctor, isReceptionist]);
 
 
-    const fetchDoctors = async () => {
-        try {
-            setLoadingDoctors(true);
-            let response = null;
-            if (isDoctor) {
-                const doctorData = JSON.parse(localStorage.getItem('doctor'));
-                response = await axios.get(`${network_url}/api/Receptionist/doctors?doctorId=${doctorData.doctorID}`);
-            }
-            else {
-                response = await axios.get(`${network_url}/api/Receptionist/doctors`);
-            }
-            setDoctors(response.data);
-            setFilteredDoctors(response.data); // Initially, display all doctors
-        } catch (error) {
-            console.error("Error fetching doctors:", error);
-        } finally {
-            setLoadingDoctors(false);
-        }
-    };
+    // const fetchDoctors = async () => {
+    //     try {
+    //         let response = null;
+    //         if (isDoctor) {
+    //             const doctorData = JSON.parse(localStorage.getItem('doctor'));
+    //             response = await axios.get(`${network_url}/api/Receptionist/doctors?doctorId=${doctorData.doctorID}`);
+    //         }
+    //         else {
+    //             response = await axios.get(`${network_url}/api/Receptionist/doctors`);
+    //         }
+    //         setDoctors(response.data);
+    //         setFilteredDoctors(response.data); // Initially, display all doctors
+    //     } catch (error) {
+    //         console.error("Error fetching doctors:", error);
+    //     } finally {
+    //         setLoadingDoctors(false);
+    //     }
+    // };
 
     const fetchUpcomingAppointments = async () => {
         try {
@@ -81,9 +85,9 @@ const UpcomingDoctorAppointments = () => {
             if (isDoctor) {
                 const doctorData = JSON.parse(localStorage.getItem('doctor'));
                 response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments?doctorId=${doctorData.doctorID}`);
-            }
-            else {
-                response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments`);
+            } else {
+                const doctorQuery = selectedDoctorID ? `?doctorId=${selectedDoctorID}` : '';
+                response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments${doctorQuery}`);
             }
             console.log(response.data);
             setAppointments(response.data);
@@ -175,7 +179,8 @@ const UpcomingDoctorAppointments = () => {
                     response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}?doctorId=${doctorData.doctorID}`);
                 }
                 else {
-                    response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}`);
+                    const doctorQuery = selectedDoctorID ? `?doctorId=${selectedDoctorID}` : '';
+                    response = await axios.get(`${network_url}/api/Receptionist/upcoming-appointments/${fromDate}/${toDate}${doctorQuery}`);
                 }
                 const heading = fromDate && toDate ? `Appointments from ${fromDate} to ${toDate} (${response.data.length} records found)` : 'Upcoming Appointments'
                 setinfo(heading);
@@ -207,13 +212,38 @@ const UpcomingDoctorAppointments = () => {
                 <Button onClick={() => (navigate(isDoctor ? '/doctor/set-appointment' : '/receptionist/set-appointment'))} variant="success">Create Appointment</Button>
 
             </div>
-            <InputGroup className="mb-3 relative">
+            <div className="mb-3 relative flex items-center">
+                <div className="w-1/2 me-2">
+                    <Form.Group controlId="doctorSelect">
+                        <Form.Select
+                            value={selectedDoctorID}
+                            onChange={(e) => setSelectedDoctorID(e.target.value)}
+                            disabled={isDoctor || loadingDoctors}
+                            className="border-1 border-solid border-black"
+                        >
+                            <option value="">
+                                {loadingDoctors ? 'Loading doctors...' : '-- Select Doctor --'}
+                            </option>
+                            {!loadingDoctors &&
+                                doctors.map((doctor) => (
+                                    <option key={doctor.doctorID} value={doctor.doctorID}>
+                                        {doctor.firstName} {doctor.lastName} - {doctor.specialty}
+                                    </option>
+                                ))
+                            }
+                        </Form.Select>
+                        {/* Optional: keep external error message below if needed */}
+                        {doctorError && <div className="mt-2 text-sm text-red-500">{doctorError}</div>}
+                    </Form.Group>
+                </div>
                 <Form.Control
-                    placeholder="Search Appointments"
+                    placeholder="Search Patients"
                     value={searchInput}
                     onChange={handleSearchChange}
+
                 />
-            </InputGroup>
+            </div>
+
 
             <div className="d-flex align-items-center mb-3">
                 <Form.Control

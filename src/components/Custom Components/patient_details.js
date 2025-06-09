@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Button, Container, Form, Nav, Tab, Table } from "react-bootstrap";
+import { Button, Container, Form, Nav, Spinner, Tab, Table } from "react-bootstrap";
 import "../../styles/patient_details.css";
 import "../../styles/table.css";
 import { FaArrowLeft, FaEdit, FaEye } from "react-icons/fa";
@@ -21,6 +21,8 @@ const PatientDetails = () => {
     const [showModal, setShowModal] = useState(false);
     const [inventoryItems, setInventoryItems] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
+    const [labReports, setLabReports] = useState([]);
+    const [loadingLabReports, setLoadingLabReports] = useState(true);
 
 
     const navigate = useNavigate();
@@ -104,8 +106,29 @@ const PatientDetails = () => {
             }
         };
 
+        const fetchLabReports = async () => {
+            try {
+                let doctorData = null;
+                let url = `${network_url}/api/LabReports/patient/${patient_id}`;
+
+                if (location.pathname.includes('/doctor/')) {
+                    doctorData = JSON.parse(localStorage.getItem('doctor'));
+                    url += `?doctorId=${doctorData.doctorID}`;
+                }
+
+                const response = await axios.get(url);
+                setLabReports(response.data);
+            } catch (err) {
+                console.error('Error fetching lab reports', err);
+            } finally {
+                setLoadingLabReports(false);
+            }
+        };
+
         fetchPatientDetails();
         fetchPatientPrescriptions();
+        fetchLabReports();
+
     }, [patient_id]);
 
     const handleSearch = (e) => {
@@ -130,7 +153,12 @@ const PatientDetails = () => {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="flex justify-center items-center h-screen flex-col">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3 text-lg font-medium text-gray-600">Getting Patient Details...</p>
+            </div>
+        );
     }
 
     if (error) {
@@ -194,6 +222,9 @@ const PatientDetails = () => {
                     </Nav.Item>
                     <Nav.Item>
                         <Nav.Link eventKey="workbooks">WorkBooks</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="labreports">Lab Reports</Nav.Link>
                     </Nav.Item>
                 </Nav>
                 <Tab.Content className="mt-3 p-3">
@@ -315,6 +346,50 @@ const PatientDetails = () => {
                                 </Table>
                             )}
                         </div>
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="labreports">
+                        <h3 className="text-2xl mb-4">Lab Reports</h3>
+                        {loadingLabReports ? (
+                            <div className="text-center py-4">
+                                <Spinner animation="border" variant="primary" />
+                                <div className="mt-2">Loading lab reports...</div>
+                            </div>
+                        ) : labReports.length === 0 ? (
+                            <p>No lab reports found.</p>
+                        ) : (
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                    <tr>
+                                        <th>Created At</th>
+                                        <th>File</th>
+                                        <th>View Invoice</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {labReports.map((report) => (
+                                        <tr key={report.labReportID}>
+                                            <td>{new Date(report.createdAt).toLocaleString()}</td>
+                                            <td>
+                                                <a
+                                                    href={report.fileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {report.fileUrl.split('/').pop()}
+                                                </a>
+                                            </td>
+                                            <td> <Button
+                                                variant="outline-success"
+                                                className=' !text-xs'
+                                                onClick={() => navigate(isReceptionist ? `/receptionist/invoice-details/${report.invoiceID}` : `/doctor/invoice-details/${report.invoiceID}`)}
+                                            >
+                                                Details
+                                            </Button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        )}
                     </Tab.Pane>
                 </Tab.Content>
             </Tab.Container>

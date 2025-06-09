@@ -15,6 +15,8 @@ import { network_url } from "../Network/networkConfig";
 import PrescriptionTableModal from "./PrescriptionTableModal";
 import { formatPrice } from "../utils/FormatPrice";
 import ConfirmationModal from "./confirmationModal";
+import LabReportUploader from "./LabReportUploader";
+import LabReportsModal from "./LabReportsModal";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -44,6 +46,7 @@ const InvoiceDetails = () => {
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [doctors, setDoctors] = useState([]);
     const [inventoryItems, setInventoryItems] = useState([])
+    const [labReportmodalShow, setLabReportModalShow] = useState(false);
 
 
     const location = useLocation();
@@ -803,19 +806,31 @@ const InvoiceDetails = () => {
                                 </Button>
                             </>
                         )} */}
-                        {isReceptionist && <Button variant="outline-primary" onClick={handlePrint} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
-                            <FaPrint /> Print
-                        </Button>}
+                        {isReceptionist &&
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="outline-primary" onClick={handlePrint} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                    <FaPrint /> Print
+                                </Button>
+                                <LabReportUploader patientId={patient.patientID} invoiceId={invoices[0].invoiceID} doctorId='' />
+                                <Button size="sm" variant="outline-primary" onClick={()=>setLabReportModalShow(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                    <FaPrint /> View Lab Reports
+                                </Button>
+                            </div>
+                        }
                         {isDoctor &&
                             <div className="flex gap-2">
-                                <Button variant="outline-success" onClick={() => navigate(`/doctor/prescriptions/${patient.patientID}/${invoices[0].invoiceID}`)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                <Button size="sm" variant="outline-success" onClick={() => navigate(`/doctor/prescriptions/${patient.patientID}/${invoices[0].invoiceID}`)} className="ml-2 !flex !flex-row !gap-1 align-middle items-center">
                                     <FaFileMedical /> Create WorkBook
                                 </Button>
-                                <Button variant="outline-primary" onClick={() => setShowPrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                <LabReportUploader patientId={patient.patientID} invoiceId={invoices[0].invoiceID} doctorId={doctorId} />
+                                <Button size="sm" variant="outline-primary" onClick={() => setShowPrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-1 align-middle items-center">
                                     <FaFileMedical /> Patient WorkBooks
                                 </Button>
-                                <Button variant="outline-primary" onClick={() => setShowInvoicePrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-3 align-middle items-center">
+                                <Button size="sm" variant="outline-primary" onClick={() => setShowInvoicePrescriptionTableModal(true)} className="ml-2 !flex !flex-row !gap-1 align-middle items-center">
                                     <FaFileMedical /> Invoice WorkBooks
+                                </Button>
+                                <Button size="sm" variant="outline-primary" onClick={()=>setLabReportModalShow(true)} className="ml-2 !flex !flex-row !gap-1 align-middle items-center">
+                                    <FaFileMedical /> View Lab Reports
                                 </Button>
                             </div>
                         }
@@ -1376,6 +1391,13 @@ const InvoiceDetails = () => {
                     onConfirm={() => (markAsUnPaidInventoryItem("Cash", functionId))}
                     onHide={() => (setShowInventoryItemPayConfirmationModal(false))}
                     confirmButtonText="Confirm"
+                />
+
+                <LabReportsModal
+                    show={labReportmodalShow}
+                    onHide={() => setLabReportModalShow(false)}
+                    invoiceId={invoices[0].invoiceID}
+                    doctorId={doctorId ? doctorId : null}
                 />
 
             </Container>

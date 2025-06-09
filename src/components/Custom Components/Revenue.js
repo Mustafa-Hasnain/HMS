@@ -17,13 +17,14 @@ import {
 } from 'react-accessible-accordion';
 import 'react-accessible-accordion/dist/fancy-example.css';
 import { toast, ToastContainer } from "react-toastify";
+import { useDoctors } from "../../contexts/DoctorsContext";
 
 
 
 
 const RevenueComponent = () => {
   const [key, setKey] = useState("doctor");
-  const [doctors, setDoctors] = useState([]);
+  const { doctors, loadingDoctors, doctorError } = useDoctors();
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -89,7 +90,7 @@ const RevenueComponent = () => {
       console.error("Submit error:", error);
       toast.error("Error occured.");
     }
-    finally{
+    finally {
       setIsSubmittingRevenue(false);
     }
   };
@@ -121,21 +122,21 @@ const RevenueComponent = () => {
 
 
   // Fetch all doctors from the API
-  const fetchDoctors = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`${network_url}/api/Receptionist/doctors`);
-      if (!response.ok) throw new Error("Failed to fetch doctors.");
-      const data = await response.json();
-      setDoctors(data);
-    } catch (err) {
-      console.error("Error fetching doctor data:", err);
-      setError("Error fetching doctor data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchDoctors = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
+  //     const response = await fetch(`${network_url}/api/Receptionist/doctors`);
+  //     if (!response.ok) throw new Error("Failed to fetch doctors.");
+  //     const data = await response.json();
+  //     setDoctors(data);
+  //   } catch (err) {
+  //     console.error("Error fetching doctor data:", err);
+  //     setError("Error fetching doctor data. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Fetch revenue data based on doctorID, fromDate, and toDate
   const fetchRevenueData = async () => {
@@ -202,7 +203,7 @@ const RevenueComponent = () => {
             totals.totalGrossAfterTax += record.totalGrossAfterTax || 0;
             return totals;
           },
-          { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0, totalRevenue:0, totalGrossAfterTax:0}
+          { totalDoctorShare: 0, totalClinicShare: 0, totalExpensesAmount: 0, totalRevenue: 0, totalGrossAfterTax: 0 }
         );
 
         const totalInventory = data.InventoryItemsData.totalInventoryAmount || 0;
@@ -229,12 +230,12 @@ const RevenueComponent = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDoctors();
-    // if (key === "clinic") {
-    //   fetchClinicRevenueData();
-    // }
-  }, []);
+  // useEffect(() => {
+  //   fetchDoctors();
+  //   // if (key === "clinic") {
+  //   //   fetchClinicRevenueData();
+  //   // }
+  // }, []);
 
   const printDoctorRevenueRef = useRef();
 
@@ -320,7 +321,7 @@ const RevenueComponent = () => {
 
   return (
     <div>
-    <ToastContainer></ToastContainer>
+      <ToastContainer></ToastContainer>
       <Tabs
         id="revenue-tabs"
         activeKey={key}
@@ -333,19 +334,27 @@ const RevenueComponent = () => {
               <Form.Group controlId="doctorSelect">
                 <Form.Label>Select Doctor</Form.Label>
                 <Form.Select
-                  value={selectedDoctor?.doctorID}
-                  onChange={(e) => setSelectedDoctor(doctors.find(doc => doc.doctorID === parseInt(e.target.value)))}
-                  disabled={isDoctor}
+                  value={selectedDoctor?.doctorID || ''}
+                  onChange={(e) =>
+                    setSelectedDoctor(doctors.find(doc => doc.doctorID === parseInt(e.target.value)))
+                  }
+                  disabled={isDoctor || loadingDoctors}
                 >
-                  <option value="">-- Select Doctor --</option>
-                  {doctors.map((doctor) => (
-                    <option key={doctor.doctorID} value={doctor.doctorID}>
-                      {doctor.firstName} {doctor.lastName} - {doctor.specialty}
-                    </option>
-                  ))}
+                  <option value="">
+                    {loadingDoctors ? 'Loading doctors...' : '-- Select Doctor --'}
+                  </option>
+                  {!loadingDoctors &&
+                    doctors.map((doctor) => (
+                      <option key={doctor.doctorID} value={doctor.doctorID}>
+                        {doctor.firstName} {doctor.lastName} - {doctor.specialty}
+                      </option>
+                    ))
+                  }
                 </Form.Select>
+                {doctorError && <div className="mt-2 text-sm text-red-500">{doctorError}</div>}
               </Form.Group>
             </div>
+
             <div className="flex gap-3 justify-between items-center">
               <div className="flex gap-3">
                 <Form.Group controlId="fromDate">

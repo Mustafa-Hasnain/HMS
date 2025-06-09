@@ -36,6 +36,7 @@ import RefundItem from './components/Receptionist/RefundItem';
 import RefundItemsTable from './components/Receptionist/RefundItemTable';
 import useCheckDoctorRedirect from './components/Hooks/useCheckDoctorRedirect';
 import PinConfirmation from './components/Doctor/Pin';
+import { DoctorsProvider } from './contexts/DoctorsContext';
 
 
 
@@ -55,83 +56,85 @@ function ProtectedRoute({ children, role }) {
 function App() {
 
   return (
-    <RefreshProvider>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="*" element={<Login />} />
-            <Route path="/otpVerification" element={<PinConfirmation />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+    <DoctorsProvider>
+      <RefreshProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="*" element={<Login />} />
+              <Route path="/otpVerification" element={<PinConfirmation />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Routes for Receptionist */}
-            <Route
-              path="/receptionist/*"
-              element={
-                <ProtectedRoute role="receptionist">
-                  <ReceptionistDashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              {/* Add nested routes for the receptionist */}
-              <Route path="dashboard" element={<ReceptionistDashboardLayout />} />
-              <Route path='overview' element={<Dashboard />} />
-              <Route path="add-doctor" element={<AddDoctor />} />
-              <Route path="edit-doctor/:doctor_id" element={<EditDoctorForm />} />
-              <Route path="edit-patient/:patient_id" element={<EditPatientDetails />} />
-              <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
-              <Route path="set-appointment" element={<SetAppointment />} />
-              <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
-              <Route path="patients-portal" element={<PatientPortal />} />
-              <Route path="patients-details/:patient_id" element={<PatientDetails />} />
-              <Route path="doctors-portal" element={<DoctorPortal />} />
-              <Route path="update-schedule/:doctor_id" element={<DoctorSchedule />} />
-              <Route path="upcoming-doctor-appointments" element={<UpcomingDoctorAppointments />} />
-              <Route path="inventory" element={<InventoryManager />} />
-              <Route path="invoices" element={<InvoiceManagement />} />
-              <Route path="revenue" element={<RevenueComponent />} />
-              <Route path="expenses" element={<ExpensesManager />} />
-              <Route path="add-refund-item" element={<RefundItem />} />
-              <Route path="refund-items" element={<RefundItemsTable />} />
+              {/* Routes for Receptionist */}
+              <Route
+                path="/receptionist/*"
+                element={
+                  <ProtectedRoute role="receptionist">
+                    <ReceptionistDashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* Add nested routes for the receptionist */}
+                <Route path="dashboard" element={<ReceptionistDashboardLayout />} />
+                <Route path='overview' element={<Dashboard />} />
+                <Route path="add-doctor" element={<AddDoctor />} />
+                <Route path="edit-doctor/:doctor_id" element={<EditDoctorForm />} />
+                <Route path="edit-patient/:patient_id" element={<EditPatientDetails />} />
+                <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
+                <Route path="set-appointment" element={<SetAppointment />} />
+                <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
+                <Route path="patients-portal" element={<PatientPortal />} />
+                <Route path="patients-details/:patient_id" element={<PatientDetails />} />
+                <Route path="doctors-portal" element={<DoctorPortal />} />
+                <Route path="update-schedule/:doctor_id" element={<DoctorSchedule />} />
+                <Route path="upcoming-doctor-appointments" element={<UpcomingDoctorAppointments />} />
+                <Route path="inventory" element={<InventoryManager />} />
+                <Route path="invoices" element={<InvoiceManagement />} />
+                <Route path="revenue" element={<RevenueComponent />} />
+                <Route path="expenses" element={<ExpensesManager />} />
+                <Route path="add-refund-item" element={<RefundItem />} />
+                <Route path="refund-items" element={<RefundItemsTable />} />
 
-            </Route>
+              </Route>
 
-            {/* Routes for Doctor */}
-            <Route
-              path="/doctor/*"
-              element={
-                <ProtectedRoute role="doctor">
-                  <DoctorDashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              {/* Add nested routes for the doctor */}
-              <Route path="dashboard" element={<DoctorDashboardLayout />} />
-              <Route path="overview" element={<DoctorDashboard />} />
-              <Route path="appointments" element={<UpcomingDoctorAppointments />} />
-              <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
-              <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
-              <Route path="edit-prescription/:patientId/:appointmentId/:prescriptionId" element={<PrescriptionPage />} />
-              <Route path='prescriptions' element={<Prescriptions />}></Route>
-              <Route path='patients' element={<PatientPortal />}></Route>
-              <Route path="patients-details/:patient_id" element={<PatientDetails />} />
-              <Route path='set-appointment' element={<SetAppointment />}></Route>
-              <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
-              <Route path='schedules' element={<DoctorSchedule />}></Route>
-              <Route path='services' element={<DoctorServices doctorId={null} />} />
-              <Route path='revenue' element={<RevenueComponent />}></Route>
-              <Route path='profile' element={<EditDoctorForm />}></Route>
-              <Route path="patients-portal" element={<PatientPortal />} />
+              {/* Routes for Doctor */}
+              <Route
+                path="/doctor/*"
+                element={
+                  <ProtectedRoute role="doctor">
+                    <DoctorDashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* Add nested routes for the doctor */}
+                <Route path="dashboard" element={<DoctorDashboardLayout />} />
+                <Route path="overview" element={<DoctorDashboard />} />
+                <Route path="appointments" element={<UpcomingDoctorAppointments />} />
+                <Route path="invoice-details/:appointment_id" element={<InvoiceDetails />} />
+                <Route path="prescriptions/:patientId/:appointmentId" element={<PrescriptionPage />} />
+                <Route path="edit-prescription/:patientId/:appointmentId/:prescriptionId" element={<PrescriptionPage />} />
+                <Route path='prescriptions' element={<Prescriptions />}></Route>
+                <Route path='patients' element={<PatientPortal />}></Route>
+                <Route path="patients-details/:patient_id" element={<PatientDetails />} />
+                <Route path='set-appointment' element={<SetAppointment />}></Route>
+                <Route path="set-appointment/:patient_id/:invoice_id" element={<SetAppointment />} />
+                <Route path='schedules' element={<DoctorSchedule />}></Route>
+                <Route path='services' element={<DoctorServices doctorId={null} />} />
+                <Route path='revenue' element={<RevenueComponent />}></Route>
+                <Route path='profile' element={<EditDoctorForm />}></Route>
+                <Route path="patients-portal" element={<PatientPortal />} />
 
 
-            </Route>
+              </Route>
 
-            {/* Default redirect to login */}
+              {/* Default redirect to login */}
 
-            {/* <Route path="*" element={<Navigate to="/login" />} /> */}
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </RefreshProvider>
+              {/* <Route path="*" element={<Navigate to="/login" />} /> */}
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </RefreshProvider>
+    </DoctorsProvider>
   );
 }
 

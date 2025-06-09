@@ -11,11 +11,13 @@ import { FaArrowLeft } from 'react-icons/fa';
 import AddProcedureModal from './AddProcedureModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
+import { useDoctors } from '../../contexts/DoctorsContext';
 
 
 
 const SetAppointment = () => {
     const { patient_id, invoice_id } = useParams();
+    const { doctors, loadingDoctors, doctorError } = useDoctors();
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [searchInfo, setSearchInfo] = useState('');
@@ -101,7 +103,7 @@ const SetAppointment = () => {
 
 
     const [deletingId, setDeletingId] = useState(null);
-    const [doctors, setDoctors] = useState([]);
+    const [Doctors, setDoctors] = useState([]);
     const [toastMessage, setToastMessage] = useState('');
     const [toastVariant, setToastVariant] = useState('success');
     const [loading, setLoading] = useState(false);
@@ -288,15 +290,15 @@ const SetAppointment = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
-            console.log("Doctors: ", response.data);
-            setDoctors(response.data);
+            // const response = await axios.get(`${network_url}/api/Receptionist/doctors`);
+            // console.log("Doctors: ", response.data);
+            setDoctors(doctors);
 
             // Check if doctor exists in localStorage
             const doctorData = JSON.parse(localStorage.getItem('doctor'));
 
             // Find doctor in the fetched doctors list
-            const doctorInList = response.data.find(doc => doc.doctorID === doctorData.doctorID);
+            const doctorInList = doctors.find(doc => doc.doctorID === doctorData.doctorID);
 
             // If the doctor from localStorage is in the list, set it as the selectedDoctor and make it immutable
             if (doctorInList) {
@@ -804,13 +806,26 @@ const SetAppointment = () => {
                             <Form className='space-y-4 mt-4'>
                                 <Form.Group controlId="doctorSelection">
                                     <Form.Label>Select Doctor</Form.Label>
-                                    <Form.Control className='!border-[#04394F]' as="select" value={appointmentData.doctorID} onChange={(e) => handleDoctorChange(doctors.find(d => d.doctorID === parseInt(e.target.value)))} required disabled={fetchFromLocal}>
-                                        <option value={0} disabled>Select a doctor...</option>
-                                        {doctors.map(doctor => (
-                                            <option key={doctor.doctorID} value={doctor.doctorID}>
-                                                {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
-                                            </option>
-                                        ))}
+                                    <Form.Control
+                                        className='!border-[#04394F]'
+                                        as="select"
+                                        value={appointmentData.doctorID}
+                                        onChange={(e) =>
+                                            handleDoctorChange(doctors.find(d => d.doctorID === parseInt(e.target.value)))
+                                        }
+                                        required
+                                        disabled={fetchFromLocal || loadingDoctors}
+                                    >
+                                        <option value={0} disabled>
+                                            {loadingDoctors ? 'Loading doctors...' : 'Select a doctor...'}
+                                        </option>
+                                        {!loadingDoctors &&
+                                            doctors.map((doctor) => (
+                                                <option key={doctor.doctorID} value={doctor.doctorID}>
+                                                    {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                </option>
+                                            ))
+                                        }
                                     </Form.Control>
                                     {selectedDoctor && (
                                         <Button variant="link" onClick={handleViewSchedule}>
