@@ -12,6 +12,7 @@ import AddProcedureModal from './AddProcedureModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
 import { useDoctors } from '../../contexts/DoctorsContext';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 
 
@@ -822,7 +823,7 @@ const SetAppointment = () => {
                                         {!loadingDoctors &&
                                             doctors.map((doctor) => (
                                                 <option key={doctor.doctorID} value={doctor.doctorID}>
-                                                    {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                    {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                                 </option>
                                             ))
                                         }
@@ -926,8 +927,8 @@ const SetAppointment = () => {
                                                 >
                                                     <option value="">Select Referred Doctor</option>
                                                     {doctors.map((doctor) => (
-                                                        <option key={doctor.doctorID} value={doctor.firstName}>
-                                                            {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                        <option key={doctor.doctorID} value={formatDoctorName(doctor.firstName)}>
+                                                            {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                                         </option>
                                                     ))}
                                                 </Form.Control>
@@ -1154,7 +1155,7 @@ const SetAppointment = () => {
                                                             <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
                                                         </div>
                                                         <div>
-                                                            <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
+                                                            <strong>Doctor:</strong> {formatDoctorName(appt.doctor.firstName)} ({appt.doctor.mobileNumber})
                                                         </div>
                                                     </ListGroup.Item>
                                                 );

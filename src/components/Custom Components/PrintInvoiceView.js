@@ -3,6 +3,7 @@ import Logo from "../../assets/Logo Green.png";
 import { Col, Row } from 'react-bootstrap';
 import "../../styles/print_table.css"
 import { formatPrice } from '../utils/FormatPrice';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 // Function to calculate the patient's age
 const calculateAge = (dob) => {
@@ -269,7 +270,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{index + 1}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{item.procedureName}</td>
                                     <td style={{ border: '1px solid black', padding: '4px', textAlign: 'center' }}>
-                                        {item?.doctor?.doctorID ? `Dr. ${item.doctor.firstName} ${item.doctor.lastName}` : '-'}
+                                        {item?.doctor?.doctorID ? `${formatDoctorName(item.doctor.firstName)} ${item.doctor.lastName}` : '-'}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{formatPrice(item.amount)}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{item?.discountPercentage ? `${item?.discountPercentage} %` : '0'}</td>
@@ -346,7 +347,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                         })}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>
-                                        Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}
+                                        {formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{formatPrice(appointment.amount)}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{appointment?.discountPercentage ? `${appointment?.discountPercentage} %` : '0'}</td>
@@ -371,7 +372,7 @@ const PrintableInvoiceView = React.forwardRef(({ patient, doctor, invoices, appo
                                         })}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>
-                                        Dr. {app.doctor.firstName} {app.doctor.lastName}
+                                        {formatDoctorName(app.doctor.firstName)} {app.doctor.lastName}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{formatPrice(app.amount)}</td>
                                     <td style={{ border: '1px solid black', padding: '4px' }}>{app?.discountPercentage ? `${app?.discountPercentage} %` : '0'}</td>

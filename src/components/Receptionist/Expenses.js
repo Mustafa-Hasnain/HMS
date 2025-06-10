@@ -9,6 +9,7 @@ import { debounce } from "chart.js/helpers";
 import InvoiceDetailsModal from "../Custom Components/InvoiceModal";
 import { network_url } from "../Network/networkConfig";
 import { formatPrice } from "../utils/FormatPrice";
+import { formatDoctorName } from "../utils/DoctorUtills";
 
 const ExpensesManager = () => {
   const [appointment, setAppointment] = useState(null);
@@ -214,7 +215,7 @@ const ExpensesManager = () => {
                       <option value="">Select a Doctor</option>
                       {doctors.map((doctor) => (
                         <option key={doctor.doctorID} value={doctor.doctorID}>
-                          {doctor.firstName} {doctor.lastName} ({doctor.specialty})
+                          {formatDoctorName(doctor.firstName)} {doctor.lastName} ({doctor.specialty})
                         </option>
                       ))}
                     </Form.Select>
@@ -263,7 +264,7 @@ const ExpensesManager = () => {
                             <td>{expense.invoiceID}</td>
                             <td>
                               {expense.doctor
-                                ? `${expense.doctor.firstName} ${expense.doctor.lastName}`
+                                ? `${formatDoctorName(expense.doctor.firstName)} ${expense.doctor.lastName}`
                                 : "N/A"}
                             </td>
                             <td>

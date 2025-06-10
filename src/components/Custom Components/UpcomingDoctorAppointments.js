@@ -8,6 +8,7 @@ import PaymentModal from './PaymentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { network_url } from '../Network/networkConfig';
 import { useDoctors } from '../../contexts/DoctorsContext';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const UpcomingDoctorAppointments = () => {
     const { doctors, loadingDoctors, doctorError } = useDoctors();
@@ -227,7 +228,7 @@ const UpcomingDoctorAppointments = () => {
                             {!loadingDoctors &&
                                 doctors.map((doctor) => (
                                     <option key={doctor.doctorID} value={doctor.doctorID}>
-                                        {doctor.firstName} {doctor.lastName} - {doctor.specialty}
+                                        {formatDoctorName(doctor.firstName)} {doctor.lastName} - {doctor.specialty}
                                     </option>
                                 ))
                             }
@@ -318,7 +319,7 @@ const UpcomingDoctorAppointments = () => {
                                                 })}</td>
                                                 <td>{appt.patient.patientID}</td>
                                                 <td>{appt.patient.firstName}</td>
-                                                <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
+                                                <td>{formatDoctorName(appt.doctor.firstName)} {appt.doctor.lastName}</td>
                                                 <td>{appt.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appt)}</td>
                                                 <td>{appt.status}</td>
                                                 <td>

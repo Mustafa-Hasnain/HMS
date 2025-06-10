@@ -17,6 +17,7 @@ import { formatPrice } from "../utils/FormatPrice";
 import ConfirmationModal from "./confirmationModal";
 import LabReportUploader from "./LabReportUploader";
 import LabReportsModal from "./LabReportsModal";
+import { formatDoctorName } from "../utils/DoctorUtills";
 
 const InvoiceDetails = () => {
     const { appointment_id } = useParams(); // Get appointment ID from the route params
@@ -933,7 +934,7 @@ const InvoiceDetails = () => {
                                                 day: 'numeric'
                                             })}</td>
                                             <td>{appointment.patient.firstName}</td>
-                                            <td>{appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                            <td>{formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}</td>
                                             <td>{appointment.referredByDoctor ? 'Referred By Doctor' : getMeetingTime(appointment)}</td>
                                             <td>{formatPrice(appointment.amount)}</td>
                                             <td>{appointment?.discountPercentage ?? 0}</td>
@@ -988,7 +989,7 @@ const InvoiceDetails = () => {
                                                     day: 'numeric'
                                                 })}</td>
                                                 <td>{patient.firstName}</td>
-                                                <td>{appt.doctor.firstName} {appt.doctor.lastName}</td>
+                                                <td>{formatDoctorName(appt.doctor.firstName)} {appt.doctor.lastName}</td>
                                                 <td>{!appt.referredByDoctor ? getMeetingTime(appt) : 'Referred By Doctor'}</td>
                                                 <td>{formatPrice(appt.amount)}</td>
                                                 <td>{appt?.discountPercentage ?? 0}</td>
@@ -1137,7 +1138,7 @@ const InvoiceDetails = () => {
                                         <td>{item.procedureItemID}</td>
                                         <td>{item.procedureName}</td>
                                         <td>{item.procedureDetail || 'N/A'}</td>
-                                        <td className="text-center">{item?.doctor?.doctorID ? `${item.doctor.firstName} ${item.doctor.lastName}` : '-'}</td>
+                                        <td className="text-center">{item?.doctor?.doctorID ? `${formatDoctorName(item.doctor.firstName)} ${item.doctor.lastName}` : '-'}</td>
                                         <td>{formatPrice(item.amount)}</td>
                                         <td>{item?.discountPercentage ? item?.discountPercentage : 'N/A'}</td>
                                         {isReceptionist && <td className="flex gap-3">

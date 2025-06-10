@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRefreshContext } from '../../contexts/RefreshContext';
 import { network_url } from '../Network/networkConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const DoctorDashboard = () => {
     const [data, setData] = useState(null); // Store the overview data
@@ -178,7 +179,7 @@ const DoctorDashboard = () => {
                                             return (
                                                 <tr key={appointment.appointmentID}>
                                                     <td>{appointment.patient.firstName}</td>
-                                                    <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                                    <td>{formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}</td>
                                                     <td>
                                                         <Button variant="outline-primary" size="sm">
                                                             {start} - {end}, {day}

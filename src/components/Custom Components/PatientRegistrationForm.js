@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddProcedureModal from './AddProcedureModal';
 import { network_url } from '../Network/networkConfig';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 
 const RegisterPatient = () => {
@@ -1294,7 +1295,7 @@ const RegisterPatient = () => {
                                     <option value="">Select Doctor</option>
                                     {filteredDoctors.map((doctor) => (
                                         <option key={doctor.doctorID} value={doctor.doctorID}>
-                                            {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                            {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                         </option>
                                     ))}
                                 </Form.Control>
@@ -1416,7 +1417,7 @@ const RegisterPatient = () => {
                                         <option value="">Select Referred Doctor</option>
                                         {filteredDoctors.map((doctor) => (
                                             <option key={doctor.doctorID} value={doctor.firstName}>
-                                                {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                             </option>
                                         ))}
                                     </Form.Control>
@@ -1644,7 +1645,7 @@ const RegisterPatient = () => {
                                                                 <strong>Patient:</strong> {appt.patient.firstName} ({appt.patient.mobileNumber})
                                                             </div>
                                                             <div>
-                                                                <strong>Doctor:</strong> {appt.doctor.firstName} ({appt.doctor.mobileNumber})
+                                                                <strong>Doctor:</strong> {formatDoctorName(appt.doctor.firstName)} ({appt.doctor.mobileNumber})
                                                             </div>
                                                         </ListGroup.Item>
                                                     );

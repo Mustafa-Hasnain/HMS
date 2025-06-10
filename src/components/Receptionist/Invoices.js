@@ -7,6 +7,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { network_url } from '../Network/networkConfig';
 import { useReactToPrint } from 'react-to-print';
 import Logo from "../../assets/Logo Green.png";
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 
 const InvoiceManagement = () => {
@@ -178,7 +179,7 @@ const InvoiceTable = ({ invoices, showPayButton, markAsPaid, updatingInvoiceID, 
             <td>{invoice.invoiceID}</td>
             <td>{invoice.appointment.patient.patientID}</td>
             <td>{invoice.appointment.patient.firstName}</td>
-            <td>{invoice.appointment.doctor.firstName}</td>
+            <td>{formatDoctorName(invoice.appointment.doctor.firstName)}</td>
             <td>{invoice.amount}</td>
             <td>{invoice.totalPaid}</td>
             <td>
@@ -228,7 +229,7 @@ const PrintableInvoiceTable = React.forwardRef(({ invoices }, ref) => {
               <td>{invoice.invoiceID}</td>
               <td>{invoice.appointment.patient.patientID}</td>
               <td>{invoice.appointment.patient.firstName}</td>
-              <td>{invoice.appointment.doctor.firstName}</td>
+              <td>{formatDoctorName(invoice.appointment.doctor.firstName)}</td>
               <td>{invoice.amount}</td>
               <td>{invoice.totalPaid}</td>
             </tr>

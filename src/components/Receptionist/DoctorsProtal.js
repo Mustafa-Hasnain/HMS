@@ -14,6 +14,7 @@ import {
 } from 'react-accessible-accordion';
 import 'react-accessible-accordion/dist/fancy-example.css';
 import { network_url } from '../Network/networkConfig';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const DoctorPortal = () => {
   const [doctors, setDoctors] = useState([]);
@@ -166,7 +167,7 @@ const DoctorPortal = () => {
                 <tbody>
                   <tr>
                     <td>{doctor.doctorID}</td>
-                    <td>{`${doctor.firstName} ${doctor.lastName}`}</td>
+                    <td>{`${formatDoctorName(doctor.firstName)} ${doctor.lastName}`}</td>
                     <td>{doctor.specialty}</td>
                     <td>{doctor.emailID}</td>
                     <td>{doctor.mobileNumber}</td>

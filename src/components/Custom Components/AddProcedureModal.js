@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Form, Modal, Nav, Row, Tab } from "react-bootstrap";
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const AddProcedureModal = ({
     show,
@@ -166,7 +167,7 @@ const AddProcedureModal = ({
                                         <option value={0} disabled>Select a doctor...</option>
                                         {doctors.map((doctor) => (
                                             <option key={doctor.doctorID} value={doctor.doctorID}>
-                                                {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                             </option>
                                         ))}
                                     </Form.Control>
@@ -406,7 +407,7 @@ const AddProcedureModal = ({
                                             <option value={0} disabled>Select a doctor...</option>
                                             {doctors.map(doctor => (
                                                 <option key={doctor.doctorID} value={doctor.doctorID}>
-                                                    {doctor.firstName} {doctor.lastName} - ({doctor.specialty})
+                                                    {formatDoctorName(doctor.firstName)} {doctor.lastName} - ({doctor.specialty})
                                                 </option>
                                             ))}
                                         </Form.Control>

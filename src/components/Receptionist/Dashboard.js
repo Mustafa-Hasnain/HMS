@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRefreshContext } from '../../contexts/RefreshContext';
 import { useReactToPrint } from 'react-to-print';
 import { network_url } from '../Network/networkConfig';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true); // Loading state for all cards
@@ -73,12 +74,12 @@ const Dashboard = () => {
     //     newWindow.print();
     // };
 
-        const printRef = useRef();
+    const printRef = useRef();
 
-        const handlePrint = useReactToPrint({
-            content: () => printRef.current,
-            documentTitle: 'Todays Appointments'
-        });
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        documentTitle: 'Todays Appointments'
+    });
 
     const handleFilterByDoctor = (doctorName) => {
         setDoctorFilter(doctorName); // Update the dropdown title
@@ -171,7 +172,7 @@ const Dashboard = () => {
                         <Card.Header className="d-flex justify-content-between align-items-center !bg-white">
                             <h5 className="font-semibold text-lg">Appointment</h5>
                             <div className="d-flex gap-2">
-                                <Button variant="outline-success" onClick={() => {navigate('/receptionist/set-appointment')}}>
+                                <Button variant="outline-success" onClick={() => { navigate('/receptionist/set-appointment') }}>
                                     Add New Appointment
                                 </Button>
                                 <DropdownButton
@@ -216,7 +217,7 @@ const Dashboard = () => {
                                                 return (
                                                     <tr key={appointment.appointmentID}>
                                                         <td>{appointment.patient.firstName}</td>
-                                                        <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                                        <td>{formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}</td>
                                                         <td>
                                                             {!appointment.referredByDoctor ? (
                                                                 <Button
@@ -279,7 +280,7 @@ const Dashboard = () => {
                                                     return (
                                                         <tr key={appointment.appointmentID}>
                                                             <td>{appointment.patient.firstName}</td>
-                                                            <td>Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}</td>
+                                                            <td>{formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}</td>
                                                             <td>
                                                                 {!appointment.referredByDoctor ? (
                                                                     <Button

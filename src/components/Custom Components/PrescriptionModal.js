@@ -6,6 +6,7 @@ import { useReactToPrint } from 'react-to-print';
 import html2pdf from 'html2pdf.js';
 import { FaDownload, FaEnvelope } from 'react-icons/fa';
 import "../../styles/print_workbook.css";
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 
 const PrescriptionModal = ({
@@ -310,13 +311,13 @@ const PrescriptionModal = ({
                                         Signed By: {" "}
                                         {prescriptionDetails.doctor.firstName.startsWith("Dr.") ? (
                                             <span className="font-bold">
-                                                {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}
+                                                {formatDoctorName(prescriptionDetails.doctor.firstName)} {prescriptionDetails.doctor.lastName}
                                             </span>
                                         ) : (
                                             <>
 
                                                 <span className="font-bold">
-                                                    Dr. {prescriptionDetails.doctor.firstName} {prescriptionDetails.doctor.lastName}
+                                                    Dr. {formatDoctorName(prescriptionDetails.doctor.firstName)} {prescriptionDetails.doctor.lastName}
                                                 </span>
                                             </>
                                         )}

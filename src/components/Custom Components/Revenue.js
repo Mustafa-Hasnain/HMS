@@ -18,6 +18,7 @@ import {
 import 'react-accessible-accordion/dist/fancy-example.css';
 import { toast, ToastContainer } from "react-toastify";
 import { useDoctors } from "../../contexts/DoctorsContext";
+import { formatDoctorName } from "../utils/DoctorUtills";
 
 
 
@@ -218,7 +219,7 @@ const RevenueComponent = () => {
         setTotalClinicExpenses(clinicExpenses);
 
 
-        const profit = totals.totalClinicShare - (totalInventoryProfit + clinicExpenses);
+        const profit = (totals.totalClinicShare + totalInventoryProfit) - clinicExpenses;
         setTotalClinicProfit(profit);
       }
 
@@ -346,7 +347,7 @@ const RevenueComponent = () => {
                   {!loadingDoctors &&
                     doctors.map((doctor) => (
                       <option key={doctor.doctorID} value={doctor.doctorID}>
-                        {doctor.firstName} {doctor.lastName} - {doctor.specialty}
+                        {formatDoctorName(doctor.firstName)} {doctor.lastName} - {doctor.specialty}
                       </option>
                     ))
                   }
@@ -827,9 +828,9 @@ const RevenueComponent = () => {
                       </span>
                     </p>
                     <p className="text-[#00000080]">
-                      Total Inventory Amount: <br />
+                      Total Inventory Profit: <br />
                       <span className="text-2xl font-bold text-gray-900">
-                        Rs. {formatPrice(totalInventoryAmount.toFixed(0))}/-
+                        Rs. {formatPrice(totalInventoryProfit.toFixed(0))}/-
                       </span>
                     </p>
                     <p className="text-[#00000080]">
@@ -841,7 +842,7 @@ const RevenueComponent = () => {
                   </div>
                   <hr className="mt-2 mb-4 border-[#C0C0C0] border-2" />
                   <h4 className="text-lg font-semibold text-[#00000080]">
-                    Total Clinic Profit:
+                    Total Clinic Profit: <span className="text-sm">(Total Clinic Share earned from doctors + Total Profit from Inventory Items - Total Clinic Expenses)</span>
                     <br />
                     <span className="text-2xl font-bold text-green-600">
                       Rs. {formatPrice(totalClinicProfit.toFixed(0))}/-

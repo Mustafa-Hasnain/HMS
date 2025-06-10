@@ -7,6 +7,7 @@ import "../../styles/table.css";
 import { FaArrowLeft, FaEdit, FaEye } from "react-icons/fa";
 import { network_url } from "../Network/networkConfig";
 import PrescriptionModal from "./PrescriptionModal";
+import { formatDoctorName } from "../utils/DoctorUtills";
 
 const PatientDetails = () => {
     const { patient_id } = useParams(); // Get patient ID from the route params
@@ -250,7 +251,7 @@ const PatientDetails = () => {
                                     {sortedAppointments.map((appointment) => (
                                         <tr key={appointment.appointmentID}>
                                             <td>
-                                                {appointment.doctor.firstName} {appointment.doctor.lastName}
+                                                {formatDoctorName(appointment.doctor.firstName)} {appointment.doctor.lastName}
                                             </td>
                                             <td>
                                                 {new Date(appointment.appointmentDate).toLocaleDateString('en-US', {

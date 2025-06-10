@@ -7,6 +7,7 @@ import DoctorSchedule from '../Doctor/DoctorSchedules';
 import DoctorServices from './EditDoctorService';
 import { network_url } from '../Network/networkConfig';
 import ChangePasswordCard from './ChangePassword';
+import { formatDoctorName } from '../utils/DoctorUtills';
 
 const EditDoctorForm = () => {
     let { doctor_id } = useParams();
@@ -141,7 +142,7 @@ const EditDoctorForm = () => {
                                     <p className="text-[16px] font-medium leading-[22px]">
                                         <strong>First Name:</strong>
                                     </p>
-                                    <p className="text-[14px] text-gray-700">{doctor.firstName}</p>
+                                    <p className="text-[14px] text-gray-700">{formatDoctorName(doctor.firstName)}</p>
                                 </Col>
                                 <Col md={6}>
                                     <p className="text-[16px] font-medium leading-[22px]">
